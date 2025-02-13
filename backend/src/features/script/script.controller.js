@@ -5,11 +5,21 @@ import ScriptModel from "./script.schema.js";
 export const getAllURL = async (req, res) => {
     try {
         const results = await ScriptModel.find({}, "url");
-        const urls = results.map(result => result.url)
-        res.status(200).json({ success: true, urls })
+        const uniqueOrigins = new Set();
+
+        results.forEach(result => {
+            try {
+                const urlObj = new URL(result.url);
+                uniqueOrigins.add(urlObj.origin);
+            } catch (error) {
+                console.error(`Invalid URL: ${result.url}`, error);
+            }
+        });
+
+        return Array.from(uniqueOrigins);
     } catch (error) {
-        console.error("Error fetching urls:", error);
-        return res.status(500).json({ message: "Failed to retrieve url", });
+        console.error("Error fetching origins:", error);
+        return [];
     }
 }
 
