@@ -11,7 +11,7 @@ import { UAParser } from 'ua-parser-js';
 
 export const addData = async (req, res) => {
     try {
-        // console.log('Received data:', req.body);
+        console.log('Received data:', req.body);
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ message: "No data received in request body" });
         }
@@ -53,6 +53,8 @@ export const addData = async (req, res) => {
             geoLocation
         });
 
+        console.log(trackingEntry)
+
         await trackingEntry.save();
         // console.log("Data saved:", trackingEntry);
         res.status(200).json({ message: "Data received and stored successfully" });
@@ -67,6 +69,7 @@ export const addData = async (req, res) => {
 export const getAnalysis = async (req, res) => {
     try {
         const { type, userId, websiteName, startDate, endDate } = req.query;
+        console.log(req.query);
 
         if (!userId || !websiteName) {
             return res.status(400).json({ message: "userId and websiteName are required" });

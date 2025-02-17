@@ -1,5 +1,6 @@
 import axios from "axios";
 import ScriptModel from "./script.schema.js";
+import mongoose from "mongoose";
 
 
 export const getAllURL = async (req, res) => {
@@ -26,6 +27,8 @@ export const getAllURL = async (req, res) => {
 export const getUserScripts = async (req, res) => {
     try {
         const userId = req.userID;
+        console.log("getUserScript: ", userId);
+        // const userId = new mongoose.Types.ObjectId(req.userId)
 
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
@@ -41,7 +44,7 @@ export const getUserScripts = async (req, res) => {
         return res.status(200).json({ scripts: scripts, isPresent: true });
     } catch (error) {
         console.error("Error fetching scripts:", error);
-        return res.status(500).json({ message: "Failed to retrieve script data", isPresent: fasle });
+        return res.status(500).json({ message: "Failed to retrieve script data", isPresent: false });
     }
 };
 
@@ -76,8 +79,11 @@ export const generateScript = (req, res) => {
 
 export const verifyScriptInstallation = async (req, res) => {
     try {
-        const { url, websiteName } = req.body;
+        console.log("verify: ", req.body);
+        const { url, name } = req.body;
         const userId = req.userID;
+
+        const websiteName = name;
 
         console.log("verify :", req.body)
 
@@ -102,7 +108,7 @@ export const verifyScriptInstallation = async (req, res) => {
         const response = await axios.get(formattedURL, { timeout: 5000 });
         const htmlContent = response.data;
 
-        console.log("htmlContent:", htmlContent);
+        console.log("HTML Response:", htmlContent.slice(0, 500))
 
         const scriptRegex = new RegExp(
             `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']http://localhost:3000/js/tracker.js["'][^>]*>`,
