@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Globe, Copy, AlertCircle } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   generateScriptThunk,
   getScriptThunk,
   verifyScriptThunk,
 } from "../../features/script/scriptSlice";
+import { authData } from "../../features/user/userSlice";
 
 export default function WebsiteSetup() {
   const dispatch = useDispatch();
@@ -19,14 +20,18 @@ export default function WebsiteSetup() {
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState("");
 
-  dispatch(getScriptThunk())
-    .unwrap()
-    .then((response) => {
-      if (response?.isPresent == true) {
-        navigate("/dashboard");
-      }
-      console.log(response.isPresent);
-    });
+  // const userInfo = useSelector(authData);
+
+  // console.log("u: ", userInfo);
+
+  // dispatch(getScriptThunk())
+  //   .unwrap()
+  //   .then((response) => {
+  //     if (response?.isPresent == true) {
+  //       navigate("/dashboard");
+  //     }
+  //     console.log(response.isPresent);
+  //   });
 
   // This would be your unique tracking script
 
@@ -70,6 +75,7 @@ export default function WebsiteSetup() {
   const handleVerification = async () => {
     setIsVerifying(true);
     const formData = { url, name };
+    console.log("formData:", formData);
     dispatch(verifyScriptThunk(formData))
       .unwrap()
       .then((response) => {
@@ -87,6 +93,19 @@ export default function WebsiteSetup() {
         setError("Error generating script. Please try again.");
       });
   };
+
+  useEffect(() => {
+    if (isVerified) {
+      dispatch(getScriptThunk())
+        .unwrap()
+        .then((response) => {
+          if (response?.isPresent) {
+            navigate("/dashboard");
+          }
+        })
+        .catch(() => setError("Error fetching script."));
+    }
+  });
 
   if (isVerified) {
     return <Navigate to="/dashboard" replace />;

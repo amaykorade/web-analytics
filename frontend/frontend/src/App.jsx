@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import {
   BrowserRouter as Router,
@@ -17,15 +17,31 @@ import ReferralSources from "./components/ReferralSources";
 import WebsiteSetup from "./components/onboarding/WebsiteSetup";
 import LandingPage from "./components/LandingPage";
 import Location from "./components/Location";
+import { useSelector } from "react-redux";
+import { userData } from "./features/script/scriptSlice";
 
 function App() {
-  let isAuthenticated = false;
-  let hasWebsite = true;
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
 
-  const token = localStorage.getItem("token");
-  if (token) {
-    isAuthenticated = !isAuthenticated;
-  }
+  const scriptData = useSelector(userData);
+  console.log(scriptData);
+
+  console.log("isAuth: ", isAuthenticated);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAuthenticated(!!localStorage.getItem("token"));
+    };
+
+    window.addEventListener("storage", checkAuth); // Handle token updates across tabs
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
+  let hasWebsite = true;
 
   return (
     <>
