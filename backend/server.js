@@ -26,7 +26,8 @@ const __dirname = path.dirname(_filename);
 app.use(express.static(path.join(__dirname, 'public')));
 
 let allowedOrigins = [
-    // 'http://localhost:5173',
+    'http://localhost:5173',
+    'http://localhost:3001'
 ];
 
 // Dynamically fetch domains and update CORS

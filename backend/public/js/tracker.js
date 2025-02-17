@@ -28,7 +28,7 @@
                 body: JSON.stringify({
                     url: domain,
                     userId: websiteId,
-                    websiteName: websiteName
+                    name: websiteName
                 }),
             })
             if (!response.ok) throw new Error("Verification failed");
