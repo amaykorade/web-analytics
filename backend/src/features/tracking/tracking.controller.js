@@ -25,7 +25,6 @@ export const addData = async (req, res) => {
         // Get the client's IP address
         const ip =
             req.headers['x-forwarded-for']?.split(',')[0] ||
-            req.ip ||
             req.connection?.remoteAddress || // Legacy connection-based IP
             req.socket?.remoteAddress || // Modern connection-based IP
             req.connection?.socket?.remoteAddress || // Nested socket case
@@ -33,15 +32,20 @@ export const addData = async (req, res) => {
 
         console.log("Extracted IP:", ip);
 
+        const normalizedIp = ip === "::1" ? "127.0.0.1" : ip;
+
+        const isPrivateIp = (ip) => /^127\./.test(ip) || /^10\./.test(ip) || /^192\.168\./.test(ip) || ip === "::1";
+
+
         // Get geolocation based on IP
-        const geo = geoip.lookup(ip);
+        const geo = !isPrivateIp(normalizedIp) ? geoip.lookup(normalizedIp) : null;
         const geoLocation = geo ? {
             country: geo.country,
             region: geo.region,
             city: geo.city,
             latitude: geo.ll?.[0],
             longitude: geo.ll?.[1]
-        } : {};
+        } : { country: "Unknown", region: "Unknown", city: "Unknown" };
 
         // Save to database
         const trackingEntry = new TrackingModule({
@@ -223,7 +227,7 @@ export const getAnalysis = async (req, res) => {
 
         // Active Users
         const activeUsers = await TrackingModule.distinct("userId", {
-            userId: userObjectId,
+            // userId: userObjectId,
             websiteName,
             timestamp: { $gte: start, $lte: end },
         });
@@ -242,17 +246,21 @@ export const getAnalysis = async (req, res) => {
 
         const uniqueTrackingData = await TrackingModule.aggregate([
             { $match: matchQuery },
-            { $group: { _id: "$sessionId", userAgent: { $first: "$userAgent" } } },
+            { $group: { _id: "$userAgent" } }, // Group by userAgent instead of sessionId
+            { $match: { _id: { $ne: null } } } // Remove null userAgent values
         ]);
+
+        // console.log("Unique Tracking Data:", JSON.stringify(uniqueTrackingData, null, 2));
 
         const osCounts = {};
         const browserCounts = {};
         const deviceCounts = {};
 
         uniqueTrackingData.forEach((entry) => {
-            if (!entry.userAgent) return;
+            const userAgent = entry._id;
+            if (!userAgent) return;
 
-            const parser = new UAParser(entry.userAgent);
+            const parser = new UAParser(userAgent);
             const osName = parser.getOS().name || "Unknown";
             const browserName = parser.getBrowser().name || "Unknown";
             const deviceType = parser.getDevice().type || "Desktop";
@@ -278,6 +286,7 @@ export const getAnalysis = async (req, res) => {
             browser: getFormattedData(browserCounts),
             device: getFormattedData(deviceCounts),
         };
+
 
         // Top Pages Analytics ***********************************************
 

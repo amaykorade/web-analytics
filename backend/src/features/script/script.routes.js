@@ -10,7 +10,7 @@ ScriptRouter.get('/get-user-script', jwtAuth, getUserScripts);
 
 ScriptRouter.post('/generate-script', jwtAuth, generateScript);
 
-ScriptRouter.post('/verify-script', jwtAuth, verifyScriptInstallation);
+ScriptRouter.post('/verify-script', verifyScriptInstallation);
 
 
 export default ScriptRouter;
