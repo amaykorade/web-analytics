@@ -37,11 +37,7 @@ export const getUserScripts = async (req, res) => {
         // Fetch all scripts associated with the user
         const scripts = await ScriptModel.find({ userId });
 
-        if (scripts.length === 0) {
-            return res.status(404).json({ message: "No scripts found for this user" });
-        }
-
-        return res.status(200).json({ scripts: scripts, isPresent: true });
+        return res.status(200).json({ scripts, isPresent: scripts.length > 0 });
     } catch (error) {
         console.error("Error fetching scripts:", error);
         return res.status(500).json({ message: "Failed to retrieve script data", isPresent: false });
@@ -80,8 +76,8 @@ export const generateScript = (req, res) => {
 export const verifyScriptInstallation = async (req, res) => {
     try {
         console.log("verify: ", req.body);
-        const { url, name } = req.body;
-        const userId = req.userID;
+        const { url, name, userId } = req.body;
+        // const userId = req.userID;
 
         const websiteName = name;
 
