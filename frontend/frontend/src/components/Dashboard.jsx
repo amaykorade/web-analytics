@@ -69,8 +69,8 @@ export default function Dashboard() {
         const scriptData = response.scripts[0];
         setData((prevData) => ({
           ...prevData,
-          userID: scriptData.userId,
-          websiteName: scriptData.websiteName,
+          userID: scriptData?.userId,
+          websiteName: scriptData?.websiteName,
         }));
       })
 

@@ -19,6 +19,7 @@ import LandingPage from "./components/LandingPage";
 import Location from "./components/Location";
 import { useSelector } from "react-redux";
 import { userData } from "./features/script/scriptSlice";
+import PrivacyPolicy from "./components/PrivacyPolicy";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -67,6 +68,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/location" element={<Location />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route
             path="/setup"
             element={
