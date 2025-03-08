@@ -35,8 +35,8 @@
     const websiteId = scriptTag.getAttribute("data-website-id");
     const websiteName = scriptTag.getAttribute("website-name");
     const domain = scriptTag.getAttribute("data-domain");
-    const endpoint = "http://localhost:3000/api/data/track";
-    const verificationEndpoint = "http://localhost:3000/api/script/verify-script";
+    const endpoint = "http://13.233.59.3:3000/api/data/track";
+    const verificationEndpoint = "http://13.233.59.3:3000/api/script/verify-script";
 
     function setCookie(name, value, days) {
         const expires = new Date(Date.now() + days * 864e5).toUTCString();
