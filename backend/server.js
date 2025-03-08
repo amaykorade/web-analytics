@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 let allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3001',
-    'https://www.webmeter.in/',
+    'https://www.webmeter.in',
     'http://webmeter-frontend.s3-website.ap-south-1.amazonaws.com',
     // 'http://127.0.0.1:5500'
     // 'https://persona-website.onrender.com/',
