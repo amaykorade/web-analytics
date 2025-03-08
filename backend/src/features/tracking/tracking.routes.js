@@ -5,12 +5,16 @@ import jwtAuth from '../../middleware/jwt.middleware.js';
 const TrackingRouter = express.Router();
 
 
-TrackingRouter.post("/track", jwtAuth, addData);
+
+TrackingRouter.get("/", (req, res) => {
+    res.json({ message: 'Hello from API' });
+});
+
+TrackingRouter.post("/track", addData);
 
 TrackingRouter.get("/analytics/total-data", jwtAuth, getAnalysis);
 
 // TrackingRouter.get("/analytics/device-data", jwtAuth, getUserDeviceData);
-
 
 
 TrackingRouter.get("/analytics/referrals", jwtAuth, getReferralStats);

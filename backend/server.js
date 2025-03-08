@@ -13,7 +13,7 @@ import AuthRouter from './src/features/auth/auth.routes.js';
 import ScriptRouter from './src/features/script/script.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import ScriptModel from './src/features/script/script.schema.js';
+import { getAllURL } from './src/features/script/script.controller.js';
 
 dotenv.config();
 
@@ -25,27 +25,45 @@ const __dirname = path.dirname(_filename);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-// Middleware
-const allowedOrigins = [
+let allowedOrigins = [
     'http://localhost:5173',
-    // 'http://localhost:5500',
-    // 'http://127.0.0.1:5500',
-    // 'http://localhost',
-    // 'http://127.0.0.1',
+    'http://localhost:3001',
+    'https://www.webmeter.in/',
+    // 'http://127.0.0.1:5500'
+    // 'https://persona-website.onrender.com/',
 ];
+
+// Dynamically fetch domains and update CORS
+const updateAllowedOrigins = async () => {
+    try {
+        const result = await getAllURL();
+        if (Array.isArray(result)) {
+            allowedOrigins = [...new Set([...allowedOrigins, ...result])]; // Avoid duplicates
+            // console.log("Updated allowedOrigins:", allowedOrigins);
+        }
+    } catch (error) {
+        console.error("Error fetching allowed origins:", error);
+    }
+};
+
+// Middleware for CORS
+app.use(async (req, res, next) => {
+    if (!allowedOrigins.length || allowedOrigins.length === 1) {
+        await updateAllowedOrigins(); // Ensure latest origins are set
+    }
+    next();
+});
+
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow localhost:5500 and 127.0.0.1:5500 (and other variations)
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, origin);
         } else {
             callback(new Error("Not allowed by CORS"));
         }
     },
-    credentials: true, // Allow cookies to be sent
+    credentials: true,
 }));
-
 
 app.options('*', (req, res) => {
     const origin = req.headers.origin;
@@ -59,28 +77,20 @@ app.options('*', (req, res) => {
     return res.sendStatus(403);
 });
 
-
 // Middleware
-app.use(helmet()); // Security headers
-app.use(compression()); // Gzip compression
-// app.use(bodyParser.json()); // Parse JSON payloads
+app.use(helmet());
+app.use(compression());
 app.use(express.json());
-
 
 // Rate limit configuration
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowsMs
-    message: {
-        message: "Too many requests, please try again later."
-    },
-})
-
-
-// Apply rate limiting only to specific routes (tracking-related API)
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { message: "Too many requests, please try again later." },
+});
 app.use('/api/tracking', limiter);
 
-// Trust proxy to handle forwarded IPs (useful in production environments)
+// Trust proxy for forwarded IPs
 app.set('trust proxy', true);
 
 // New endpoint for validation
@@ -89,19 +99,25 @@ app.post('/api/track/validate', (req, res) => {
     if (!url) {
         return res.status(400).json({ success: false, message: "URL not provided." });
     }
-    // Log validation success
     console.log(`Validation check from: ${url}`);
     res.status(200).json({ success: true, message: "Script validation successful." });
 });
 
 // Routes
-app.use('/api/user', AuthRouter) // Authentication routes
-app.use('/api/data', TrackingRouter); // Tracking routes
-app.use('/api/script', ScriptRouter); // Script routes
+app.use('/api/user', AuthRouter);
+app.use('/api/data', TrackingRouter);
+app.use('/api/script', ScriptRouter);
 
+// Start server after connecting to DB
+(async () => {
+    try {
+        await connectUsingMongoose();
+        await updateAllowedOrigins(); // Fetch domains before starting server
 
-
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    connectUsingMongoose();
-})
+        app.listen(PORT, async () => {
+            console.log(`🚀 Server running on http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error("❌ Error starting the server:", error);
+    }
+})();

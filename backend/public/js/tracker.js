@@ -1,5 +1,4 @@
 (function () {
-    // Ensure the tracker doesn't load multiple times
     if (window.__TRACKER_LOADED__) return;
     window.__TRACKER_LOADED__ = true;
 
@@ -9,57 +8,63 @@
         return;
     }
 
+    function createConsentPopup() {
+        const consentDiv = document.createElement("div");
+        consentDiv.innerHTML = `
+            <div style="position: fixed; bottom: 10px; left: 10px; right: 10px; padding: 15px; background: white; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); border-radius: 5px; text-align: center;">
+                <p>This website uses cookies for analytics. Do you consent?</p>
+                <button id="consent-accept">Accept</button>
+                <button id="consent-decline">Decline</button>
+            </div>
+        `;
+        document.body.appendChild(consentDiv);
+
+        document.getElementById("consent-accept").addEventListener("click", () => {
+            document.cookie = "trackingConsent=true; path=/; max-age=" + 60 * 60 * 24 * 365; // 1 year
+            document.body.removeChild(consentDiv);
+            trackUserActivity(); // Start tracking after consent
+        });
+
+        document.getElementById("consent-decline").addEventListener("click", () => {
+            document.cookie = "trackingConsent=false; path=/; max-age=" + 60 * 60 * 24 * 365;
+            document.body.removeChild(consentDiv);
+        });
+    }
+
+
     const websiteId = scriptTag.getAttribute("data-website-id");
     const websiteName = scriptTag.getAttribute("website-name");
     const domain = scriptTag.getAttribute("data-domain");
     const endpoint = "http://localhost:3000/api/data/track";
     const verificationEndpoint = "http://localhost:3000/api/script/verify-script";
 
+    function setCookie(name, value, days) {
+        const expires = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+    }
 
-    // Check if the script is correctly installed
-    async function checkVerification() {
-        try {
-            const response = await fetch(verificationEndpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                },
-                body: JSON.stringify({
-                    url: domain,
-                    userId: websiteId,
-                    websiteName: websiteName
-                }),
-            })
-            if (!response.ok) throw new Error("Verification failed");
-            const result = await response.json();
-            return result.verified;
-        } catch (error) {
-            console.error("Verification failed:", error);
-            return false;
-        }
+    function getCookie(name) {
+        return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
     }
 
     function getVisitorId() {
         let visitorId = localStorage.getItem("visitor_id");
         if (!visitorId) {
-            visitorId = Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            visitorId = Math.random().toString(36).substring(2) + Date.now().toString(36);
             localStorage.setItem("visitor_id", visitorId);
         }
         return visitorId;
     }
 
-    async function startTracking() {
-        const isVerified = await checkVerification();
-        if (!isVerified) {
-            console.warn("Tracking disabled: Script is not verified on the website.");
-            return;
+    function getSessionId() {
+        let sessionId = sessionStorage.getItem("session_id");
+        if (!sessionId) {
+            sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+            sessionStorage.setItem("session_id", sessionId);
         }
-
-        trackUserActivity();
+        return sessionId;
     }
 
-    // Extract UTM parameters from URL
     function extractUTMParams() {
         const params = new URLSearchParams(window.location.search);
         return {
@@ -69,7 +74,6 @@
         };
     }
 
-    // Get user's geolocation using IP
     async function getGeoLocation() {
         try {
             const response = await fetch("https://ipapi.co/json/");
@@ -80,29 +84,22 @@
         }
     }
 
-    // Generate or retrieve session ID
-    function getSessionId() {
-        let sessionId = sessionStorage.getItem("session_id");
-        if (!sessionId) {
-            sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-            sessionStorage.setItem("session_id", sessionId);
-        }
-        return sessionId;
-    }
-
-    // Get devive info
     function getDeviceInfo() {
         const userAgent = navigator.userAgent.toLowerCase();
         let browser = "unknown";
-        let deviceType = "Desktop";
+        let deviceType = /mobile|android|iphone|ipad|tablet/i.test(userAgent) ? "Mobile" : "Desktop";
 
-        if (userAgent.includes("chrome")) browser = "Chrome";
-        else if (userAgent.includes("firefox")) browser = "Firefox";
-        else if (userAgent.includes("safari")) browser = "Safari";
-        else if (userAgent.includes("edge")) browser = "Edge";
-        else if (userAgent.includes("opera") || userAgent.includes("opr")) browser = "Opera";
-
-        if (/mobile|android|iphone|ipad|tablet/i.test(userAgent)) deviceType = "Mobile";
+        if (userAgent.includes("opr") || userAgent.includes("opera")) {
+            browser = "Opera";
+        } else if (userAgent.includes("edg")) {
+            browser = "Edge"; // Edge also uses Chromium
+        } else if (userAgent.includes("chrome") && !userAgent.includes("opr") && !userAgent.includes("edg")) {
+            browser = "Chrome";
+        } else if (userAgent.includes("firefox")) {
+            browser = "Firefox";
+        } else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
+            browser = "Safari";
+        }
 
         return { browser, deviceType };
     }
@@ -111,15 +108,11 @@
         data.visitorId = getVisitorId();
         data.userID = websiteId;
         data.websiteName = websiteName;
-        // console.log("Sending data:", data);
 
         try {
             await fetch(endpoint, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
-                },
+                headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify(data),
             });
@@ -128,7 +121,6 @@
         }
     }
 
-
     async function trackUserActivity() {
         const sessionId = getSessionId();
         const utmParams = extractUTMParams();
@@ -136,8 +128,6 @@
         const deviceInfo = getDeviceInfo();
         const entryPage = !sessionStorage.getItem("entryPage");
         sessionStorage.setItem("entryPage", "true");
-
-
 
         const pageVisitData = {
             type: "page_visit",
@@ -148,7 +138,7 @@
             utmCampaign: utmParams.utmCampaign,
             userAgent: navigator.userAgent,
             language: navigator.language,
-            platorm: navigator.platorm,
+            platform: navigator.platform,
             browser: deviceInfo.browser,
             deviceType: deviceInfo.deviceType,
             ip: geoData?.ip || null,
@@ -184,7 +174,6 @@
             sendData(clickData);
         });
 
-
         let lastScrollTime = 0;
         document.addEventListener("scroll", () => {
             const now = Date.now();
@@ -216,5 +205,10 @@
             sendData(sessionEndData);
         });
     }
-    startTracking();
+
+    if (getCookie("trackingConsent") === "true") {
+        trackUserActivity();
+    } else {
+        createConsentPopup();
+    }
 })();

@@ -26,9 +26,9 @@ export const generateScriptThunk = createAsyncThunk(
 )
 
 export const verifyScriptThunk = createAsyncThunk(
-    'script/verify-script', async (url, { rejectWithValue }) => {
+    'script/verify-script', async (formData, { rejectWithValue }) => {
         try {
-            const response = await verifyScriptInstallation(url);
+            const response = await verifyScriptInstallation(formData);
             return response;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || "Unknown error occurred");

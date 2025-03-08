@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BarChart3, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { Loginthunk } from "../../features/user/userSlice";
+import { getScriptThunk } from "../../features/script/scriptSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -10,25 +11,69 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [scriptPresent, setScriptPresent] = useState(false);
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const formData = { email, password };
+
+  //   try {
+  //     const response = await dispatch(Loginthunk(formData)).unwrap();
+
+  //     const scriptData = await dispatch(getScriptThunk()).unwrap();
+
+  //     if (scriptData?.isPresent == true) {
+  //       setScriptPresent(true);
+  //     }
+  //     console.log("scriptData:", scriptPresent);
+
+  //     console.log("response: ", response.token);
+
+  //     if (response.token) {
+  //       localStorage.setItem("token", response.token);
+  //       console.log("Navigating to /setup...");
+  //       navigate("/setup");
+  //     } else {
+  //       console.error("Failed to retrieve token from response");
+  //     }
+  //   } catch (err) {
+  //     console.error("Login failed:", err);
+  //     setError(err);
+  //   }
+
+  //   setEmail("");
+  //   setPassword("");
+  // };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = { email, password };
 
-    dispatch(Loginthunk(formData))
-      .unwrap()
-      .then((response) => {
-        if (response.token) {
-          localStorage.setItem("token", response.token);
-          navigate("/setup");
+    try {
+      const response = await dispatch(Loginthunk(formData)).unwrap();
+
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+        console.log("Token stored:", response.token);
+
+        // Fetch script presence status
+        const scriptData = await dispatch(getScriptThunk()).unwrap();
+        console.log("scriptData:", scriptData);
+
+        if (scriptData?.isPresent) {
+          console.log("Navigating to /dashboard...");
+          navigate("/dashboard");
         } else {
-          console.error("Failed to retrieve token from response");
+          console.log("Navigating to /setup...");
+          navigate("/setup");
         }
-      })
-      .catch((err) => {
-        console.error("Login failed:", err);
-        setError(err); // Set error message in state
-      });
+      } else {
+        console.error("Failed to retrieve token from response");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError(err);
+    }
 
     setEmail("");
     setPassword("");
