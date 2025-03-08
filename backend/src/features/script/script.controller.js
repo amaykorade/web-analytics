@@ -46,7 +46,7 @@ export const getUserScripts = async (req, res) => {
 
 
 
-export const generateScript = (req, res) => {
+export const generateScript = async (req, res) => {
     try {
         console.log(req.body);
         const { url, name } = req.body;
@@ -58,6 +58,8 @@ export const generateScript = (req, res) => {
             return res.status(400).json({ message: "Website URL and User ID are required" });
         }
 
+        const existingScript = await ScriptModel.findOne({ url, userId, websiteName: name });
+
         const script = ` <script 
         defer
         data-website-id="${userId}"
@@ -65,6 +67,13 @@ export const generateScript = (req, res) => {
         website-name="${name}"
         src="http://localhost:3000/js/tracker.js">
         </script> `
+
+        if (existingScript) {
+            return res.status(200).json({ script });
+        }
+
+        const newScript = new ScriptModel({ userId, url, websiteName: name });
+        await newScript.save();
 
         res.status(200).json({ script });
     } catch (error) {
@@ -92,7 +101,7 @@ export const verifyScriptInstallation = async (req, res) => {
         console.log(`Checking script on ${formattedURL} for ${websiteName}`);
 
         // Check for duplication
-        const existingScript = await ScriptModel.findOne({ url });
+        const existingScript = await ScriptModel.findOne({ url, websiteName: name, userId });
         if (existingScript) {
             return res.status(200).json({
                 message: "Script is already registered for this URL.",
@@ -120,8 +129,8 @@ export const verifyScriptInstallation = async (req, res) => {
         console.log(`Script Installed: ${isScriptInstalled}, Name Found: ${isNamePresent}`);
 
         if (isScriptInstalled && isNamePresent) {
-            const newScript = new ScriptModel({ userId, url, websiteName });
-            await newScript.save();
+            // const newScript = new ScriptModel({ userId, url, websiteName });
+            // await newScript.save();
 
             return res.status(200).json({
                 message: "Script and website name verified successfully",

@@ -5,9 +5,52 @@ import { format } from 'path';
 import dayjs from 'dayjs';
 import { UAParser } from 'ua-parser-js';
 
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json" assert { type: "json" };
 
 
+countries.registerLocale(enLocale);
 
+const getCountryName = (isoCode) => countries.getName(isoCode, "en") || isoCode;
+
+// Mapping for Indian states (you can extend this for other countries)
+const regionMapping = {
+    "MH": "Maharashtra",
+    "DL": "Delhi",
+    "KA": "Karnataka",
+    "TN": "Tamil Nadu",
+    "GJ": "Gujarat",
+    "RJ": "Rajasthan",
+    "UP": "Uttar Pradesh",
+    "WB": "West Bengal",
+    "MP": "Madhya Pradesh",
+    "AP": "Andhra Pradesh",
+    "KL": "Kerala",
+    "BR": "Bihar",
+    "PB": "Punjab",
+    "HR": "Haryana",
+    "OR": "Odisha",
+    "CG": "Chhattisgarh",
+    "UT": "Uttarakhand",
+    "JH": "Jharkhand",
+    "HP": "Himachal Pradesh",
+    "AS": "Assam",
+    "JK": "Jammu and Kashmir",
+    "GA": "Goa",
+    "TR": "Tripura",
+    "MN": "Manipur",
+    "ML": "Meghalaya",
+    "NL": "Nagaland",
+    "AR": "Arunachal Pradesh",
+    "MZ": "Mizoram",
+    "SK": "Sikkim",
+    "AN": "Andaman and Nicobar Islands",
+    "CH": "Chandigarh",
+    "DN": "Dadra and Nagar Haveli and Daman and Diu",
+    "LD": "Lakshadweep",
+    "PY": "Puducherry",
+    "TG": "Telangana"
+};
 
 export const addData = async (req, res) => {
     try {
@@ -23,16 +66,16 @@ export const addData = async (req, res) => {
 
 
         // Get the client's IP address
-        const ip =
+        const ip = req.headers['cf-connecting-ip'] ||  // Cloudflare
+            req.headers['x-real-ip'] ||        // Nginx
             req.headers['x-forwarded-for']?.split(',')[0] ||
-            req.connection?.remoteAddress || // Legacy connection-based IP
-            req.socket?.remoteAddress || // Modern connection-based IP
-            req.connection?.socket?.remoteAddress || // Nested socket case
-            '127.0.0.1'; // Default to localhost
+            req.socket?.remoteAddress ||
+            req.connection?.remoteAddress ||
+            '127.0.0.1';
 
-        console.log("Extracted IP:", ip);
+        const normalizedIp = ip === '::1' || ip === '127.0.0.1' ? '58.84.60.25' : ip;  // Default to external IP for testing
 
-        const normalizedIp = ip === "::1" ? "127.0.0.1" : ip;
+        console.log("Extracted IP:", normalizedIp);
 
         const isPrivateIp = (ip) => /^127\./.test(ip) || /^10\./.test(ip) || /^192\.168\./.test(ip) || ip === "::1";
 
@@ -40,11 +83,11 @@ export const addData = async (req, res) => {
         // Get geolocation based on IP
         const geo = !isPrivateIp(normalizedIp) ? geoip.lookup(normalizedIp) : null;
         const geoLocation = geo ? {
-            country: geo.country,
-            region: geo.region,
-            city: geo.city,
-            latitude: geo.ll?.[0],
-            longitude: geo.ll?.[1]
+            country: getCountryName(geo.country) || "Unknown",
+            region: regionMapping[geo.region] || geo.region || "Unknown",
+            city: geo.city || "Unknown",
+            latitude: geo.ll ? geo.ll[0] : null,
+            longitude: geo.ll ? geo.ll[1] : null
         } : { country: "Unknown", region: "Unknown", city: "Unknown" };
 
         // Save to database
@@ -53,7 +96,7 @@ export const addData = async (req, res) => {
             userId: userID,
             visitorId,
             sessionId,
-            ip,
+            ip: normalizedIp,
             geoLocation
         });
 
@@ -70,197 +113,427 @@ export const addData = async (req, res) => {
 
 
 
+// export const getAnalysis = async (req, res) => {
+//     try {
+//         const { type, userId, websiteName, startDate, endDate } = req.query;
+//         console.log(req.query);
+
+//         if (!userId || !websiteName) {
+//             return res.status(400).json({ message: "userId and websiteName are required" });
+//         }
+
+//         // Ensure the userId is a valid ObjectId
+//         const userObjectId = mongoose.Types.ObjectId.isValid(userId)
+//             ? new mongoose.Types.ObjectId(userId)
+//             : null;
+
+//         if (!userObjectId) {
+//             return res.status(400).json({ message: "Invalid userId format." });
+//         }
+
+//         // Default date range: Today (Start & End of the current day)
+//         const today = dayjs().startOf("day").toDate();
+//         const now = dayjs().endOf("day").toDate();
+
+//         const start = startDate ? new Date(startDate) : today;
+//         let end = endDate ? new Date(endDate) : now;
+
+//         end.setHours(23, 59, 59, 999);
+
+//         // Initialize response object
+//         const response = {};
+
+//         // ********** Total Visitors ***********************
+//         const totalVisitors = await TrackingModule.distinct("visitorId", {
+//             userId,
+//             websiteName,
+//             timestamp: { $gte: start, $lte: end },
+//         });
+
+//         response.totalVisitors = {
+//             count: totalVisitors.length,
+//         };
+
+//         // ******************** Unique Click Rate
+
+//         // Count unique visitors by session
+//         const uniqueClickVisitors = await TrackingModule.aggregate([
+//             { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
+//             { $group: { _id: "$sessionId" } },
+//         ]);
+
+//         // console.log("uniqueClickVisitors: ", uniqueClickVisitors)
+
+//         // console.log("Start Time:", start);
+//         // console.log("End Time:", end);
+
+//         const totalUniqueClickVisitors = uniqueClickVisitors.length;
+
+//         // Count unique clicks by session
+//         const uniqueClicks = await TrackingModule.aggregate([
+//             { $match: { userId: userObjectId, websiteName, type: "click", timestamp: { $gte: start, $lte: end } } },
+//             { $group: { _id: "$sessionId" } },
+//         ]);
+
+//         // console.log("uniqueClicks: ", uniqueClicks)
+
+
+//         const totalUniqueClicks = uniqueClicks.length;
+
+//         const clickRate = totalUniqueClickVisitors
+//             ? ((totalUniqueClicks / totalUniqueClickVisitors) * 100).toFixed(2)
+//             : 0;
+
+//         response.clickRate = {
+//             rate: `${clickRate}%`,
+//             totalClicks: totalUniqueClicks,
+//         };
+
+//         // Bounce Rate
+
+//         const bouncedSessions = await TrackingModule.aggregate([
+//             {
+//                 $match: {
+//                     userId: userObjectId,
+//                     websiteName,
+//                     timestamp: { $gte: start, $lte: end }
+//                 }
+//             },
+//             {
+//                 $group: {
+//                     _id: "$sessionId",
+//                     pagesVisited: { $sum: 1 }
+//                 }
+//             },
+//             {
+//                 $match: { pagesVisited: 1 }
+//             }, // Only sessions with one page view
+//         ]);
+
+//         // Total sessions (not visitors)
+//         const totalSessions = await TrackingModule.aggregate([
+//             {
+//                 $match: {
+//                     userId: userObjectId,
+//                     websiteName,
+//                     timestamp: { $gte: start, $lte: end }
+//                 }
+//             },
+//             {
+//                 $group: {
+//                     _id: "$sessionId",
+//                 }
+//             } // Group by sessionId to count total sessions
+//         ]);
+
+//         const bounceRate = totalSessions.length
+//             ? ((bouncedSessions.length / totalSessions.length) * 100).toFixed(2)
+//             : 0;
+
+//         response.bounceRate = {
+//             rate: `${bounceRate}%`,
+//             bouncedSessions: bouncedSessions.length,
+//         };
+
+//         // Conversion Rate **************************************
+
+//         const conversionQuery = { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } };
+
+//         // Fetch unique visitors by session
+//         const uniqueVisitorsBySession = await TrackingModule.aggregate([
+//             { $match: conversionQuery },
+//             { $group: { _id: "$sessionId" } },
+//         ]);
+
+//         // Fetch unique conversions by session
+//         const conversions = await TrackingModule.aggregate([
+//             { $match: { ...conversionQuery, type: "conversion" } },
+//             { $group: { _id: "$sessionId" } },
+//         ]);
+
+//         const conversionRate = uniqueVisitorsBySession.length
+//             ? ((conversions.length / uniqueVisitorsBySession.length) * 100).toFixed(2)
+//             : 0;
+
+//         // Segment conversions by traffic source
+//         const conversionBySource = await TrackingModule.aggregate([
+//             { $match: { ...conversionQuery, type: "conversion" } },
+//             { $group: { _id: "$trafficSource", count: { $sum: 1 } } },
+//             { $project: { source: "$_id", conversions: "$count", _id: 0 } },
+//         ]);
+
+//         response.conversionRate = {
+//             rate: `${conversionRate}%`,
+//             totalConversions: conversions.length,
+//             conversionBySource,
+//         };
+
+//         // Active Users
+//         const activeUsers = await TrackingModule.distinct("userId", {
+//             // userId: userObjectId,
+//             websiteName,
+//             timestamp: { $gte: start, $lte: end },
+//         });
+
+//         response.activeUsers = {
+//             count: activeUsers.length,
+//         };
+
+//         // Device Data (OS, Browser, Device) ************************************
+
+//         const matchQuery = {
+//             userId: userObjectId,
+//             websiteName: { $regex: websiteName, $options: "i" },
+//             timestamp: { $gte: start, $lte: end },
+//         };
+
+//         const uniqueTrackingData = await TrackingModule.aggregate([
+//             { $match: matchQuery },
+//             { $group: { _id: "$userAgent" } }, // Group by userAgent instead of sessionId
+//             { $match: { _id: { $ne: null } } } // Remove null userAgent values
+//         ]);
+
+//         // console.log("Unique Tracking Data:", JSON.stringify(uniqueTrackingData, null, 2));
+
+//         const osCounts = {};
+//         const browserCounts = {};
+//         const deviceCounts = {};
+
+//         uniqueTrackingData.forEach((entry) => {
+//             const userAgent = entry._id;
+//             if (!userAgent) return;
+
+//             const parser = new UAParser(userAgent);
+//             const osName = parser.getOS().name || "Unknown";
+//             const browserName = parser.getBrowser().name || "Unknown";
+//             const deviceType = parser.getDevice().type || "Desktop";
+
+//             osCounts[osName] = (osCounts[osName] || 0) + 1;
+//             browserCounts[browserName] = (browserCounts[browserName] || 0) + 1;
+//             deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
+//         });
+
+//         const totalUsers = uniqueTrackingData.length;
+
+//         const getFormattedData = (data) =>
+//             Object.keys(data)
+//                 .filter((key) => key !== "Unknown") // Remove Unknown data
+//                 .map((key) => ({
+//                     name: key,
+//                     count: data[key],
+//                     percentage: ((data[key] / totalUsers) * 100).toFixed(2),
+//                 }));
+
+//         response.devices = {
+//             os: getFormattedData(osCounts),
+//             browser: getFormattedData(browserCounts),
+//             device: getFormattedData(deviceCounts),
+//         };
+
+
+//         // Top Pages Analytics ***********************************************
+
+//         const pageStats = await TrackingModule.aggregate([
+//             { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
+//             {
+//                 $group: {
+//                     _id: "$url",
+//                     views: { $sum: 1 },
+//                     avgTimeSpent: { $avg: "$timeSpent" },
+//                     sessionIds: { $addToSet: "$sessionId" },
+//                     visitorIds: { $addToSet: "$visitorId" }  // Track unique visitors per page
+//                 }
+//             },
+//             { $sort: { views: -1 } },
+//             { $limit: 10 },
+//             {
+//                 $project: {
+//                     url: "$_id",
+//                     views: 1,
+//                     avgTimeSpent: { $round: ["$avgTimeSpent", 2] },
+//                     sessionIds: 1,
+//                     visitorIds: 1, // Include visitorIds in the result
+//                     _id: 0
+//                 }
+//             },
+//         ]);
+
+//         for (let i = 0; i < pageStats.length; i++) {
+//             const page = pageStats[i];
+
+//             // Check for bounced sessions for each page (considering only unique visitors per page)
+//             const bouncedSessions = await TrackingModule.aggregate([
+//                 { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end }, url: page.url } },
+//                 { $group: { _id: "$sessionId", pagesVisited: { $sum: 1 } } },
+//                 { $match: { pagesVisited: 1 } }, // Bounced if only 1 page visited in the session
+//             ]);
+
+//             // Bounce rate calculation based on unique sessions (considering visitorId as well)
+//             const bounceRate = page.sessionIds.length
+//                 ? ((bouncedSessions.length / page.sessionIds.length) * 100).toFixed(2)
+//                 : 0;
+
+//             page.bounceRate = {
+//                 rate: `${bounceRate}%`,
+//                 bouncedSessions: bouncedSessions.length,
+//             };
+//         }
+
+//         response.topPages = pageStats.length > 0 ? pageStats : [];
+
+
+//         // Locations (Countries, States, Cities)  ******************************
+//         const locationData = await TrackingModule.aggregate([
+//             { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
+//             { $group: { _id: { country: "$country", state: "$state", city: "$city" }, count: { $sum: 1 } } },
+//             { $project: { country: "$_id.country", state: "$_id.state", city: "$_id.city", count: 1, _id: 0 } },
+//         ]);
+
+//         const totalLocationVisitors = locationData.reduce((acc, item) => acc + item.count, 0);
+
+//         const locationFormattedData = locationData.map((location) => ({
+//             country: location.country,
+//             state: location.state,
+//             city: location.city,
+//             count: location.count,
+//             percentage: ((location.count / totalLocationVisitors) * 100).toFixed(2),
+//         }));
+
+//         response.locationData = locationFormattedData;
+
+//         res.status(200).json(response);
+
+//     } catch (error) {
+//         console.error("Error fetching analytics:", error);
+//         res.status(500).json({ message: "Internal server error" });
+//     }
+// };
+
+
 export const getAnalysis = async (req, res) => {
     try {
         const { type, userId, websiteName, startDate, endDate } = req.query;
-        console.log(req.query);
 
         if (!userId || !websiteName) {
             return res.status(400).json({ message: "userId and websiteName are required" });
         }
 
-        // Ensure the userId is a valid ObjectId
-        const userObjectId = mongoose.Types.ObjectId.isValid(userId)
-            ? new mongoose.Types.ObjectId(userId)
-            : null;
-
-        if (!userObjectId) {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: "Invalid userId format." });
         }
 
-        // Default date range: Today (Start & End of the current day)
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
+        // Date range validation
         const today = dayjs().startOf("day").toDate();
         const now = dayjs().endOf("day").toDate();
 
-        const start = startDate ? new Date(startDate) : today;
-        let end = endDate ? new Date(endDate) : now;
+        const start = startDate && dayjs(startDate).isValid() ? new Date(startDate) : today;
+        const end = endDate && dayjs(endDate).isValid() ? new Date(endDate) : now;
 
-        end.setHours(23, 59, 59, 999);
+        end.setHours(23, 59, 59, 999); // Ensure the end date includes the full day
 
-        // Initialize response object
+        // Calculate the previous date range for comparison
+        const previousStart = dayjs(start).subtract(dayjs(end).diff(start, 'day') + 1, 'day').toDate();
+        const previousEnd = dayjs(start).subtract(1, 'day').endOf("day").toDate();
+
+        const calculatePercentageChange = (current, previous) => {
+            if (previous === 0) return "N/A vs last period";
+            const change = (((current - previous) / previous) * 100).toFixed(2);
+            return `${change > 0 ? "+" : ""}${change}% vs last period`;
+        };
+
         const response = {};
 
-        // ********** Total Visitors ***********************
-        const totalVisitors = await TrackingModule.distinct("visitorId", {
-            userId,
-            websiteName,
-            timestamp: { $gte: start, $lte: end },
-        });
-
-        response.totalVisitors = {
-            count: totalVisitors.length,
-        };
-
-        // ******************** Unique Click Rate
-
-        // Count unique visitors by session
-        const uniqueClickVisitors = await TrackingModule.aggregate([
-            { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
-            { $group: { _id: "$sessionId" } },
-        ]);
-
-        // console.log("uniqueClickVisitors: ", uniqueClickVisitors)
-
-        // console.log("Start Time:", start);
-        // console.log("End Time:", end);
-
-        const totalUniqueClickVisitors = uniqueClickVisitors.length;
-
-        // Count unique clicks by session
-        const uniqueClicks = await TrackingModule.aggregate([
-            { $match: { userId: userObjectId, websiteName, type: "click", timestamp: { $gte: start, $lte: end } } },
-            { $group: { _id: "$sessionId" } },
-        ]);
-
-        // console.log("uniqueClicks: ", uniqueClicks)
-
-
-        const totalUniqueClicks = uniqueClicks.length;
-
-        const clickRate = totalUniqueClickVisitors
-            ? ((totalUniqueClicks / totalUniqueClickVisitors) * 100).toFixed(2)
-            : 0;
-
-        response.clickRate = {
-            rate: `${clickRate}%`,
-            totalClicks: totalUniqueClicks,
-        };
-
-        // Bounce Rate
-
-        const bouncedSessions = await TrackingModule.aggregate([
-            {
-                $match: {
-                    userId: userObjectId,
-                    websiteName,
-                    timestamp: { $gte: start, $lte: end }
-                }
-            },
-            {
-                $group: {
-                    _id: "$sessionId",
-                    pagesVisited: { $sum: 1 }
-                }
-            },
-            {
-                $match: { pagesVisited: 1 }
-            }, // Only sessions with one page view
-        ]);
-
-        // Total sessions (not visitors)
-        const totalSessions = await TrackingModule.aggregate([
-            {
-                $match: {
-                    userId: userObjectId,
-                    websiteName,
-                    timestamp: { $gte: start, $lte: end }
-                }
-            },
-            {
-                $group: {
-                    _id: "$sessionId",
-                }
-            } // Group by sessionId to count total sessions
-        ]);
-
-        const bounceRate = totalSessions.length
-            ? ((bouncedSessions.length / totalSessions.length) * 100).toFixed(2)
-            : 0;
-
-        response.bounceRate = {
-            rate: `${bounceRate}%`,
-            bouncedSessions: bouncedSessions.length,
-        };
-
-        // Conversion Rate **************************************
-
-        const conversionQuery = { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } };
-
-        // Fetch unique visitors by session
-        const uniqueVisitorsBySession = await TrackingModule.aggregate([
-            { $match: conversionQuery },
-            { $group: { _id: "$sessionId" } },
-        ]);
-
-        // Fetch unique conversions by session
-        const conversions = await TrackingModule.aggregate([
-            { $match: { ...conversionQuery, type: "conversion" } },
-            { $group: { _id: "$sessionId" } },
-        ]);
-
-        const conversionRate = uniqueVisitorsBySession.length
-            ? ((conversions.length / uniqueVisitorsBySession.length) * 100).toFixed(2)
-            : 0;
-
-        // Segment conversions by traffic source
-        const conversionBySource = await TrackingModule.aggregate([
-            { $match: { ...conversionQuery, type: "conversion" } },
-            { $group: { _id: "$trafficSource", count: { $sum: 1 } } },
-            { $project: { source: "$_id", conversions: "$count", _id: 0 } },
-        ]);
-
-        response.conversionRate = {
-            rate: `${conversionRate}%`,
-            totalConversions: conversions.length,
-            conversionBySource,
-        };
-
-        // Active Users
-        const activeUsers = await TrackingModule.distinct("userId", {
-            // userId: userObjectId,
-            websiteName,
-            timestamp: { $gte: start, $lte: end },
-        });
-
-        response.activeUsers = {
-            count: activeUsers.length,
-        };
-
-        // Device Data (OS, Browser, Device) ************************************
-
-        const matchQuery = {
+        // **1. Fetch Total Visitors**
+        const currentVisitors = await TrackingModule.distinct("visitorId", {
             userId: userObjectId,
-            websiteName: { $regex: websiteName, $options: "i" },
+            websiteName,
             timestamp: { $gte: start, $lte: end },
+        });
+        const previousVisitors = await TrackingModule.distinct("visitorId", {
+            userId: userObjectId,
+            websiteName,
+            timestamp: { $gte: previousStart, $lte: previousEnd },
+        })
+
+        response.totalVisitors = { count: currentVisitors.length, change: calculatePercentageChange(currentVisitors.length, previousVisitors.length) };
+
+        // **2. Unique Click Rate**
+        const getSessionData = async (rangeStart, rangeEnd) => {
+            return await TrackingModule.aggregate([
+                { $match: { userId: userObjectId, websiteName, timestamp: { $gte: rangeStart, $lte: rangeEnd } } },
+                { $group: { _id: "$sessionId", isClick: { $max: { $cond: [{ $eq: ["$type", "click"] }, 1, 0] } } } }
+            ]);
         };
 
-        const uniqueTrackingData = await TrackingModule.aggregate([
-            { $match: matchQuery },
-            { $group: { _id: "$userAgent" } }, // Group by userAgent instead of sessionId
-            { $match: { _id: { $ne: null } } } // Remove null userAgent values
+        const currentSessionData = await getSessionData(start, end);
+        const previousSessionData = await getSessionData(previousStart, previousEnd);
+
+        const getClickRate = (sessionData) => {
+            const totalUniqueClickVisitors = sessionData.length;
+            const totalUniqueClicks = sessionData.filter((s) => s.isClick).length;
+            return totalUniqueClickVisitors ? ((totalUniqueClicks / totalUniqueClickVisitors) * 100).toFixed(2) : 0;
+        };
+
+        const currentClickRate = getClickRate(currentSessionData);
+        const previousClickRate = getClickRate(previousSessionData);
+        response.clickRate = { rate: `${currentClickRate}%`, change: calculatePercentageChange(currentClickRate, previousClickRate) };
+
+        // **3. Bounce Rate**
+        const getBounceSessions = async (rangeStart, rangeEnd) => {
+            return await TrackingModule.aggregate([
+                { $match: { userId: userObjectId, websiteName, timestamp: { $gte: rangeStart, $lte: rangeEnd } } },
+                { $group: { _id: "$sessionId", pageViews: { $sum: 1 } } },
+                { $match: { pageViews: 1 } },
+            ]);
+        };
+
+        const currentBouncedSessions = await getBounceSessions(start, end);
+        const previousBouncedSessions = await getBounceSessions(previousStart, previousEnd);
+        const totalSessions = currentSessionData.length;
+        const previousTotalSessions = previousSessionData.length;
+
+        const getBounceRate = (bounced, total) => total ? ((bounced.length / total) * 100).toFixed(2) : 0;
+        const currentBounceRate = getBounceRate(currentBouncedSessions, totalSessions);
+        const previousBounceRate = getBounceRate(previousBouncedSessions, previousTotalSessions);
+        response.bounceRate = { rate: `${currentBounceRate}%`, change: calculatePercentageChange(currentBounceRate, previousBounceRate) };
+
+
+        // **4. Conversion Rate**
+        const getConversionData = async (rangeStart, rangeEnd) => {
+            return await TrackingModule.aggregate([
+                { $match: { userId: userObjectId, websiteName, timestamp: { $gte: rangeStart, $lte: rangeEnd } } },
+                { $group: { _id: "$sessionId", isConversion: { $max: { $cond: [{ $eq: ["$type", "conversion"] }, 1, 0] } } } }
+            ]);
+        };
+
+        const currentConversions = await getConversionData(start, end);
+        const previousConversions = await getConversionData(previousStart, previousEnd);
+        const totalConversions = currentConversions.filter((c) => c.isConversion).length;
+        const previousTotalConversions = previousConversions.filter((c) => c.isConversion).length;
+
+        const getConversionRate = (conversions, total) => total ? ((conversions / total) * 100).toFixed(2) : 0;
+        const currentConversionRate = getConversionRate(totalConversions, totalSessions);
+        const previousConversionRate = getConversionRate(previousTotalConversions, previousTotalSessions);
+        response.conversionRate = { rate: `${currentConversionRate}%`, change: calculatePercentageChange(currentConversionRate, previousConversionRate) };
+
+        // **5. Active Users**
+        const currentActiveUsers = await TrackingModule.distinct("userId", { websiteName, timestamp: { $gte: start, $lte: end } });
+        const previousActiveUsers = await TrackingModule.distinct("userId", { websiteName, timestamp: { $gte: previousStart, $lte: previousEnd } });
+        response.activeUsers = { count: currentActiveUsers.length, change: calculatePercentageChange(currentActiveUsers.length, previousActiveUsers.length) };
+
+
+        // **6. Device Data**
+        const deviceData = await TrackingModule.aggregate([
+            { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
+            { $group: { _id: "$userAgent" } },
+            { $match: { _id: { $ne: null } } },
         ]);
 
-        // console.log("Unique Tracking Data:", JSON.stringify(uniqueTrackingData, null, 2));
-
-        const osCounts = {};
-        const browserCounts = {};
-        const deviceCounts = {};
-
-        uniqueTrackingData.forEach((entry) => {
-            const userAgent = entry._id;
-            if (!userAgent) return;
-
-            const parser = new UAParser(userAgent);
+        const osCounts = {}, browserCounts = {}, deviceCounts = {};
+        deviceData.forEach(({ _id }) => {
+            const parser = new UAParser(_id);
             const osName = parser.getOS().name || "Unknown";
             const browserName = parser.getBrowser().name || "Unknown";
             const deviceType = parser.getDevice().type || "Desktop";
@@ -270,26 +543,13 @@ export const getAnalysis = async (req, res) => {
             deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
         });
 
-        const totalUsers = uniqueTrackingData.length;
+        const getFormattedData = (data) => Object.keys(data)
+            .filter((key) => key !== "Unknown")
+            .map((key) => ({ name: key, count: data[key], percentage: ((data[key] / deviceData.length) * 100).toFixed(2) }));
 
-        const getFormattedData = (data) =>
-            Object.keys(data)
-                .filter((key) => key !== "Unknown") // Remove Unknown data
-                .map((key) => ({
-                    name: key,
-                    count: data[key],
-                    percentage: ((data[key] / totalUsers) * 100).toFixed(2),
-                }));
+        response.devices = { os: getFormattedData(osCounts), browser: getFormattedData(browserCounts), device: getFormattedData(deviceCounts) };
 
-        response.devices = {
-            os: getFormattedData(osCounts),
-            browser: getFormattedData(browserCounts),
-            device: getFormattedData(deviceCounts),
-        };
-
-
-        // Top Pages Analytics ***********************************************
-
+        // **7. Top Pages**
         const pageStats = await TrackingModule.aggregate([
             { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
             {
@@ -297,8 +557,7 @@ export const getAnalysis = async (req, res) => {
                     _id: "$url",
                     views: { $sum: 1 },
                     avgTimeSpent: { $avg: "$timeSpent" },
-                    sessionIds: { $addToSet: "$sessionId" },
-                    visitorIds: { $addToSet: "$visitorId" }  // Track unique visitors per page
+                    sessions: { $addToSet: "$sessionId" }
                 }
             },
             { $sort: { views: -1 } },
@@ -308,61 +567,217 @@ export const getAnalysis = async (req, res) => {
                     url: "$_id",
                     views: 1,
                     avgTimeSpent: { $round: ["$avgTimeSpent", 2] },
-                    sessionIds: 1,
-                    visitorIds: 1, // Include visitorIds in the result
+                    sessionCount: { $size: "$sessions" },
+                    sessions: 1, // ✅ Keep `sessions` for further use
                     _id: 0
                 }
             },
         ]);
 
-        for (let i = 0; i < pageStats.length; i++) {
-            const page = pageStats[i];
+        // Ensure bouncedSessions is defined
 
-            // Check for bounced sessions for each page (considering only unique visitors per page)
-            const bouncedSessions = await TrackingModule.aggregate([
-                { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end }, url: page.url } },
-                { $group: { _id: "$sessionId", pagesVisited: { $sum: 1 } } },
-                { $match: { pagesVisited: 1 } }, // Bounced if only 1 page visited in the session
-            ]);
+        const validBouncedSessions = Array.isArray(currentBouncedSessions) ? currentBouncedSessions : [];
 
-            // Bounce rate calculation based on unique sessions (considering visitorId as well)
-            const bounceRate = page.sessionIds.length
-                ? ((bouncedSessions.length / page.sessionIds.length) * 100).toFixed(2)
-                : 0;
+        pageStats.forEach((page) => {
+            if (!page.sessions) page.sessions = []; // ✅ Ensure `sessions` exists
 
-            page.bounceRate = {
-                rate: `${bounceRate}%`,
-                bouncedSessions: bouncedSessions.length,
-            };
-        }
+            const bouncedCount = validBouncedSessions.filter((s) => page.sessions.includes(s._id)).length;
+            page.bounceRate = `${((bouncedCount / (page.sessionCount || 1)) * 100).toFixed(2)}%`; // ✅ Prevent division by zero
+        });
 
-        response.topPages = pageStats.length > 0 ? pageStats : [];
+        response.topPages = pageStats;
 
 
-        // Locations (Countries, States, Cities)  ******************************
-        const locationData = await TrackingModule.aggregate([
+        // Referral Source Analysis
+        const searchEngines = ["google.com", "bing.com", "yahoo.com", "duckduckgo.com", "baidu.com"];
+        const socialMedia = ["facebook.com", "twitter.com", "linkedin.com", "instagram.com", "reddit.com"];
+
+        const categorizeReferrer = (referrer) => {
+            if (!referrer || referrer === "direct" || referrer.trim() === "") return "direct";
+            if (searchEngines.some(se => referrer.includes(se))) return "search";
+            if (socialMedia.some(sm => referrer.includes(sm))) return "social";
+            return "other"; // Other external sources
+        };
+
+        let referralStats = await TrackingModule.aggregate([
             { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
-            { $group: { _id: { country: "$country", state: "$state", city: "$city" }, count: { $sum: 1 } } },
-            { $project: { country: "$_id.country", state: "$_id.state", city: "$_id.city", count: 1, _id: 0 } },
+            {
+                $group: {
+                    _id: "$referrer",
+                    totalVisitors: { $addToSet: "$visitorId" },
+                    totalConversions: { $sum: { $cond: [{ $eq: ["$type", "conversion"] }, 1, 0] } },
+                    totalVisits: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    referrer: { $ifNull: ["$_id", "direct"] },
+                    visitors: { $size: "$totalVisitors" },
+                    conversions: "$totalConversions",
+                    visits: "$totalVisits",
+                    category: { $literal: "" }, // Placeholder for category
+                    _id: 0
+                }
+            },
+            { $sort: { visits: -1 } }
         ]);
 
-        const totalLocationVisitors = locationData.reduce((acc, item) => acc + item.count, 0);
-
-        const locationFormattedData = locationData.map((location) => ({
-            country: location.country,
-            state: location.state,
-            city: location.city,
-            count: location.count,
-            percentage: ((location.count / totalLocationVisitors) * 100).toFixed(2),
+        referralStats = referralStats.map(ref => ({
+            ...ref,
+            category: categorizeReferrer(ref.referrer)
         }));
 
-        response.locationData = locationFormattedData;
+        response.referralStats = referralStats;
 
-        res.status(200).json(response);
 
+        // HeataMap Data
+        const aggregatedVisitorsData = await TrackingModule.aggregate([
+            {
+                $match: {
+                    userId: userObjectId,
+                    websiteName,
+                    timestamp: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        time: { $dateToString: { format: "%H", date: "$timestamp" } }
+                    },
+                    visitors: { $addToSet: "$visitorId" },
+                },
+            },
+            {
+                $project: {
+                    time: "$_id.time",
+                    visitors: { $size: "$visitors" },
+                    _id: 0,
+                },
+            },
+            { $sort: { time: 1 } },
+        ]);
+
+        // Convert the 24-hour time (e.g., "18") to 12-hour format ("6pm")
+        const convertTo12HourFormat = (hourString) => {
+            const hour = parseInt(hourString, 10);
+            const period = hour >= 12 ? 'pm' : 'am';
+            const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+            return `${hour12}${period}`;
+        };
+
+        const visitorsData12Hour = aggregatedVisitorsData.map(item => ({
+            ...item,
+            time: convertTo12HourFormat(item.time)
+        }));
+
+        response.heatmapData = visitorsData12Hour;
+
+
+        // **8. Visitors' Locations (Country, State, City)**
+
+        // Get Visitors by Country
+        const countryData = await TrackingModule.aggregate([
+            {
+                $match: {
+                    userId: userObjectId,
+                    websiteName,
+                    timestamp: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        country: "$geoLocation.country",
+                        visitorId: "$visitorId",
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$_id.country",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        // Get Visitors by State
+        const stateData = await TrackingModule.aggregate([
+            {
+                $match: {
+                    userId: userObjectId,
+                    websiteName,
+                    timestamp: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        state: "$geoLocation.region",
+                        visitorId: "$visitorId",
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$_id.state",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+
+        // Get Visitors by City
+        const cityData = await TrackingModule.aggregate([
+            {
+                $match: {
+                    userId: userObjectId,
+                    websiteName,
+                    timestamp: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        city: "$geoLocation.city",
+                        visitorId: "$visitorId",
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$_id.city",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+
+
+        // Get total visitors count
+        const totalVisitorsCount = currentVisitors.length;
+
+        // Format data to include percentage
+        const formatDataWithPercentage = (data) =>
+            data.map(({ _id, count }) => ({
+                name: _id || "Unknown",
+                count,
+                percentage: ((count / totalVisitorsCount) * 100).toFixed(2) + "%",
+            }));
+
+        const visitorsLocation = {
+            totalVisitors: totalVisitorsCount,
+            visitorCountries: formatDataWithPercentage(countryData),
+            visitorStates: formatDataWithPercentage(stateData),
+            visitorCities: formatDataWithPercentage(cityData),
+        };
+
+        response.visitorsLocation = visitorsLocation;
+
+
+        return res.json(response);
     } catch (error) {
-        console.error("Error fetching analytics:", error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("Error fetching analysis:", error);
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
