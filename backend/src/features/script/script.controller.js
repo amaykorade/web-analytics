@@ -1,21 +1,34 @@
 import axios from "axios";
 import ScriptModel from "./script.schema.js";
+import mongoose from "mongoose";
 
 
 export const getAllURL = async (req, res) => {
     try {
         const results = await ScriptModel.find({}, "url");
-        const urls = results.map(result => result.url)
-        res.status(200).json({ success: true, urls })
+        const uniqueOrigins = new Set();
+
+        results.forEach(result => {
+            try {
+                const urlObj = new URL(result.url);
+                uniqueOrigins.add(urlObj.origin);
+            } catch (error) {
+                console.error(`Invalid URL: ${result.url}`, error);
+            }
+        });
+
+        return Array.from(uniqueOrigins);
     } catch (error) {
-        console.error("Error fetching urls:", error);
-        return res.status(500).json({ message: "Failed to retrieve url", });
+        console.error("Error fetching origins:", error);
+        return [];
     }
 }
 
 export const getUserScripts = async (req, res) => {
     try {
         const userId = req.userID;
+        console.log("getUserScript: ", userId);
+        // const userId = new mongoose.Types.ObjectId(req.userId)
 
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
@@ -24,20 +37,16 @@ export const getUserScripts = async (req, res) => {
         // Fetch all scripts associated with the user
         const scripts = await ScriptModel.find({ userId });
 
-        if (scripts.length === 0) {
-            return res.status(404).json({ message: "No scripts found for this user" });
-        }
-
-        return res.status(200).json({ scripts: scripts, isPresent: true });
+        return res.status(200).json({ scripts, isPresent: scripts.length > 0 });
     } catch (error) {
         console.error("Error fetching scripts:", error);
-        return res.status(500).json({ message: "Failed to retrieve script data", isPresent: fasle });
+        return res.status(500).json({ message: "Failed to retrieve script data", isPresent: false });
     }
 };
 
 
 
-export const generateScript = (req, res) => {
+export const generateScript = async (req, res) => {
     try {
         console.log(req.body);
         const { url, name } = req.body;
@@ -49,6 +58,8 @@ export const generateScript = (req, res) => {
             return res.status(400).json({ message: "Website URL and User ID are required" });
         }
 
+        const existingScript = await ScriptModel.findOne({ url, userId, websiteName: name });
+
         const script = ` <script 
         defer
         data-website-id="${userId}"
@@ -56,6 +67,13 @@ export const generateScript = (req, res) => {
         website-name="${name}"
         src="http://localhost:3000/js/tracker.js">
         </script> `
+
+        if (existingScript) {
+            return res.status(200).json({ script });
+        }
+
+        const newScript = new ScriptModel({ userId, url, websiteName: name });
+        await newScript.save();
 
         res.status(200).json({ script });
     } catch (error) {
@@ -66,8 +84,11 @@ export const generateScript = (req, res) => {
 
 export const verifyScriptInstallation = async (req, res) => {
     try {
-        const { url, websiteName } = req.body;
-        const userId = req.userID;
+        console.log("verify: ", req.body);
+        const { url, name, userId } = req.body;
+        // const userId = req.userID;
+
+        const websiteName = name;
 
         console.log("verify :", req.body)
 
@@ -80,7 +101,7 @@ export const verifyScriptInstallation = async (req, res) => {
         console.log(`Checking script on ${formattedURL} for ${websiteName}`);
 
         // Check for duplication
-        const existingScript = await ScriptModel.findOne({ url });
+        const existingScript = await ScriptModel.findOne({ url, websiteName: name, userId });
         if (existingScript) {
             return res.status(200).json({
                 message: "Script is already registered for this URL.",
@@ -92,7 +113,7 @@ export const verifyScriptInstallation = async (req, res) => {
         const response = await axios.get(formattedURL, { timeout: 5000 });
         const htmlContent = response.data;
 
-        console.log("htmlContent:", htmlContent);
+        console.log("HTML Response:", htmlContent.slice(0, 500))
 
         const scriptRegex = new RegExp(
             `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']http://localhost:3000/js/tracker.js["'][^>]*>`,
@@ -108,8 +129,8 @@ export const verifyScriptInstallation = async (req, res) => {
         console.log(`Script Installed: ${isScriptInstalled}, Name Found: ${isNamePresent}`);
 
         if (isScriptInstalled && isNamePresent) {
-            const newScript = new ScriptModel({ userId, url, websiteName });
-            await newScript.save();
+            // const newScript = new ScriptModel({ userId, url, websiteName });
+            // await newScript.save();
 
             return res.status(200).json({
                 message: "Script and website name verified successfully",

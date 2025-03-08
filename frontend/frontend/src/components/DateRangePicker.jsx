@@ -16,7 +16,9 @@ const DateRangePicker = () => {
 
   // User script data
   const scriptData = useSelector(userData);
+  console.log("scriptData:", scriptData);
   const userID = scriptData?.scripts?.[0]?.userId || "";
+
   const websiteName = scriptData?.scripts?.[0]?.websiteName || "";
 
   useEffect(() => {

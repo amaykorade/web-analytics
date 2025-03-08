@@ -1,95 +1,130 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Globe, Copy, AlertCircle } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   generateScriptThunk,
   getScriptThunk,
   verifyScriptThunk,
 } from "../../features/script/scriptSlice";
+import { authData, getCurrentUserthunk } from "../../features/user/userSlice";
 
 export default function WebsiteSetup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
-  const [script, setScript] = useState(``);
+  const [userID, setUserID] = useState(null);
+  const [script, setScript] = useState("");
   const [step, setStep] = useState(1);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true); // New loading state
 
-  dispatch(getScriptThunk())
-    .unwrap()
-    .then((response) => {
-      if (response?.isPresent == true) {
-        navigate("/dashboard");
-      }
-      console.log(response.isPresent);
-    });
-
-  // This would be your unique tracking script
+  useEffect(() => {
+    dispatch(getCurrentUserthunk())
+      .unwrap()
+      .then((response) => {
+        if (response?.userID) {
+          localStorage.setItem("userID", response.userID);
+          setUserID(response.userID);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user:", error);
+        setError("Failed to fetch user details.");
+      })
+      .finally(() => setLoading(false)); // Set loading to false after fetching user
+  }, [dispatch]);
 
   const handleUrlSubmit = (e) => {
     e.preventDefault();
+
     if (!url) {
       setError("Please enter a website URL");
       return;
     }
-    // Validate URL format
+
     try {
       new URL(url);
       setError("");
       setStep(2);
     } catch {
       setError("Please enter a valid URL");
+      return;
     }
 
-    const formData = { url, name };
+    const userId = localStorage.getItem("userID");
+    if (!userId) {
+      setError("User ID not found. Please try again.");
+      return;
+    }
+
+    const formData = { url, name, userId };
 
     dispatch(generateScriptThunk(formData))
       .unwrap()
       .then((response) => {
         if (response) {
-          console.log(response.script);
           setScript(response.script);
         } else {
-          console.error("Failed to retrieve token from response");
+          console.error("Failed to retrieve script from response");
         }
       });
-  };
-
-  const handleCopyScript = () => {
-    if (!script) {
-      setError("No script available to copy");
-      return;
-    }
-    navigator.clipboard.writeText(script);
   };
 
   const handleVerification = async () => {
     setIsVerifying(true);
-    const formData = { url, name };
+
+    const userId = localStorage.getItem("userID");
+    if (!userId) {
+      setError("User ID not found. Please try again.");
+      setIsVerifying(false);
+      return;
+    }
+
+    const formData = { url, name, userId };
+
     dispatch(verifyScriptThunk(formData))
       .unwrap()
       .then((response) => {
-        console.log("Generated Script Response:", response);
-        if (response?.verified == true) {
+        if (response?.verified) {
           setIsVerified(true);
           navigate("/dashboard");
         } else {
-          console.error("Failed to retrieve script from response");
-          setError("Failed to generate script");
+          setError("Failed to verify script.");
         }
       })
-      .catch((error) => {
-        console.error("Error generating script:", error);
-        setError("Error generating script. Please try again.");
-      });
+      .catch(() => {
+        setError("Error verifying script. Please try again.");
+      })
+      .finally(() => setIsVerifying(false));
   };
+
+  useEffect(() => {
+    if (isVerified) {
+      dispatch(getScriptThunk())
+        .unwrap()
+        .then((response) => {
+          if (response?.isPresent) {
+            navigate("/dashboard");
+          }
+        })
+        .catch(() => setError("Error fetching script."));
+    }
+  }, [isVerified, dispatch, navigate]);
 
   if (isVerified) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading user data...</p>
+      </div>
+    );
   }
 
   return (
@@ -101,128 +136,85 @@ export default function WebsiteSetup() {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Set up website tracking
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Let's get your website analytics up and running
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {/* Step 1: Enter Website URL */}
           {step === 1 && (
             <form onSubmit={handleUrlSubmit} className="space-y-6">
               <div>
-                <label
-                  htmlFor="url"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Website URL
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="url"
-                    name="url"
-                    type="text"
-                    required
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://example.com"
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="block w-full px-3 py-2 border rounded-md shadow-sm"
+                />
               </div>
 
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Website Name
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="My Website"
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="My Website"
+                  className="block w-full px-3 py-2 border rounded-md shadow-sm"
+                />
               </div>
 
               {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <AlertCircle className="h-5 w-5 text-red-400" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">
-                        {error}
-                      </h3>
-                    </div>
-                  </div>
+                <div className="bg-red-50 p-4 rounded-md">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <p className="text-sm font-medium text-red-800">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                disabled={!userID} // Disable button until userID is available
+                className="w-full py-2 bg-indigo-600 text-white rounded-md shadow-sm"
               >
-                Continue
+                {userID ? "Continue" : "Loading User ID..."}
               </button>
             </form>
           )}
 
-          {/* Step 2: Install Tracking Script */}
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700">
                   Copy this tracking script
                 </label>
                 <div className="bg-gray-50 rounded-md p-4">
-                  <div className="flex justify-between items-start">
-                    <pre className="text-sm text-gray-800 overflow-x-auto">
-                      {script}
-                    </pre>
-                    <button
-                      onClick={handleCopyScript}
-                      className="ml-4 p-2 text-gray-400 hover:text-gray-600"
-                      title="Copy to clipboard"
-                    >
-                      <Copy className="h-5 w-5" />
-                    </button>
-                  </div>
+                  <pre className="text-sm text-gray-800">{script}</pre>
+                  <button onClick={() => navigator.clipboard.writeText(script)}>
+                    <Copy className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  Add this script to your website's <code>&lt;head&gt;</code>{" "}
-                  section.
-                </p>
+              <button
+                onClick={handleVerification}
+                disabled={isVerifying}
+                className="w-full py-2 bg-indigo-600 text-white rounded-md"
+              >
+                {isVerifying ? "Verifying..." : "Verify Installation"}
+              </button>
 
-                <button
-                  onClick={handleVerification}
-                  disabled={isVerifying}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
-                >
-                  {isVerifying ? "Verifying..." : "Verify Installation"}
-                </button>
-              </div>
-
-              <div className="mt-4">
-                <button
-                  onClick={() => setStep(1)}
-                  className="text-sm text-indigo-600 hover:text-indigo-500"
-                >
-                  ← Back to website details
-                </button>
-              </div>
+              <button
+                onClick={() => setStep(1)}
+                className="text-sm text-indigo-600"
+              >
+                ← Back to website details
+              </button>
             </div>
           )}
         </div>
