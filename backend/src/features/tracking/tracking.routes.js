@@ -7,7 +7,7 @@ const TrackingRouter = express.Router();
 
 
 TrackingRouter.get("/", (req, res) => {
-    res.json({ message: 'Hello from API' });
+    res.json({ message: 'Hello from API, Amay' });
 });
 
 TrackingRouter.post("/track", addData);
