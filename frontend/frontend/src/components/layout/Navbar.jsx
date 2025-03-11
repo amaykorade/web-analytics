@@ -48,7 +48,8 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <BarChart3 className="h-8 w-8 text-indigo-600" />
+                {/* <BarChart3 className="h-8 w-8 text-indigo-600" /> */}
+                <img src="/logo4.png" className="h-6 w-6" />
                 <span className="text-xl font-bold text-gray-900">
                   WebAnalytics
                 </span>
