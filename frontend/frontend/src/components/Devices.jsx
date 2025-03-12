@@ -55,7 +55,7 @@ export default function Devices() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-indigo-50 rounded-lg p-4">
           <div className="text-indigo-600 text-sm font-medium">Total Users</div>
           <div className="text-2xl font-bold text-gray-900 mt-1">
@@ -76,7 +76,7 @@ export default function Devices() {
             {mostPopularDevice?.percentage || 0}%
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Detailed Stats */}
       <div className="space-y-4">

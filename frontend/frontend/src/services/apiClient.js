@@ -2,8 +2,11 @@ import axios from "axios";
 
 const apiClient = axios.create({
     // baseURL: "http://localhost:3000/api",
+<<<<<<< HEAD
     // baseURL: "http://localhost:3000/api",
     // baseURL: "https://backend.webmeter.in",
+=======
+>>>>>>> cors-frontend-issue
     baseURL: "https://backend.webmeter.in/api",
     timeout: 10000,
     headers: {

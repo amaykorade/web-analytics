@@ -6,30 +6,8 @@ import {
   ArrowUpRight,
   Search,
 } from "lucide-react";
-
-const mockLocationData = {
-  countries: [
-    { name: "United States", visitors: 32145, percentage: 25, trend: "+12%" },
-    { name: "United Kingdom", visitors: 15234, percentage: 12, trend: "+8%" },
-    { name: "Germany", visitors: 12453, percentage: 10, trend: "+5%" },
-    { name: "France", visitors: 10234, percentage: 8, trend: "-2%" },
-    { name: "India", visitors: 8765, percentage: 7, trend: "+15%" },
-  ],
-  states: [
-    { name: "California", visitors: 12453, percentage: 15, trend: "+10%" },
-    { name: "New York", visitors: 10234, percentage: 12, trend: "+7%" },
-    { name: "Texas", visitors: 8765, percentage: 10, trend: "+4%" },
-    { name: "Florida", visitors: 7654, percentage: 9, trend: "+6%" },
-    { name: "Illinois", visitors: 6543, percentage: 8, trend: "-1%" },
-  ],
-  cities: [
-    { name: "New York City", visitors: 5432, percentage: 8, trend: "+9%" },
-    { name: "Los Angeles", visitors: 4321, percentage: 6, trend: "+5%" },
-    { name: "Chicago", visitors: 3456, percentage: 5, trend: "+3%" },
-    { name: "Houston", visitors: 2345, percentage: 4, trend: "+7%" },
-    { name: "Phoenix", visitors: 1987, percentage: 3, trend: "+2%" },
-  ],
-};
+import { useSelector } from "react-redux";
+import { analyticsData } from "../features/data/dataSlice";
 
 const locationTypes = [
   { id: "countries", label: "Countries", icon: MapPin },
@@ -42,9 +20,24 @@ export default function Location() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  const currentLocationData = mockLocationData[locationType].filter(
-    (location) => location.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const analytics = useSelector(analyticsData);
+  const locations = analytics?.visitorsLocation || {};
+
+  // Mapping locationType to actual data keys
+  const locationKeyMap = {
+    countries: "visitorCountries",
+    states: "visitorStates",
+    cities: "visitorCities",
+  };
+
+  // Extract correct data based on selected location type
+  const currentLocationData =
+    locations[locationKeyMap[locationType]]?.map((location) => ({
+      name: location.name,
+      visitors: location.count, // Adjusting key from count to visitors
+      percentage: parseFloat(location.percentage), // Removing % sign for calculations
+      trend: "+0%", // Placeholder trend, modify if trend data is available
+    })) || [];
 
   const totalVisitors = currentLocationData.reduce(
     (sum, location) => sum + location.visitors,
@@ -102,7 +95,7 @@ export default function Location() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-indigo-50 rounded-lg p-4">
           <div className="text-sm text-indigo-600 font-medium">
             Total Visitors
@@ -114,7 +107,7 @@ export default function Location() {
         <div className="bg-green-50 rounded-lg p-4">
           <div className="text-sm text-green-600 font-medium">Top Location</div>
           <div className="text-2xl font-bold text-gray-900">
-            {currentLocationData[0]?.name}
+            {currentLocationData[0]?.name || "N/A"}
           </div>
         </div>
         <div className="bg-purple-50 rounded-lg p-4">
@@ -122,16 +115,17 @@ export default function Location() {
             Average Growth
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            {Math.round(
-              currentLocationData.reduce(
-                (sum, loc) => sum + parseFloat(loc.trend),
-                0
-              ) / currentLocationData.length
-            )}
-            %
+            {currentLocationData.length > 0
+              ? `${Math.round(
+                  currentLocationData.reduce(
+                    (sum, loc) => sum + loc.percentage,
+                    0
+                  ) / currentLocationData.length
+                )}%`
+              : "0%"}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Location List */}
       <div className="space-y-3">
@@ -158,7 +152,7 @@ export default function Location() {
                     {location.name}
                   </span>
                 </div>
-                <div className="flex items-center space-x-4">
+                {/* <div className="flex items-center space-x-4">
                   <span
                     className={`text-sm font-medium ${
                       isTrendPositive ? "text-green-600" : "text-red-600"
@@ -173,7 +167,7 @@ export default function Location() {
                         : "text-red-500 transform rotate-90"
                     }`}
                   />
-                </div>
+                </div> */}
               </div>
 
               <div className="flex justify-between items-center">

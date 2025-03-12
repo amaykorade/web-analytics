@@ -11,7 +11,7 @@ const { Option } = Select;
 
 const DateRangePicker = () => {
   const dispatch = useDispatch();
-  const [selectedRange, setSelectedRange] = useState("Last 24 Hours");
+  const [selectedRange, setSelectedRange] = useState("Today");
   const [customRange, setCustomRange] = useState([dayjs(), dayjs()]);
 
   // User script data
