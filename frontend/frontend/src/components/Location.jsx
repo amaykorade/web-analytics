@@ -95,7 +95,7 @@ export default function Location() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-indigo-50 rounded-lg p-4">
           <div className="text-sm text-indigo-600 font-medium">
             Total Visitors
@@ -125,7 +125,7 @@ export default function Location() {
               : "0%"}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Location List */}
       <div className="space-y-3">

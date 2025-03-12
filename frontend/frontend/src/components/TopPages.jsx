@@ -65,7 +65,7 @@ export default function TopPages() {
                 {formatTime(page.avgTimeSpent)}
               </td>
               <td className="py-3 px-4 text-sm text-gray-900 text-right">
-                {page?.bounceRate?.rate}
+                {page?.bounceRate}
               </td>
             </tr>
           ))}
