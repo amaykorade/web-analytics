@@ -1,4 +1,4 @@
-// import React, { useEffect, useState } from 'react';
+// import React, { useEffect, useState } from "react";
 // import {
 //   Chart as ChartJS,
 //   CategoryScale,
@@ -8,10 +8,10 @@
 //   Title,
 //   Tooltip,
 //   Legend,
-// } from 'chart.js';
-// import { Line } from 'react-chartjs-2';
-// import { faker } from '@faker-js/faker';
-// import axios from 'axios';
+// } from "chart.js";
+// import { Line } from "react-chartjs-2";
+// import { faker } from "@faker-js/faker";
+// import axios from "axios";
 
 // ChartJS.register(
 //   CategoryScale,
@@ -27,26 +27,27 @@
 //   responsive: true,
 //   plugins: {
 //     legend: {
-//       position: 'top',
+//       position: "top",
 //     },
 //   },
 // };
 
-
-
 // export default function VisitorsChart() {
 //   const [filter, setFilter] = useState("daily");
-//   const [chartData, setChartData] = useState({labels: [], datasets: []});
+//   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
 
 //   const fetchVisitorData = async () => {
 //     try {
 //       const token = localStorage.getItem("token");
 
-//       const response = await axios.get(`http://localhost:3000/api/data/analytics/visitors-data?filter=${filter}`, {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       });
+//       const response = await axios.get(
+//         `http://localhost:3000/api/data/analytics/visitors-data?filter=${filter}`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         }
+//       );
 
 //       console.log("API Response:", response.data);
 
@@ -73,7 +74,7 @@
 //   }, [filter]);
 
 //   return (
-//     <div className='h-100 w-400' >
+//     <div className="h-100 w-400">
 //       <h3>Total Visitors</h3>
 //       <div>
 //         <button onClick={() => setFilter("today")}>Today</button>
@@ -82,7 +83,7 @@
 //         <button onClick={() => setFilter("last_month")}>Last Month</button>
 //         <button onClick={() => setFilter("last_year")}>Last Year</button>
 //       </div>
-//       <Line  options={options} data={chartData} />
+//       <Line options={options} data={chartData} />
 //     </div>
 //   );
 // }
