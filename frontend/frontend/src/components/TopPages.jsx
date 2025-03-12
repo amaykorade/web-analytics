@@ -179,7 +179,7 @@ export default function TopPages() {
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {page.bounceRate}%
+                      {page.bounceRate}
                       {bounceRateStatus === "good" ? (
                         <ArrowDown className="w-3 h-3 ml-1 text-green-600" />
                       ) : (
