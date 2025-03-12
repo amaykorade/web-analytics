@@ -15,7 +15,6 @@ import {
 
 import dayjs from "dayjs";
 
-// import VisitorsChart from "./VisitorsChart";
 import ReferralSources from "./ReferralSources";
 import TopPages from "./TopPages";
 import DateRangePicker from "./DateRangePicker";
@@ -208,9 +207,9 @@ export default function Dashboard() {
           {/* <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Visitors Over Time
-            </h2> */}
-          {/* <VisitorsChart /> */}
-          {/* </div> */}
+            </h2>
+            <VisitorsChart />
+          </div> */}
           {/* <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Referral Sources
