@@ -37,7 +37,7 @@
     const domain = scriptTag.getAttribute("data-domain");
     // const endpoint = "http://localhost:3000/api/data/track";
     const endpoint = "https://backend.webmeter.in/api/data/track";
-    const verificationEndpoint = "http://localhost:3000/api/script/verify-script";
+    const verificationEndpoint = "https://backend.webmeter.in/api/script/verify-script";
 
     function setCookie(name, value, days) {
         const expires = new Date(Date.now() + days * 864e5).toUTCString();
