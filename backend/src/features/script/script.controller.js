@@ -65,7 +65,7 @@ export const generateScript = async (req, res) => {
         data-website-id="${userId}"
         data-domain="${url}"
         website-name="${name}"
-        src="http://localhost:3000/js/tracker.js">
+        src="https://backend.webmeter.in/js/tracker.js">
         </script> `
 
         if (existingScript) {
