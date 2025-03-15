@@ -65,7 +65,7 @@ export const generateScript = async (req, res) => {
         data-website-id="${userId}"
         data-domain="${url}"
         website-name="${name}"
-        src="https://backend.webmeter.in/js/tracker.js">
+        src="http://localhost:3000/js/tracker.js">
         </script> `
 
         if (existingScript) {
@@ -100,14 +100,14 @@ export const verifyScriptInstallation = async (req, res) => {
         const formattedURL = url.startsWith("http") ? url : `https://${url}`;
         console.log(`Checking script on ${formattedURL} for ${websiteName}`);
 
-        // Check for duplication
-        const existingScript = await ScriptModel.findOne({ url, websiteName: name, userId });
-        if (existingScript) {
-            return res.status(200).json({
-                message: "Script is already registered for this URL.",
-                verified: true
-            });
-        }
+        // // Check for duplication
+        // const existingScript = await ScriptModel.findOne({ url, });
+        // if (existingScript) {
+        //     return res.status(200).json({
+        //         message: "Script is already registered for this URL.",
+        //         verified: true
+        //     });
+        // }
 
         // Fetch the website's HTML
         const response = await axios.get(formattedURL, { timeout: 5000 });
