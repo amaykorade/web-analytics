@@ -116,7 +116,7 @@ export const verifyScriptInstallation = async (req, res) => {
         console.log("HTML Response:", htmlContent.slice(0, 500))
 
         const scriptRegex = new RegExp(
-            `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']http://localhost:3000/js/tracker.js["'][^>]*>`,
+            `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']https://backend.webmeter.in/js/tracker.js["'][^>]*>`,
             "i"
         );
 
