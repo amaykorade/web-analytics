@@ -58,7 +58,7 @@ export const generateScript = async (req, res) => {
             return res.status(400).json({ message: "Website URL and User ID are required" });
         }
 
-        const existingScript = await ScriptModel.findOne({ url, userId, websiteName: name });
+        const existingScript = await ScriptModel.findOne({ url });
 
         const script = ` <script 
         defer
