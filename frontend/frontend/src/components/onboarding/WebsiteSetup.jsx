@@ -94,6 +94,7 @@ export default function WebsiteSetup() {
           navigate("/dashboard");
         } else {
           setError("Failed to verify script.");
+          setIsVerifying(false);
         }
       })
       .catch(() => {
@@ -189,6 +190,12 @@ export default function WebsiteSetup() {
 
           {step === 2 && (
             <div className="space-y-6">
+              {error && (
+                <div className="bg-red-50 p-4 rounded-md">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <p className="text-sm font-medium text-red-800">{error}</p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Copy this tracking script
