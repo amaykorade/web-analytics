@@ -29,8 +29,9 @@ export default function Navbar() {
     dispatch(getCurrentUserthunk())
       .unwrap()
       .then((response) => {
-        setName(response.name);
-        setEmail(response.email);
+        console.log("user: ", response);
+        setName(response?.user?.name);
+        setEmail(response?.user?.email);
       });
   }, [dispatch]);
 
