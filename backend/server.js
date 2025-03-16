@@ -30,6 +30,7 @@ let allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3001',
     'https://www.webmeter.in',
+    'https://webmeter.in',
     'https://backend.webmeter.in'
 ];
 
