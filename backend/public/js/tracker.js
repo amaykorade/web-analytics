@@ -41,7 +41,7 @@
     <p style="color: #555; margin-bottom: 12px;">
         <strong>We do NOT collect</strong> personal or sensitive information like passwords, financial data, 
         or private messages. Your data is <strong>secure</strong> and will <strong>never be shared with third parties without consent.</strong>
-        You can change your preferences anytime in our <a href="#" style="color: #007bff; text-decoration: none;">Privacy Policy</a>.
+        You can change your preferences anytime in our <a href="https://www.webmeter.in/privacy" style="color: #007bff; text-decoration: none;">Privacy Policy</a>.
     </p>
     <div style="margin-top: 15px;">
         <button id="consent-accept" style="
