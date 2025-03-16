@@ -5,7 +5,7 @@ import { analyticsData } from "../features/data/dataSlice";
 
 export default function TopPages() {
   const analytics = useSelector(analyticsData);
-  console.log(analytics);
+  // console.log(analytics);
   const topPages = analytics?.topPages || [];
 
   // Function to extract the last part of the URL

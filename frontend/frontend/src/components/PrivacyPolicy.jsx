@@ -197,10 +197,8 @@ export default function PrivacyPolicy() {
                   contact us:
                 </p>
                 <div className="space-y-2">
-                  <p className="text-gray-600">
-                    📧 Email: privacy@webanalytics.com
-                  </p>
-                  <p className="text-gray-600">🌐 Website: webanalytics.com</p>
+                  <p className="text-gray-600">📧 Email: contact@webmeter.in</p>
+                  <p className="text-gray-600">🌐 Website: www.webmeter.in</p>
                 </div>
               </div>
             </div>
