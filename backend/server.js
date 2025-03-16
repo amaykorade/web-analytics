@@ -53,14 +53,14 @@ const updateAllowedOrigins = async () => {
 
 // 🌍 **CORS Middleware**
 app.use(async (req, res, next) => {
-    if (!allowedOrigins.length || allowedOrigins.length === 1) {
-        await updateAllowedOrigins(); // Ensure latest origins are set
-    }
+    await updateAllowedOrigins(); // Ensure latest origins are set
     next();
 });
 
 app.use(cors({
     origin: function (origin, callback) {
+        console.log("🔍 Incoming request from origin:", origin);
+
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
