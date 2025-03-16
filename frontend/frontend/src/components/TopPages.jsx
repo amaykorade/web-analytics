@@ -160,7 +160,7 @@ export default function TopPages() {
                     <div className="font-medium">
                       {page.views.toLocaleString()}
                     </div>
-                    <div className="text-xs text-green-600">+12.3%</div>
+                    {/* <div className="text-xs text-green-600">+12.3%</div> */}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-900 text-right">
                     <div className="font-medium">
