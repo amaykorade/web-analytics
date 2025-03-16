@@ -6,6 +6,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
 
 import { connectUsingMongoose } from './src/config/mongooseConfig.js';
 import TrackingRouter from './src/features/tracking/tracking.routes.js';
@@ -28,27 +29,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 let allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3001',
-
     'https://www.webmeter.in',
     'https://backend.webmeter.in'
-    // 'http://127.0.0.1:5500'
-    // 'https://persona-website.onrender.com/',
 ];
 
-// Dynamically fetch domains and update CORS
+// ⏳ **Update Allowed Origins (Ensures DB Connection)**
 const updateAllowedOrigins = async () => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            console.log("⚠️ Waiting for database connection...");
+            await new Promise(resolve => setTimeout(resolve, 3000)); // Wait before retrying
+        }
+
         const result = await getAllURL();
         if (Array.isArray(result)) {
             allowedOrigins = [...new Set([...allowedOrigins, ...result])]; // Avoid duplicates
-            // console.log("Updated allowedOrigins:", allowedOrigins);
+            console.log("✅ Updated Allowed Origins:", allowedOrigins);
         }
     } catch (error) {
-        console.error("Error fetching allowed origins:", error);
+        console.error("❌ Error fetching allowed origins:", error);
     }
 };
 
-// Middleware for CORS
+// 🌍 **CORS Middleware**
 app.use(async (req, res, next) => {
     if (!allowedOrigins.length || allowedOrigins.length === 1) {
         await updateAllowedOrigins(); // Ensure latest origins are set
@@ -59,7 +62,7 @@ app.use(async (req, res, next) => {
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, origin);
+            callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
         }
@@ -67,24 +70,14 @@ app.use(cors({
     credentials: true,
 }));
 
-app.options('*', (req, res) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-        res.header('Access-Control-Allow-Credentials', 'true');
-        return res.sendStatus(200);
-    }
-    return res.sendStatus(403);
-});
+app.options("*", cors());
 
-// Middleware
+// 🛡 **Security & Performance Middleware**
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
-// Rate limit configuration
+// ⏳ **Rate Limiting**
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -92,10 +85,10 @@ const limiter = rateLimit({
 });
 app.use('/api/tracking', limiter);
 
-// Trust proxy for forwarded IPs
+// 🚀 **Trust Proxy for Forwarded IPs**
 app.set('trust proxy', true);
 
-// New endpoint for validation
+// ✅ **Validation Endpoint**
 app.post('/api/track/validate', (req, res) => {
     const { url } = req.body;
     if (!url) {
@@ -105,15 +98,17 @@ app.post('/api/track/validate', (req, res) => {
     res.status(200).json({ success: true, message: "Script validation successful." });
 });
 
-// Routes
+// 🔄 **Routes**
 app.use('/api/user', AuthRouter);
 app.use('/api/data', TrackingRouter);
 app.use('/api/script', ScriptRouter);
 
-// Start server after connecting to DB
+// 🚀 **Start Server After Connecting to DB**
 (async () => {
     try {
         await connectUsingMongoose();
+        console.log("✅ Database connected successfully!");
+
         await updateAllowedOrigins(); // Fetch domains before starting server
 
         app.listen(PORT, '0.0.0.0', async () => {
