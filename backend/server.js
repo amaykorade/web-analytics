@@ -42,29 +42,33 @@ const updateAllowedOrigins = async () => {
         }
 
         const result = await getAllURL();
+        console.log("🔍 Raw result from getAllURL():", result); // Debugging line
+
         if (Array.isArray(result)) {
             allowedOrigins = [...new Set([...allowedOrigins, ...result])]; // Avoid duplicates
             console.log("✅ Updated Allowed Origins:", allowedOrigins);
+        } else {
+            console.error("❌ Error: getAllURL() did not return an array.");
         }
     } catch (error) {
         console.error("❌ Error fetching allowed origins:", error);
     }
 };
 
+
 // 🌍 **CORS Middleware**
-app.use(async (req, res, next) => {
-    await updateAllowedOrigins(); // Ensure latest origins are set
-    next();
-});
+await updateAllowedOrigins();
 
 app.use(cors({
     origin: function (origin, callback) {
-        console.log("🔍 Incoming request from origin:", origin);
+        console.log("🔍 CORS Check -> Request Origin:", origin);
+        console.log("✅ Allowed Origins List:", allowedOrigins);
 
         if (!origin || allowedOrigins.includes(origin)) {
+            console.log("✔️ Allowed:", origin);
             callback(null, true);
         } else {
-            console.error(`CORS Error: ${origin} is not allowed.`);
+            console.error(`❌ CORS Error: ${origin} is not allowed.`);
             callback(new Error("Not allowed by CORS"));
         }
     },
