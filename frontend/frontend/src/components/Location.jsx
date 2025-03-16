@@ -216,9 +216,9 @@ export default function Location() {
       )}
 
       {/* Footer */}
-      <div className="mt-6 text-center text-sm text-gray-500">
+      {/* <div className="mt-6 text-center text-sm text-gray-500">
         Data updated every 5 minutes • Last 30 days
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -195,9 +195,9 @@ export default function TopPages() {
       </div>
 
       {/* Footer */}
-      <div className="mt-6 text-center text-sm text-gray-500">
+      {/* <div className="mt-6 text-center text-sm text-gray-500">
         Showing top {topPages.length} pages • Last 30 days
-      </div>
+      </div> */}
     </div>
   );
 }
