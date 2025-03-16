@@ -4,6 +4,7 @@ import mongoose, { Mongoose } from 'mongoose';
 import { format } from 'path';
 import dayjs from 'dayjs';
 import { UAParser } from 'ua-parser-js';
+import { strict as assert } from 'assert';
 
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json" assert { type: "json" };
