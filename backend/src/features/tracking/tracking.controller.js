@@ -350,7 +350,7 @@ export const getAnalysis = async (req, res) => {
             {
                 $group: {
                     _id: {
-                        time: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$timestamp" } }
+                        time: { $dateToString: { format: "%Y-%m-%dT%H:%M", date: "$timestamp" } }
                     },
                     visitors: { $addToSet: "$visitorId" },
                 },
