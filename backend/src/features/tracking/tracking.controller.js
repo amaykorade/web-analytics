@@ -350,7 +350,7 @@ export const getAnalysis = async (req, res) => {
             {
                 $group: {
                     _id: {
-                        time: { $dateToString: { format: "%H", date: "$timestamp" } }
+                        time: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$timestamp" } }
                     },
                     visitors: { $addToSet: "$visitorId" },
                 },
@@ -366,17 +366,17 @@ export const getAnalysis = async (req, res) => {
         ]);
 
         // Convert the 24-hour time (e.g., "18") to 12-hour format ("6pm")
-        const convertTo12HourFormat = (hourString) => {
-            const hour = parseInt(hourString, 10);
-            const period = hour >= 12 ? 'pm' : 'am';
-            const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-            return `${hour12}${period}`;
-        };
+        // const convertTo12HourFormat = (hourString) => {
+        //     const hour = parseInt(hourString, 10);
+        //     const period = hour >= 12 ? 'pm' : 'am';
+        //     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+        //     return `${hour12}${period}`;
+        // };
 
-        const visitorsData12Hour = aggregatedVisitorsData.map(item => ({
-            ...item,
-            time: convertTo12HourFormat(item.time)
-        }));
+        // const visitorsData12Hour = aggregatedVisitorsData.map(item => ({
+        //     ...item,
+        //     time: convertTo12HourFormat(item.time)
+        // }));
 
         response.heatmapData = visitorsData12Hour;
 
