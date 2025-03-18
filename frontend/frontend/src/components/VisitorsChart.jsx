@@ -1,89 +1,140 @@
-// import React, { useEffect, useState } from "react";
-// import {
-//   Chart as ChartJS,
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   Title,
-//   Tooltip,
-//   Legend,
-// } from "chart.js";
-// import { Line } from "react-chartjs-2";
-// import { faker } from "@faker-js/faker";
-// import axios from "axios";
+import { Button } from "antd";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  ComposedChart,
+  CartesianGrid,
+  Legend,
+  Area,
+} from "recharts";
+import { analyticsData } from "../features/data/dataSlice";
+import dayjs from "dayjs";
 
-// ChartJS.register(
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   Title,
-//   Tooltip,
-//   Legend
-// );
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const visitorsData = payload.find((item) => item.dataKey === "visitors");
+    const revenueData = payload.find((item) => item.dataKey === "revenue");
 
-// export const options = {
-//   responsive: true,
-//   plugins: {
-//     legend: {
-//       position: "top",
-//     },
-//   },
-// };
+    return (
+      <div
+        style={{
+          background: "#000",
+          color: "#fff",
+          padding: "10px",
+          borderRadius: "5px",
+        }}
+      >
+        <p>{label}</p>
+        {visitorsData && (
+          <p style={{ color: "#4A90E2" }}>
+            Visitors: {Math.round(visitorsData.value)}
+          </p>
+        )}
+        {revenueData && <p style={{ color: "#eb0e0e" }}>Revenue: $0</p>}
+      </div>
+    );
+  }
+  return null;
+};
 
-// export default function VisitorsChart() {
-//   const [filter, setFilter] = useState("daily");
-//   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+const VisitorsRevenueChart = () => {
+  const [showVisitors, setShowVisitors] = useState(true);
+  const [showRevenue, setShowRevenue] = useState(true);
 
-//   const fetchVisitorData = async () => {
-//     try {
-//       const token = localStorage.getItem("token");
+  const analytics = useSelector(analyticsData);
+  const heatmapData = analytics?.heatmapData || [];
 
-//       const response = await axios.get(
-//         `http://localhost:3000/api/data/analytics/visitors-data?filter=${filter}`,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
+  const groupedData = heatmapData.reduce((acc, { time, visitors }) => {
+    const dateKey = dayjs(time).format("YYYY-MM-DD"); // Group by date
+    if (!acc[dateKey]) {
+      acc[dateKey] = { time: dateKey, visitors: 0, revenue: 0 };
+    }
+    acc[dateKey].visitors += visitors; // Sum up visitors per day
+    return acc;
+  }, {});
 
-//       console.log("API Response:", response.data);
+  const formattedData = Object.values(groupedData);
 
-//       const { labels, data } = response.data;
+  return (
+    <div style={{ textAlign: "left", marginTop: "20px" }}>
+      <div style={{ marginBottom: "10px" }}>
+        <Button
+          type={showVisitors ? "primary" : "default"}
+          onClick={() => setShowVisitors(!showVisitors)}
+          style={{ marginRight: "10px" }}
+        >
+          Toggle Visitors
+        </Button>
+        <Button
+          type={showRevenue ? "primary" : "default"}
+          onClick={() => setShowRevenue(!showRevenue)}
+        >
+          Toggle Revenue
+        </Button>
+      </div>
+      <ResponsiveContainer width="100%" height={400}>
+        <ComposedChart data={formattedData}>
+          <defs>
+            <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#4A90E2" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#4A90E2" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="time"
+            tickFormatter={(tick) => tick} // ✅ Show actual formatted time
+            angle={-10} // Slightly tilt for better readability
+            height={50}
+          />
+          <YAxis
+            yAxisId="left"
+            tickFormatter={(value) => Math.round(value)} // ✅ Ensure whole numbers
+            allowDecimals={false} // Prevent decimal values
+          />
+          <YAxis yAxisId="right" orientation="right" />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          {showVisitors && (
+            <>
+              <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="visitors"
+                stroke="none"
+                fill="url(#colorVisitors)"
+              />
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="visitors"
+                stroke="#4A90E2"
+                strokeWidth={2}
+                dot={false}
+              />
+            </>
+          )}
+          {showRevenue && (
+            <Bar
+              yAxisId="right"
+              dataKey="revenue"
+              fill="#3949ab"
+              barSize={30}
+              radius={5}
+            />
+          )}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
-//       setChartData({
-//         labels,
-//         datasets: [
-//           {
-//             label: "Visitors",
-//             data,
-//             borderColor: "rgb(53, 162, 235)",
-//             backgroundColor: "rgba(53, 162, 235, 0.5)",
-//           },
-//         ],
-//       });
-//     } catch (error) {
-//       console.error("Error fetching visitor data:", error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchVisitorData();
-//   }, [filter]);
-
-//   return (
-//     <div className="h-100 w-400">
-//       <h3>Total Visitors</h3>
-//       <div>
-//         <button onClick={() => setFilter("today")}>Today</button>
-//         <button onClick={() => setFilter("yesterday")}>Yesterday</button>
-//         <button onClick={() => setFilter("last_week")}>Last Week</button>
-//         <button onClick={() => setFilter("last_month")}>Last Month</button>
-//         <button onClick={() => setFilter("last_year")}>Last Year</button>
-//       </div>
-//       <Line options={options} data={chartData} />
-//     </div>
-//   );
-// }
+export default VisitorsRevenueChart;
