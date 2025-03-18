@@ -378,7 +378,7 @@ export const getAnalysis = async (req, res) => {
         //     time: convertTo12HourFormat(item.time)
         // }));
 
-        response.heatmapData = visitorsData12Hour;
+        response.heatmapData = aggregatedVisitorsData;
 
 
         // **8. Visitors' Locations (Country, State, City)**
