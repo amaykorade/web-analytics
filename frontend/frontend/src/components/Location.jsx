@@ -21,6 +21,7 @@ export default function Location() {
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   const analytics = useSelector(analyticsData);
+  console.log("analytics:", analytics);
   const locations = analytics?.visitorsLocation || {};
 
   // Mapping locationType to actual data keys

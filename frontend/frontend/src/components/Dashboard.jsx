@@ -30,6 +30,7 @@ import {
 } from "../features/data/dataSlice";
 import Devices from "./Devices";
 import Location from "./Location";
+import VisitorsRevenueChart from "./VisitorsChart";
 
 // const {RangePicker} = DatePicker;
 // const {Option} = Select;
@@ -204,12 +205,12 @@ export default function Dashboard() {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1  gap-8 mb-8">
-          {/* <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg shadow p-6">
+            {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Visitors Over Time
-            </h2>
-            <VisitorsChart />
-          </div> */}
+            </h2> */}
+            <VisitorsRevenueChart />
+          </div>
           {/* <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Referral Sources
