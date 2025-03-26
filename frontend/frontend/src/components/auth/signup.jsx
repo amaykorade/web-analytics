@@ -1,37 +1,36 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BarChart3, Mail, Lock, User, AlertCircle } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { signUpthunk } from '../../features/user/userSlice';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { BarChart3, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { signUpthunk } from "../../features/user/userSlice";
 
 export default function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   // const {loading, error, user} = useSelector((state) => state.auth);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formData = {name, email, password};
+    const formData = { name, email, password };
 
-    dispatch(signUpthunk(formData))
-    .then((response) => {
-      if(response){
+    dispatch(signUpthunk(formData)).then((response) => {
+      if (response) {
         console.log("Signup successfully");
 
-        navigate('/login');
-      }else{
+        navigate("/login");
+      } else {
         console.log("Signup failed");
       }
-    })
-    setName('');
-    setEmail('');
-    setPassword('');
+    });
+    setName("");
+    setEmail("");
+    setPassword("");
   };
 
   const handleGoogleSignUp = () => {
@@ -42,14 +41,17 @@ export default function Signup() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <BarChart3 className="h-12 w-12 text-indigo-600" />
+          <img src="/logo4.png" className="h-10 w-10" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
             Sign in
           </Link>
         </p>
@@ -65,14 +67,19 @@ export default function Signup() {
                     <AlertCircle className="h-5 w-5 text-red-400" />
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                    <h3 className="text-sm font-medium text-red-800">
+                      {error}
+                    </h3>
                   </div>
                 </div>
               </div>
             )}
 
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Full name
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -94,7 +101,10 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -116,7 +126,10 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -140,7 +153,7 @@ export default function Signup() {
               </p>
             </div>
 
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <input
                 id="terms"
                 name="terms"
@@ -158,7 +171,7 @@ export default function Signup() {
                   Privacy Policy
                 </a>
               </label>
-            </div>
+            </div> */}
 
             <div>
               <button
@@ -176,7 +189,9 @@ export default function Signup() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">
+                  Or continue with
+                </span>
               </div>
             </div>
 
