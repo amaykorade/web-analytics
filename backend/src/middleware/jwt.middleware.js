@@ -22,7 +22,7 @@ const jwtAuth = (req, res, next) => {
     try {
         const payload = jwt.verify(
             token,
-            process.env.JWT_SECRET_BACKEND
+            process.env.JWT_SECRET
         );
         req.userID = payload.userID;
         next();
