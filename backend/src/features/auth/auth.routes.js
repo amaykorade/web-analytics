@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUser, login, register } from './auth.controller.js';
+import { getUser, login, register, verificationStatus, verifyEmail } from './auth.controller.js';
 import jwtAuth from '../../middleware/jwt.middleware.js';
 
 
@@ -13,6 +13,10 @@ AuthRouter.get('/currentuser', jwtAuth, getUser);
 AuthRouter.post('/register', register);
 
 AuthRouter.post('/login', login);
+
+AuthRouter.get('/verify', verifyEmail);
+
+AuthRouter.get('/verify-status', verificationStatus);
 
 
 
