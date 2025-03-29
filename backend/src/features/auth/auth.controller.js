@@ -9,9 +9,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-
-        user: "contact@webmeter.in",
-        pass: "Amay@2020"
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS
     },
     tls: {
         rejectUnauthorized: false,
@@ -33,7 +32,7 @@ export const register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        const verificationToken = jwt.sign({ name, email }, "AIb6d35fvJM4O9pXqXQNla2jBCH9kuLz", { expiresIn: "30d" });
+        const verificationToken = jwt.sign({ name, email }, process.env.JWT_SECRET, { expiresIn: "30d" });
 
         const newUser = new AuthModel({
             name,
@@ -82,7 +81,7 @@ export const login = async (req, res) => {
                     userID: user._id,
                     email: user.email,
                 },
-                'AIb6d35fvJM4O9pXqXQNla2jBCH9kuLz',
+                process.env.JWT_SECRET,
                 {
                     expiresIn: '30d',
                 }
