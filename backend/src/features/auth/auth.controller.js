@@ -4,6 +4,8 @@ import { AuthModel } from "./auth.schema.js";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
+dotenv.config();
+
 const transporter = nodemailer.createTransport({
     host: "smtpout.secureserver.net",
     port: 465,
