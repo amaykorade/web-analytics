@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getCurrentUser, login, signUp } from "../../services/userApi";
+import { getCurrentUser, getStatus, login, signUp } from "../../services/userApi";
 
 export const signUpthunk = createAsyncThunk(
     'auth/signup',
@@ -25,6 +25,19 @@ export const Loginthunk = createAsyncThunk(
     }
 );
 
+export const verificationStatusThunk = createAsyncThunk(
+    'auth/status',
+    async (email, { rejectWithValue }) => {
+        console.log("verify", email)
+        try {
+            const response = await getStatus(email);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Unknown error occurred");
+        }
+    }
+)
+
 export const getCurrentUserthunk = createAsyncThunk(
     'auth/getCurrentUser', async () => {
         try {
@@ -41,6 +54,7 @@ const authSlice = createSlice({
     name: "auth",
     initialState: {
         token: null,
+        isVerified: false,
         user: null,
         loading: false,
         error: null,
@@ -72,6 +86,7 @@ const authSlice = createSlice({
             })
             .addCase(signUpthunk.fulfilled, (state, action) => {
                 state.user = action.payload;
+                state.token = action.payload.token;
                 state.loading = false;
             })
             .addCase(signUpthunk.rejected, (state, action) => {
@@ -87,6 +102,18 @@ const authSlice = createSlice({
                 state.loading = false;
             })
             .addCase(Loginthunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(verificationStatusThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(verificationStatusThunk.fulfilled, (state, action) => {
+                state.isVerified = action.payload.isVerified;
+                state.loading = false;
+            })
+            .addCase(verificationStatusThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
