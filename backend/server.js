@@ -15,6 +15,8 @@ import ScriptRouter from './src/features/script/script.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getAllURL } from './src/features/script/script.controller.js';
+import passport from "passport";
+import session from "express-session";
 
 dotenv.config();
 
@@ -28,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let allowedOrigins = [
     'http://localhost:5174',
+    'http://localhost:5173',
     'http://localhost:3001',
     'http://localhost:3000',
     'https://www.webmeter.in',
@@ -83,6 +86,9 @@ app.options("*", cors());
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // ⏳ **Rate Limiting**
 const limiter = rateLimit({
