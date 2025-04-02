@@ -70,7 +70,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/location" element={<Location />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/auth/google/callback" element={<GoogleCallback />} />
+          <Route path="/google/callback" element={<GoogleCallback />} />
           <Route
             path="/setup"
             element={
