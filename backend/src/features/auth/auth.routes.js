@@ -30,7 +30,7 @@ AuthRouter.get('/google/callback', passport.authenticate("google", { failureRedi
 
         const { user, token } = req.user;
 
-        res.redirect(`https://www.webmeter.in/auth/google/callback?token=${token}`);
+        res.redirect(`https://www.webmeter.in/google/callback?token=${token}`);
     }
 )
 
