@@ -12,7 +12,7 @@ passport.use(
         {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: "https://www.webmeter.in/api/user/google/callback",
+            callbackURL: "https://backend.webmeter.in/api/user/google/callback",
             passReqToCallback: true,
         },
         async (req, accessToken, refreshToken, profile, done) => {
