@@ -80,7 +80,7 @@ export default function Login() {
   };
 
   const handleGoogleSignUp = () => {
-    // Add Google signup logic here
+    window.location.href = "https://backend.webmeter.in/api/user/google";
   };
 
   return (
