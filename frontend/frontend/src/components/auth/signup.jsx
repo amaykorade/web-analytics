@@ -54,15 +54,7 @@ const Signup = () => {
   };
 
   const handleGoogleSignUp = async () => {
-    try {
-      const response = await dispatch(googleSignUpThunk()).unwrap();
-      if (response?.token) {
-        localStorage.setItem("token", response.token);
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      console.error("Google signup error:", err);
-    }
+    window.location.href = "https://backend.webmeter.in/api/user/google";
   };
 
   return (

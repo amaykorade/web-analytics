@@ -20,6 +20,7 @@ import Location from "./components/Location";
 import { useSelector } from "react-redux";
 import { userData } from "./features/script/scriptSlice";
 import PrivacyPolicy from "./components/PrivacyPolicy";
+import GoogleCallback from "./components/GoogleCallback";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -69,6 +70,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/location" element={<Location />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/auth/google/callback" element={<GoogleCallback />} />
           <Route
             path="/setup"
             element={
