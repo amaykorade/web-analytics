@@ -17,6 +17,10 @@ import { fileURLToPath } from 'url';
 import { getAllURL } from './src/features/script/script.controller.js';
 import passport from "passport";
 import session from "express-session";
+import PaymentRouter from './src/features/payment/payment.routes.js';
+
+// cron job
+import './src/cron-job/subscription.cron.js';
 
 dotenv.config();
 
@@ -115,6 +119,7 @@ app.post('/api/track/validate', (req, res) => {
 app.use('/api/user', AuthRouter);
 app.use('/api/data', TrackingRouter);
 app.use('/api/script', ScriptRouter);
+app.use('/api/payment', PaymentRouter);
 
 // 🚀 **Start Server After Connecting to DB**
 (async () => {

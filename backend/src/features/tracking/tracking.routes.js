@@ -1,6 +1,7 @@
 import express from 'express';
 import { addData, eventsByTypes, eventsDaily, getAnalysis, getReferralStats, heatmapData, sessionTrends, totalEvents, userRetention } from './tracking.controller.js';
 import jwtAuth from '../../middleware/jwt.middleware.js';
+import { checkSubscriptionStatus } from '../../middleware/checkSubscriptionStatus.middleware.js';
 
 const TrackingRouter = express.Router();
 
@@ -10,9 +11,9 @@ TrackingRouter.get("/", (req, res) => {
     res.json({ message: 'Hello from API, Amay Korade' });
 });
 
-TrackingRouter.post("/track", addData);
+TrackingRouter.post("/track", checkSubscriptionStatus, addData);
 
-TrackingRouter.get("/analytics/total-data", jwtAuth, getAnalysis);
+TrackingRouter.get("/analytics/total-data", jwtAuth, checkSubscriptionStatus, getAnalysis);
 
 // TrackingRouter.get("/analytics/device-data", jwtAuth, getUserDeviceData);
 

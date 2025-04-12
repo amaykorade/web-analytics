@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import { AuthModel } from "./auth.schema.js";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import crypto from "crypto";
+import Razorpay from "razorpay";
 
 dotenv.config();
 
@@ -195,3 +197,6 @@ export const verifyEmail = async (req, res) => {
         res.status(400).json({ message: "Invalid or expired token" });
     }
 }
+
+
+

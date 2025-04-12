@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import { userData } from "./features/script/scriptSlice";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import GoogleCallback from "./components/GoogleCallback";
+import BillingPage from "./components/BillingPage";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -28,7 +29,7 @@ function App() {
   );
 
   const scriptData = useSelector(userData);
-  console.log(scriptData);
+  // console.log(scriptData);
 
   console.log("isAuth: ", isAuthenticated);
 
@@ -71,6 +72,7 @@ function App() {
           <Route path="/location" element={<Location />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/google/callback" element={<GoogleCallback />} />
+          <Route path="/billing" element={<BillingPage />} />
           <Route
             path="/setup"
             element={
