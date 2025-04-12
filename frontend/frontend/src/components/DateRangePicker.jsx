@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
@@ -13,24 +13,50 @@ const DateRangePicker = () => {
   const dispatch = useDispatch();
   const [selectedRange, setSelectedRange] = useState("Today");
   const [customRange, setCustomRange] = useState([dayjs(), dayjs()]);
+  const [pollingInterval, setPollingInterval] = useState(null);
+  const pollingIntervalRef = useRef(null);
 
   // User script data
   const scriptData = useSelector(userData);
-  // console.log("scriptData:", scriptData);
   const userID = scriptData?.scripts?.[0]?.userId || "";
-
   const websiteName = scriptData?.scripts?.[0]?.websiteName || "";
 
   useEffect(() => {
     fetchAnalytics(selectedRange);
+    startPolling();
+
+    return () => {
+      stopPolling();
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchAnalytics(selectedRange);
+
+    stopPolling();
+    startPolling();
   }, [selectedRange]);
+
+  const startPolling = () => {
+    pollingIntervalRef.current = setInterval(() => {
+      fetchAnalytics(selectedRange);
+    }, 10000);
+  };
+
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
 
   const fetchAnalytics = (range) => {
     let startDate, endDate;
 
     switch (range) {
       case "Today":
-        startDate = endDate = dayjs();
+        startDate = dayjs().subtract(24, "hours");
+        endDate = dayjs().endOf("day");
         break;
       case "Last 24 Hours":
         startDate = dayjs().subtract(24, "hours");
