@@ -11,6 +11,7 @@ import {
   Calendar,
   Filter,
   ArrowUpRightFromCircle,
+  AlertCircle,
 } from "lucide-react";
 
 import dayjs from "dayjs";
@@ -31,6 +32,8 @@ import {
 import Devices from "./Devices";
 import Location from "./Location";
 import VisitorsRevenueChart from "./VisitorsChart";
+import { getCurrentUserthunk } from "../features/user/userSlice";
+import { Link } from "react-router-dom";
 
 // const {RangePicker} = DatePicker;
 // const {Option} = Select;
@@ -52,6 +55,8 @@ export default function Dashboard() {
     bounceRate: 0,
   });
 
+  const [subscriptionStatus, setSubscriptionStatus] = useState("loading");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -62,6 +67,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     setLoading(true);
+    dispatch(getCurrentUserthunk())
+      .unwrap()
+      .then((response) => {
+        const status = response?.user?.paymentStatus;
+
+        if (status === "active" || status === "trial") {
+          setSubscriptionStatus("active");
+        } else {
+          setSubscriptionStatus("expired");
+        }
+      })
+      .catch(() => {
+        setSubscriptionStatus("expired");
+      });
 
     dispatch(getScriptThunk())
       .unwrap()
@@ -91,148 +110,168 @@ export default function Dashboard() {
     }
   }, [result]);
 
-  if (loading) {
-    return <div>Loading...</div>; // Show loading state
+  if (loading || subscriptionStatus === "loading") {
+    return <div>Loading...</div>;
   }
 
-  // if (error) {
-  //   return <div>Error: {error}</div>; // Show error message
-  // }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <DateRangePicker
-                value={[dayjs(dateRange.startDate), dayjs(dateRange.endDate)]}
-                onChange={(dates) => {
-                  if (dates) {
-                    setDateRange({
-                      startDate: dates[0].toDate(),
-                      endDate: dates[1].toDate(),
-                    });
-                  }
-                }}
-                className="w-72"
-              />
+    <>
+      <div className="min-h-screen bg-gray-50 relative">
+        <nav className="bg-white border-b border-gray-200 relative z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <DateRangePicker
+                  value={[dayjs(dateRange.startDate), dayjs(dateRange.endDate)]}
+                  onChange={(dates) => {
+                    if (dates) {
+                      setDateRange({
+                        startDate: dates[0].toDate(),
+                        endDate: dates[1].toDate(),
+                      });
+                    }
+                  }}
+                  className="w-72"
+                  disabled={subscriptionStatus === "expired"}
+                />
+              </div>
+            </div>
+          </div>
+        </nav>
 
-              {/* <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </button> */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 relative">
+          {/* Subscription expired overlay - now only covers main content */}
+          {subscriptionStatus === "expired" && (
+            <div className="absolute inset-0 z-50 flex justify-center items-start pt-10 backdrop-blur-sm bg-white/40">
+              <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+                <div className="flex items-center justify-center mb-4">
+                  <AlertCircle className="h-12 w-12 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
+                  Subscription Expired
+                </h2>
+                <p className="text-gray-600 text-center mb-6">
+                  Your subscription has expired or your tokens have been
+                  exhausted. Please renew your subscription to continue
+                  accessing dashboard analytics.
+                </p>
+                <Link
+                  to="/billing"
+                  className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md text-center transition duration-200"
+                >
+                  Go to Billing
+                </Link>
+              </div>
             </div>
-          </div>
-        </div>
-      </nav>
+          )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-indigo-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Total Visitors
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {" "}
-                  {data.totalVisitors}{" "}
-                </p>
-                {/* <p className="text-sm text-green-600"> +{} </p> */}
+          {/* Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-indigo-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Visitors
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {" "}
+                    {data.totalVisitors}{" "}
+                  </p>
+                  {/* <p className="text-sm text-green-600"> +{} </p> */}
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <MousePointer2 className="h-8 w-8 text-indigo-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">
+                    Avg. Click Rate
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {data.clickRate}
+                  </p>
+                  <p className="text-sm text-green-600"> {} </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <ArrowUpRight className="h-8 w-8 text-indigo-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">
+                    Conversion Rate
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {data.conversionRate}
+                  </p>
+                  {/* <p className="text-sm text-red-600">-0.3% vs last week</p> */}
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <ArrowUpRightFromCircle className="h-8 w-8 text-indigo-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">
+                    Bounce Rate
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {" "}
+                    {data.bounceRate}{" "}
+                  </p>
+                  {/* <p className="text-sm text-green-600">+5.7% vs last week</p> */}
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <Globe className="h-8 w-8 text-indigo-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">
+                    Visitors now
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {" "}
+                    {data.activeUsers}{" "}
+                  </p>
+                  {/* <p className="text-sm text-green-600">+5.7% vs last week</p> */}
+                </div>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <MousePointer2 className="h-8 w-8 text-indigo-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Avg. Click Rate
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {data.clickRate}
-                </p>
-                <p className="text-sm text-green-600"> {} </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <ArrowUpRight className="h-8 w-8 text-indigo-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Conversion Rate
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {data.conversionRate}
-                </p>
-                {/* <p className="text-sm text-red-600">-0.3% vs last week</p> */}
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <ArrowUpRightFromCircle className="h-8 w-8 text-indigo-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Bounce Rate</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {" "}
-                  {data.bounceRate}{" "}
-                </p>
-                {/* <p className="text-sm text-green-600">+5.7% vs last week</p> */}
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Globe className="h-8 w-8 text-indigo-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Visitors now
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {" "}
-                  {data.activeUsers}{" "}
-                </p>
-                {/* <p className="text-sm text-green-600">+5.7% vs last week</p> */}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1  gap-8 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {/* Charts Section */}
+          <div className="grid grid-cols-1  gap-8 mb-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Visitors Over Time
             </h2> */}
-            <VisitorsRevenueChart />
-          </div>
-          {/* <div className="bg-white rounded-lg shadow p-6">
+              <VisitorsRevenueChart />
+            </div>
+            {/* <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Referral Sources
             </h2>
             <ReferralSources />
           </div> */}
-        </div>
+          </div>
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Top Pages
-            </h2>
-            <TopPages />
+          {/* Bottom Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Top Pages
+              </h2>
+              <TopPages />
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">Location & Devices</h2> */}
+              <Devices />
+            </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">Location & Devices</h2> */}
-            <Devices />
-          </div>
-        </div>
-        {/* <div className="grid grid-cols-1  gap-8 mb-8">
+          {/* <div className="grid grid-cols-1  gap-8 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Location
@@ -240,10 +279,11 @@ export default function Dashboard() {
             <Location />
           </div>
         </div> */}
-        <div className="grid grid-cols-1 mt-10 gap-8 mb-8">
-          <Location />
-        </div>
-      </main>
-    </div>
+          <div className="grid grid-cols-1 mt-10 gap-8 mb-8">
+            <Location />
+          </div>
+        </main>
+      </div>
+    </>
   );
 }

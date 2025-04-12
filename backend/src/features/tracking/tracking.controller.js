@@ -4,10 +4,12 @@ import mongoose, { Mongoose } from 'mongoose';
 import { format } from 'path';
 import dayjs from 'dayjs';
 import { UAParser } from 'ua-parser-js';
+import pricingPlans from '../../../pricingPlans.js';
 import { strict as assert } from 'assert';
 
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json" assert { type: "json" };
+import { AuthModel } from '../auth/auth.schema.js';
 
 
 countries.registerLocale(enLocale);
@@ -65,6 +67,32 @@ export const addData = async (req, res) => {
             return res.status(400).json({ message: "Invalid data received." });
         }
 
+        // Validate tokens and payment status
+        const user = await AuthModel.findById(userID);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const currentDate = new Date();
+        const plan = pricingPlans.find(p => p.plan === user.pricingPlan);
+
+        // Check expired subscription
+        if (user.paymentStatus === "expired" || currentDate > user.subscriptionEndDate) {
+            user.paymentStatus = "expired";
+            await user.save();
+            return res.status(403).json({ message: "Subscription expired. Upgrade required." });
+        }
+
+        if (!plan) {
+            return res.status(500).json({ message: "Invalid pricing plan. Please contact support." });
+        }
+
+        // Check event limit (only block saving, not returning response)
+        const eventLimitExceeded = plan.events !== Infinity && user.eventsUsed >= plan.events;
+        if (eventLimitExceeded) {
+            return res.status(200).json({ message: "Event limit reached. Data not saved, but plan still active." });
+        }
+
 
         // Get the client's IP address
         const ip = req.headers['cf-connecting-ip'] ||  // Cloudflare
@@ -104,7 +132,12 @@ export const addData = async (req, res) => {
         console.log(trackingEntry)
 
         await trackingEntry.save();
-        // console.log("Data saved:", trackingEntry);
+
+        // Increment event count
+        user.eventsUsed += 1;
+        console.log("Before saving eventsUsed:", user.eventsUsed);
+        await user.save();
+        console.log("After saving eventsUsed:", user.eventsUsed);
         res.status(200).json({ message: "Data received and stored successfully" });
     } catch (error) {
         console.error("Error saving tracking data:", error);
