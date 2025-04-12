@@ -90,7 +90,7 @@ export default function BillingPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/api/payment/create-order",
+        "https://backend.webmeter.in/api/payment/create-order",
         {
           method: "POST",
           headers: {
@@ -118,7 +118,7 @@ export default function BillingPage() {
         order_id: data.order.id,
         handler: async function (response) {
           const verifyRes = await fetch(
-            "http://localhost:3000/api/payment/verify-payment",
+            "https://backend.webmeter.in/api/payment/verify-payment",
             {
               method: "POST",
               headers: {
