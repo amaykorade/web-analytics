@@ -227,21 +227,43 @@ export const getAnalysis = async (req, res) => {
         response.conversionRate = { rate: `${currentConversionRate}%`, change: calculatePercentageChange(currentConversionRate, previousConversionRate) };
 
         // **5. Active Users**
-        const currentActiveUsers = await TrackingModule.distinct("userId", { websiteName, timestamp: { $gte: start, $lte: end } });
-        const previousActiveUsers = await TrackingModule.distinct("userId", { websiteName, timestamp: { $gte: previousStart, $lte: previousEnd } });
-        response.activeUsers = { count: currentActiveUsers.length, change: calculatePercentageChange(currentActiveUsers.length, previousActiveUsers.length) };
+        const noww = new Date();
+        const twoMinutesAgo = new Date(noww.getTime() - 2 * 60 * 1000);
+
+        // Get active visitors who have interacted in the last 2 minutes
+        const activeVisitors = await TrackingModule.distinct("visitorId", {
+            websiteName,
+            timestamp: { $gte: twoMinutesAgo },
+        });
+
+        response.activeUsers = {
+            count: activeVisitors.length,
+        };
 
 
         // **6. Device Data**
         const deviceData = await TrackingModule.aggregate([
-            { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
-            { $group: { _id: "$userAgent" } },
-            { $match: { _id: { $ne: null } } },
+            {
+                $match: {
+                    userId: userObjectId,
+                    websiteName,
+                    timestamp: { $gte: start, $lte: end },
+                    userAgent: { $ne: null },
+                    visitorId: { $ne: null },
+                },
+            },
+            {
+                $group: {
+                    _id: "$visitorId", // group by unique visitor
+                    userAgent: { $first: "$userAgent" }, // take one userAgent per visitor
+                },
+            },
         ]);
 
         const osCounts = {}, browserCounts = {}, deviceCounts = {};
-        deviceData.forEach(({ _id }) => {
-            const parser = new UAParser(_id);
+
+        deviceData.forEach(({ userAgent }) => {
+            const parser = new UAParser(userAgent);
             const osName = parser.getOS().name || "Unknown";
             const browserName = parser.getBrowser().name || "Unknown";
             const deviceType = parser.getDevice().type || "Desktop";
@@ -251,11 +273,22 @@ export const getAnalysis = async (req, res) => {
             deviceCounts[deviceType] = (deviceCounts[deviceType] || 0) + 1;
         });
 
-        const getFormattedData = (data) => Object.keys(data)
-            .filter((key) => key !== "Unknown")
-            .map((key) => ({ name: key, count: data[key], percentage: ((data[key] / deviceData.length) * 100).toFixed(2) }));
+        const getFormattedData = (data) =>
+            Object.keys(data)
+                .filter((key) => key !== "Unknown")
+                .map((key) => ({
+                    name: key,
+                    count: data[key],
+                    percentage: ((data[key] / deviceData.length) * 100).toFixed(2),
+                }));
 
-        response.devices = { os: getFormattedData(osCounts), browser: getFormattedData(browserCounts), device: getFormattedData(deviceCounts) };
+        response.devices = {
+            os: getFormattedData(osCounts),
+            browser: getFormattedData(browserCounts),
+            device: getFormattedData(deviceCounts),
+        };
+
+
 
         // **7. Top Pages**
         const pageStats = await TrackingModule.aggregate([
