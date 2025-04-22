@@ -20,6 +20,9 @@ import Location from "./components/Location";
 import { useSelector } from "react-redux";
 import { userData } from "./features/script/scriptSlice";
 import PrivacyPolicy from "./components/PrivacyPolicy";
+import ContactPage from "./components/legal/ContactUs";
+import TermsAndConditions from "./components/legal/TermsAndCondition";
+import RefundCancellationPage from "./components/legal/RefundAndCancellation";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -69,6 +72,15 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/location" element={<Location />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/legal/contact-us" element={<ContactPage />} />
+          <Route
+            path="/legal/terms-and-conditions"
+            element={<TermsAndConditions />}
+          />
+          <Route
+            path="/legal/refund-cancellation"
+            element={<RefundCancellationPage />}
+          />
           <Route
             path="/setup"
             element={

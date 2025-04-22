@@ -13,6 +13,10 @@ import {
   Gauge,
   LogOut,
   User,
+  CreditCard,
+  FileText,
+  MessageSquare,
+  ExternalLink,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { getCurrentUserthunk, logout } from "../../features/user/userSlice";
@@ -151,13 +155,6 @@ export default function Navbar() {
 
           {/* Right section */}
           <div className="flex items-center">
-            {/* <button className="p-2 text-gray-400 hover:text-gray-500">
-              <HelpCircle className="h-6 w-6" />
-            </button>
-            <button className="p-2 text-gray-400 hover:text-gray-500">
-              <Bell className="h-6 w-6" />
-            </button> */}
-
             {/* Profile dropdown */}
             <div className="ml-3 relative">
               <button
@@ -169,13 +166,10 @@ export default function Navbar() {
               </button>
 
               {isProfileOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
                   <div className="px-4 py-2 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">
-                      {" "}
-                      {name}{" "}
-                    </p>
-                    <p className="text-sm text-gray-500"> {email} </p>
+                    <p className="text-sm font-medium text-gray-900">{name}</p>
+                    <p className="text-sm text-gray-500">{email}</p>
                   </div>
                   {/* <Link
                     to="/settings"
@@ -183,7 +177,70 @@ export default function Navbar() {
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
+                  </Link>
+                  <Link
+                    to="/billing"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Billing
+                  </Link>
+                  <Link
+                    to="/documentation"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Documentation
+                    <ExternalLink className="h-3 w-3 ml-auto" />
+                  </Link>
+                  <Link
+                    to="/feedback"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Feedback
+                    <ExternalLink className="h-3 w-3 ml-auto" />
+                  </Link>
+                  <Link
+                    to="/support"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <HelpCircle className="h-4 w-4 mr-2" />
+                    Support
+                    <ExternalLink className="h-3 w-3 ml-auto" />
+                  </Link>
+                  <Link
+                    to="/affiliate"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Affiliate (50%)
+                    <ExternalLink className="h-3 w-3 ml-auto" />
                   </Link> */}
+
+                  {/* New links added below */}
+                  <Link
+                    to="/legal/contact-us"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Contact Us
+                  </Link>
+                  <Link
+                    to="/legal/terms-and-conditions"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Terms & Conditions
+                  </Link>
+                  <Link
+                    to="/legal/refund-cancellation"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Refund & Cancellation
+                  </Link>
+
                   <button
                     className="flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
                     onClick={handleLogout}
