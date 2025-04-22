@@ -15,3 +15,9 @@ export const getCurrentUser = async () => {
     const response = await apiClient.get("/user/currentuser");
     return response.data;
 }
+
+export const getStatus = async (email) => {
+    console.log("getStatus", email)
+    const response = await apiClient.get(`/user/verify-status?email=${email}`);
+    return response.data;
+}

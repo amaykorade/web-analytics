@@ -13,7 +13,7 @@ const jwtAuth = (req, res, next) => {
     // const token = authHeader;
     const token = authHeader.split(' ')[1];
 
-    // console.log("token:", token);
+    console.log("token:", token);
 
     if (!token) {
         return res.status(401).send({ error: 'Unauthorized: No token provided' });
@@ -22,7 +22,7 @@ const jwtAuth = (req, res, next) => {
     try {
         const payload = jwt.verify(
             token,
-            process.env.JWT_SECRET_BACKEND
+            process.env.JWT_SECRET
         );
         req.userID = payload.userID;
         next();
