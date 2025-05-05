@@ -3,6 +3,7 @@ import { ArrowLeft, Check, Plus as PlusIcon } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCurrentUserthunk } from "../features/user/userSlice";
 import { useNavigate } from "react-router-dom";
+import { Drop } from "cashfree-dropjs";
 
 const monthlyPlans = [
   { plan: "10k", price: 9, events: 10_000 },
@@ -50,18 +51,11 @@ export default function BillingPage() {
     setSliderIndex(value);
   };
 
-  console.log("currentPlan: ", currentPlan);
-
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
     dispatch(getCurrentUserthunk())
       .unwrap()
       .then((response) => {
         console.log("user: ", response);
-        // setName(response?.user?.name);
         const user = response?.user;
         setEmail(user?.email);
 
@@ -83,10 +77,41 @@ export default function BillingPage() {
       });
   }, [dispatch]);
 
+  // const handleCreateOrder = async (e) => {
+  //   e.preventDefault();
+
+  //   try {
+  //     const response = await fetch(
+  //       "http://localhost:3000/api/payment/create-order",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ email, currentPlan, isYearly }),
+  //       }
+  //     );
+
+  //     const data = await response.json();
+  //     console.log("Order Response: ", data);
+
+  //     const { approval_url } = data;
+
+  //     if (!approval_url) {
+  //       alert("Approval URL not found!");
+  //       return;
+  //     }
+
+  //     // Redirect to PayPal checkout page
+  //     window.location.href = approval_url;
+  //   } catch (error) {
+  //     console.error("Error creating PayPal order:", error);
+  //     alert("Something went wrong");
+  //   }
+  // };
+
   const handleCreateOrder = async (e) => {
     e.preventDefault();
-    // if (loading) return;
-    // setLoading(true);
 
     try {
       const response = await fetch(
@@ -101,21 +126,23 @@ export default function BillingPage() {
       );
 
       const data = await response.json();
+      console.log("Razorpay Order Response: ", data);
 
-      if (!response.ok) {
-        console.error("Failed to create order:", data.message);
-        alert(data.message || "Something went wrong");
+      const { razorpay_order_id, amount, currency } = data;
+
+      if (!razorpay_order_id) {
+        alert("Order ID not found!");
         return;
       }
 
       const options = {
-        key: "rzp_test_nWKipUgyXOws1e", // Replace with your actual Razorpay key
-        amount: data.order.amount,
-        currency: data.order.currency,
+        key: "rzp_live_BlWWCq53WcKoFc",
+        // key: "rzp_test_C9UJhk7UZPWE17",
+        amount,
+        currency,
         name: "Webmeter",
-        description: "Billing Payment",
-        // image: "https://yourcompany.com/logo.png", // optional
-        order_id: data.order.id,
+        description: `Subscription for ${currentPlan.plan}`,
+        order_id: razorpay_order_id,
         handler: async function (response) {
           const verifyRes = await fetch(
             "https://backend.webmeter.in/api/payment/verify-payment",
@@ -135,27 +162,28 @@ export default function BillingPage() {
             }
           );
 
-          const verifyData = await verifyRes.json();
-
-          if (verifyData.success) {
-            alert("Payment verified successfully!");
+          const result = await verifyRes.json();
+          if (result.success) {
+            sessionStorage.setItem("paymentSuccess", "true");
+            navigate("/payment-success");
           } else {
-            alert("Payment verification failed.");
+            sessionStorage.setItem("paymentCancel", "true");
+            navigate("/payment-cancel");
           }
         },
         prefill: {
-          email: email,
+          email,
         },
         theme: {
-          color: "#6366F1",
+          color: "#3399cc",
         },
       };
 
       const razor = new window.Razorpay(options);
       razor.open();
-    } catch (err) {
-      console.error("Error creating order:", err);
-      alert("Error creating order");
+    } catch (error) {
+      console.error("Error creating Razorpay order:", error);
+      alert("Something went wrong");
     }
   };
 
@@ -347,6 +375,7 @@ export default function BillingPage() {
           {/* CTA Button */}
           <button
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition duration-200"
+            id="payment-container"
             onClick={handleCreateOrder}
           >
             Pick plan
