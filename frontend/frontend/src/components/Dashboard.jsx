@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-// import { DatePicker, Select } from 'antd';
-
 import {
   BarChart3,
   Users,
@@ -12,10 +10,10 @@ import {
   Filter,
   ArrowUpRightFromCircle,
   AlertCircle,
+  XCircle,
 } from "lucide-react";
 
 import dayjs from "dayjs";
-
 import ReferralSources from "./ReferralSources";
 import TopPages from "./TopPages";
 import DateRangePicker from "./DateRangePicker";
@@ -35,12 +33,8 @@ import VisitorsRevenueChart from "./VisitorsChart";
 import { getCurrentUserthunk } from "../features/user/userSlice";
 import { Link } from "react-router-dom";
 
-// const {RangePicker} = DatePicker;
-// const {Option} = Select;
-
 export default function Dashboard() {
   const dispatch = useDispatch();
-
   const result = useSelector(analyticsData);
 
   const [data, setData] = useState({
@@ -49,13 +43,14 @@ export default function Dashboard() {
     totalVisitors: 0,
     visitorsChange: 0,
     clickRate: 0,
-    // weeklyClickRateChange,
     conversionRate: 0,
     activeUsers: 0,
     bounceRate: 0,
   });
 
   const [subscriptionStatus, setSubscriptionStatus] = useState("loading");
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState(null);
+  const [showExpiringSoonMessage, setShowExpiringSoonMessage] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -71,6 +66,20 @@ export default function Dashboard() {
       .unwrap()
       .then((response) => {
         const status = response?.user?.paymentStatus;
+        const endDate = response?.user?.subscriptionEndDate;
+
+        if (endDate) {
+          const parsedEnd = dayjs(endDate);
+          setSubscriptionEndDate(parsedEnd);
+
+          const daysLeft = parsedEnd.diff(dayjs(), "day");
+
+          const dismissed =
+            localStorage.getItem("subscriptionExpiryDismissed") === "true";
+          if (daysLeft <= 5 && daysLeft >= 0 && !dismissed) {
+            setShowExpiringSoonMessage(true);
+          }
+        }
 
         if (status === "active" || status === "trial") {
           setSubscriptionStatus("active");
@@ -92,7 +101,6 @@ export default function Dashboard() {
           websiteName: scriptData?.websiteName,
         }));
       })
-
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [dispatch]);
@@ -109,6 +117,11 @@ export default function Dashboard() {
       }));
     }
   }, [result]);
+
+  const handleDismiss = () => {
+    localStorage.setItem("subscriptionExpiryDismissed", "true");
+    setShowExpiringSoonMessage(false);
+  };
 
   if (loading || subscriptionStatus === "loading") {
     return <div>Loading...</div>;
@@ -139,34 +152,51 @@ export default function Dashboard() {
           </div>
         </nav>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 relative">
-          {/* Subscription expired overlay - now only covers main content */}
-          {subscriptionStatus === "expired" && (
-            <div className="absolute inset-0 z-50 flex justify-center items-start pt-10 backdrop-blur-sm bg-white/40">
-              <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
-                <div className="flex items-center justify-center mb-4">
-                  <AlertCircle className="h-12 w-12 text-red-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
-                  Subscription Expired
-                </h2>
-                <p className="text-gray-600 text-center mb-6">
-                  Your subscription has expired or your tokens have been
-                  exhausted. Please renew your subscription to continue
-                  accessing dashboard analytics.
-                </p>
-                <Link
-                  to="/billing"
-                  className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md text-center transition duration-200"
-                >
-                  Go to Billing
-                </Link>
-              </div>
+        {showExpiringSoonMessage && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded z-50 shadow-md flex items-center justify-between w-[90%] md:w-[600px]">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-700" />
+              <span>
+                Your subscription is ending soon. Please renew to avoid service
+                interruption.
+              </span>
             </div>
-          )}
+            <button
+              onClick={handleDismiss}
+              className="ml-4 hover:text-yellow-900"
+            >
+              <XCircle className="h-5 w-5" />
+            </button>
+          </div>
+        )}
 
-          {/* Overview Cards */}
+        {subscriptionStatus === "expired" && (
+          <div className="absolute inset-0 z-50 flex justify-center items-start pt-10 backdrop-blur-sm bg-white/40">
+            <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+              <div className="flex items-center justify-center mb-4">
+                <AlertCircle className="h-12 w-12 text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
+                Subscription Expired
+              </h2>
+              <p className="text-gray-600 text-center mb-6">
+                Your subscription has expired or your tokens have been
+                exhausted. Please renew your subscription to continue accessing
+                dashboard analytics.
+              </p>
+              <Link
+                to="/billing"
+                className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md text-center transition duration-200"
+              >
+                Go to Billing
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 relative">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            {/* Total Visitors */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-indigo-600" />
@@ -175,13 +205,12 @@ export default function Dashboard() {
                     Total Visitors
                   </p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {" "}
-                    {data.totalVisitors}{" "}
+                    {data.totalVisitors}
                   </p>
-                  {/* <p className="text-sm text-green-600"> +{} </p> */}
                 </div>
               </div>
             </div>
+            {/* Click Rate */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <MousePointer2 className="h-8 w-8 text-indigo-600" />
@@ -192,10 +221,10 @@ export default function Dashboard() {
                   <p className="text-2xl font-semibold text-gray-900">
                     {data.clickRate}
                   </p>
-                  <p className="text-sm text-green-600"> {} </p>
                 </div>
               </div>
             </div>
+            {/* Conversion Rate */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <ArrowUpRight className="h-8 w-8 text-indigo-600" />
@@ -206,10 +235,10 @@ export default function Dashboard() {
                   <p className="text-2xl font-semibold text-gray-900">
                     {data.conversionRate}
                   </p>
-                  {/* <p className="text-sm text-red-600">-0.3% vs last week</p> */}
                 </div>
               </div>
             </div>
+            {/* Bounce Rate */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <ArrowUpRightFromCircle className="h-8 w-8 text-indigo-600" />
@@ -218,13 +247,12 @@ export default function Dashboard() {
                     Bounce Rate
                   </p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {" "}
-                    {data.bounceRate}{" "}
+                    {data.bounceRate}
                   </p>
-                  {/* <p className="text-sm text-green-600">+5.7% vs last week</p> */}
                 </div>
               </div>
             </div>
+            {/* Active Users */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <Globe className="h-8 w-8 text-indigo-600" />
@@ -233,29 +261,18 @@ export default function Dashboard() {
                     Visitors now
                   </p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {" "}
-                    {data.activeUsers}{" "}
+                    {data.activeUsers}
                   </p>
-                  {/* <p className="text-sm text-green-600">+5.7% vs last week</p> */}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1  gap-8 mb-8">
+          {/* Charts */}
+          <div className="grid grid-cols-1 gap-8 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
-              {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Visitors Over Time
-            </h2> */}
               <VisitorsRevenueChart />
             </div>
-            {/* <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Referral Sources
-            </h2>
-            <ReferralSources />
-          </div> */}
           </div>
 
           {/* Bottom Section */}
@@ -267,20 +284,8 @@ export default function Dashboard() {
               <TopPages />
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">Location & Devices</h2> */}
               <Devices />
             </div>
-          </div>
-          {/* <div className="grid grid-cols-1  gap-8 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Location
-            </h2>
-            <Location />
-          </div>
-        </div> */}
-          <div className="grid grid-cols-1 mt-10 gap-8 mb-8">
-            <Location />
           </div>
         </main>
       </div>
