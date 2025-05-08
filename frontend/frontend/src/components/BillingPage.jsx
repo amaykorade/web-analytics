@@ -77,39 +77,6 @@ export default function BillingPage() {
       });
   }, [dispatch]);
 
-  // const handleCreateOrder = async (e) => {
-  //   e.preventDefault();
-
-  //   try {
-  //     const response = await fetch(
-  //       "http://localhost:3000/api/payment/create-order",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ email, currentPlan, isYearly }),
-  //       }
-  //     );
-
-  //     const data = await response.json();
-  //     console.log("Order Response: ", data);
-
-  //     const { approval_url } = data;
-
-  //     if (!approval_url) {
-  //       alert("Approval URL not found!");
-  //       return;
-  //     }
-
-  //     // Redirect to PayPal checkout page
-  //     window.location.href = approval_url;
-  //   } catch (error) {
-  //     console.error("Error creating PayPal order:", error);
-  //     alert("Something went wrong");
-  //   }
-  // };
-
   const handleCreateOrder = async (e) => {
     e.preventDefault();
 
