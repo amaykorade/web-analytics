@@ -18,6 +18,9 @@
     "chart.js": "^4.4.7",
     "d3-geo": "^3.1.1",
     "dayjs": "^1.11.13",
+    "cashfree-dropjs": "^1.1.5",
+  
+    "dotenv": "^16.5.0",
     "lucide-react": "^0.474.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.3.0",

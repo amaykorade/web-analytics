@@ -25,6 +25,9 @@ import ContactPage from "./components/legal/ContactUs";
 import TermsAndConditions from "./components/legal/TermsAndCondition";
 import RefundCancellationPage from "./components/legal/RefundAndCancellation";
 import GoogleCallback from "./components/GoogleCallback";
+import BillingPage from "./components/BillingPage";
+import PaymentSuccess from "./components/payment/PaymentSuccess";
+import PaymentFailure from "./components/payment/PyamentFailure";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -32,7 +35,7 @@ function App() {
   );
 
   const scriptData = useSelector(userData);
-  console.log(scriptData);
+  // console.log(scriptData);
 
   console.log("isAuth: ", isAuthenticated);
 
@@ -84,6 +87,11 @@ function App() {
             element={<RefundCancellationPage />}
           />
           <Route path="/google/callback" element={<GoogleCallback />} />
+          <Route path="/google/callback" element={<GoogleCallback />} />
+          <Route path="/billing" element={<BillingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentFailure />} />
+
           <Route
             path="/setup"
             element={

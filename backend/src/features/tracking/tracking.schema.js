@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { AuthModel } from "../auth/auth.schema.js";
+import pricingPlan from "../../../pricingPlans.js"
 
 
 const TrackingSchema = new mongoose.Schema({
@@ -49,6 +51,8 @@ const TrackingSchema = new mongoose.Schema({
     entryPage: { type: Boolean, default: false },
     exitPage: { type: Boolean, default: false },
     conversion: { type: Boolean, default: false },
-})
+});
+
+
 
 export const TrackingModule = mongoose.model("Tracking", TrackingSchema);
