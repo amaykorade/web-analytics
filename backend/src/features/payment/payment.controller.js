@@ -22,7 +22,7 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Create Razorpay Order
+// ✅ Create Razorpay Order with fixed conversion rate (1 USD = 83 INR)
 export const createOrder = async (req, res) => {
     try {
         const { email, currentPlan, isYearly } = req.body;
@@ -37,10 +37,16 @@ export const createOrder = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const amount = currentPlan.price * 100; // Razorpay accepts amount in paise
+        // Fixed exchange rate (1 USD = 83 INR)
+        const exchangeRate = 83;
+        console.log("Exchange rate (USD to INR):", exchangeRate);
+
+        // Convert the amount from USD to INR
+        const amountInUSD = currentPlan.price;
+        const amountInINR = amountInUSD * exchangeRate * 100; // Razorpay accepts amount in paise
 
         const options = {
-            amount: amount,
+            amount: amountInINR,
             currency: "INR",
             receipt: `receipt_${Math.floor(Math.random() * 10000)}`,
         };
@@ -48,20 +54,20 @@ export const createOrder = async (req, res) => {
         const order = await razorpay.orders.create(options);
         console.log("Generated Razorpay Order:", order);
 
-
         const newPayment = new PaymentModel({
             userId: user._id,
             orderId: order.id,
-            amount: amount / 100,
-            currency: "INR",
+            amount: amountInUSD,
+            currency: "USD",
             status: "created",
         });
 
         await newPayment.save();
 
+        // Return INR amount for frontend display
         res.status(201).json({
             razorpay_order_id: order.id,
-            amount: amount / 100,
+            amount: amountInINR / 100,  // INR in rupees
             currency: "INR",
         });
     } catch (error) {
@@ -72,6 +78,7 @@ export const createOrder = async (req, res) => {
         });
     }
 };
+
 
 // ✅ Verify Razorpay Payment
 export const verifyPayment = async (req, res) => {
