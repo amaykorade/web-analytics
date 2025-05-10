@@ -154,7 +154,7 @@ export default function Navbar() {
           </div>
 
           {/* Right section */}
-          <div className="flex items-center">
+          <div className="flex items-center z-1000">
             {/* Profile dropdown */}
             <div className="ml-3 relative">
               <button
@@ -171,7 +171,7 @@ export default function Navbar() {
                     <p className="text-sm font-medium text-gray-900">{name}</p>
                     <p className="text-sm text-gray-500">{email}</p>
                   </div>
-                  {/* <Link
+                  <Link
                     to="/settings"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
@@ -185,7 +185,7 @@ export default function Navbar() {
                     <CreditCard className="h-4 w-4 mr-2" />
                     Billing
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/documentation"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
@@ -200,8 +200,8 @@ export default function Navbar() {
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Feedback
                     <ExternalLink className="h-3 w-3 ml-auto" />
-                  </Link>
-                  <Link
+                  </Link> */}
+                  {/* <Link
                     to="/support"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
