@@ -287,6 +287,9 @@ export default function Dashboard() {
               <Devices />
             </div>
           </div>
+          <div className="grid grid-cols-1 mt-10 gap-8 mb-8">
+            <Location />
+          </div>
         </main>
       </div>
     </>
