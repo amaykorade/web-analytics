@@ -11,7 +11,7 @@ TrackingRouter.get("/", (req, res) => {
     res.json({ message: 'Hello from API, Amay Korade' });
 });
 
-TrackingRouter.post("/track", checkSubscriptionStatus, addData);
+TrackingRouter.post("/track", addData);
 
 TrackingRouter.get("/analytics/total-data", jwtAuth, checkSubscriptionStatus, getAnalysis);
 
