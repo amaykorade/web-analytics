@@ -1,4 +1,5 @@
 const pricingPlans = [
+    { plan: "9k", price: 0, events: 9000 },
     { plan: "10k", price: 9, events: 10_000 },
     { plan: "100k", price: 19, events: 100_000 },
     { plan: "200k", price: 29, events: 200_000 },
