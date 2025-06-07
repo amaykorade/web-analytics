@@ -354,44 +354,31 @@ export const getAnalysis = async (req, res) => {
             {
                 $addFields: {
                     pathname: {
-                        $let: {
-                            vars: {
-                                urlParts: {
-                                    $split: ["$url", "?"]
-                                }
-                            },
-                            in: {
+                        $cond: {
+                            if: { $regexMatch: { input: "$url", regex: "^https?://" } },
+                            then: {
                                 $let: {
                                     vars: {
-                                        fullUrl: { $arrayElemAt: ["$$urlParts", 0] }
+                                        urlParts: { $split: ["$url", "?"] },
+                                        baseUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] }
                                     },
                                     in: {
-                                        $cond: {
-                                            if: { $regexMatch: { input: "$$fullUrl", regex: "^https?://" } },
-                                            then: {
-                                                $let: {
-                                                    vars: {
-                                                        urlObj: {
-                                                            $regexFind: {
-                                                                input: "$$fullUrl",
-                                                                regex: "^https?://[^/]+(.*)$"
-                                                            }
-                                                        }
-                                                    },
-                                                    in: {
-                                                        $cond: {
-                                                            if: { $eq: [{ $size: "$$urlObj.captures" }, 0] },
-                                                            then: "/",
-                                                            else: { $arrayElemAt: ["$$urlObj.captures", 0] }
-                                                        }
-                                                    }
-                                                }
+                                        $let: {
+                                            vars: {
+                                                pathParts: { $split: [{ $arrayElemAt: [{ $split: ["$$baseUrl", "://"] }, 1] }, "/"] }
                                             },
-                                            else: "$$fullUrl"
+                                            in: {
+                                                $cond: {
+                                                    if: { $eq: [{ $size: "$$pathParts" }, 1] },
+                                                    then: "/",
+                                                    else: "/" + { $arrayElemAt: ["$$pathParts", 1] }
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
+                            },
+                            else: "$url"
                         }
                     }
                 }
@@ -452,44 +439,31 @@ export const getAnalysis = async (req, res) => {
                 {
                     $addFields: {
                         pathname: {
-                            $let: {
-                                vars: {
-                                    urlParts: {
-                                        $split: ["$url", "?"]
-                                    }
-                                },
-                                in: {
+                            $cond: {
+                                if: { $regexMatch: { input: "$url", regex: "^https?://" } },
+                                then: {
                                     $let: {
                                         vars: {
-                                            fullUrl: { $arrayElemAt: ["$$urlParts", 0] }
+                                            urlParts: { $split: ["$url", "?"] },
+                                            baseUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] }
                                         },
                                         in: {
-                                            $cond: {
-                                                if: { $regexMatch: { input: "$$fullUrl", regex: "^https?://" } },
-                                                then: {
-                                                    $let: {
-                                                        vars: {
-                                                            urlObj: {
-                                                                $regexFind: {
-                                                                    input: "$$fullUrl",
-                                                                    regex: "^https?://[^/]+(.*)$"
-                                                                }
-                                                            }
-                                                        },
-                                                        in: {
-                                                            $cond: {
-                                                                if: { $eq: [{ $size: "$$urlObj.captures" }, 0] },
-                                                                then: "/",
-                                                                else: { $arrayElemAt: ["$$urlObj.captures", 0] }
-                                                            }
-                                                        }
-                                                    }
+                                            $let: {
+                                                vars: {
+                                                    pathParts: { $split: [{ $arrayElemAt: [{ $split: ["$$baseUrl", "://"] }, 1] }, "/"] }
                                                 },
-                                                else: "$$fullUrl"
+                                                in: {
+                                                    $cond: {
+                                                        if: { $eq: [{ $size: "$$pathParts" }, 1] },
+                                                        then: "/",
+                                                        else: "/" + { $arrayElemAt: ["$$pathParts", 1] }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
-                                }
+                                },
+                                else: "$url"
                             }
                         }
                     }
