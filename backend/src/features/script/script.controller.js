@@ -1,7 +1,11 @@
 import axios from "axios";
 import ScriptModel from "./script.schema.js";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 
+dotenv.config();
+console.log("TRACKER_BASE_URL:", process.env.TRACKER_BASE_URL);
+const TRACKER_BASE_URL = process.env.TRACKER_BASE_URL || "https://backend.webmeter.in";
 
 export const getAllURL = async (req, res) => {
     try {
@@ -65,7 +69,7 @@ export const generateScript = async (req, res) => {
         data-website-id="${userId}"
         data-domain="${url}"
         website-name="${name}"
-        src="https://backend.webmeter.in/js/tracker.js">
+        src="${TRACKER_BASE_URL}/js/tracker.js">
         </script> `
 
         if (existingScript) {
@@ -113,10 +117,10 @@ export const verifyScriptInstallation = async (req, res) => {
         const response = await axios.get(formattedURL, { timeout: 5000 });
         const htmlContent = response.data;
 
-        console.log("HTML Response:", htmlContent.slice(0, 500))
+        console.log("HTML Response:", htmlContent.slice(0, 1000))
 
         const scriptRegex = new RegExp(
-            `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']https://backend.webmeter.in/js/tracker.js["'][^>]*>`,
+            `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']${TRACKER_BASE_URL}/js/tracker.js["'][^>]*>`,
             "i"
         );
 

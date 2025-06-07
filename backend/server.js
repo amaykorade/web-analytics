@@ -18,6 +18,8 @@ import { getAllURL } from './src/features/script/script.controller.js';
 import passport from "passport";
 import session from "express-session";
 import PaymentRouter from './src/features/payment/payment.routes.js';
+// import funnelRoutes from './features/funnel/funnel.routes.js';
+import FunnelRouter from './src/features/funnel/funnel.routes.js';
 
 // cron job
 import './src/cron-job/subscription.cron.js';
@@ -30,6 +32,17 @@ const PORT = process.env.PORT || 3000;
 const _filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(_filename);
 
+// Set CORS headers manually for static files
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin || allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin || "*");
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+    next();
+});
+
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 let allowedOrigins = [
@@ -39,7 +52,9 @@ let allowedOrigins = [
     'http://localhost:3000',
     'https://www.webmeter.in',
     'https://webmeter.in',
-    'https://backend.webmeter.in'
+    'https://backend.webmeter.in',
+    'http://127.0.0.1:5500',
+    'http://localhost:5500'
 ];
 
 // ⏳ **Update Allowed Origins (Ensures DB Connection)**
@@ -120,6 +135,7 @@ app.use('/api/user', AuthRouter);
 app.use('/api/data', TrackingRouter);
 app.use('/api/script', ScriptRouter);
 app.use('/api/payment', PaymentRouter);
+app.use('/api/funnel', FunnelRouter);
 
 // 🚀 **Start Server After Connecting to DB**
 (async () => {
