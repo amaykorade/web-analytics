@@ -36,13 +36,18 @@ const __dirname = path.dirname(_filename);
 // Set CORS headers manually for static files
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests from any origin for the tracker
+    if (req.path.startsWith('/js/tracker') || req.path.startsWith('/api/data/track')) {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Origin");
+        res.setHeader("Access-Control-Max-Age", "86400"); // 24 hours
+    } else if (!origin || allowedOrigins.includes(origin)) {
         res.setHeader("Access-Control-Allow-Origin", origin || "*");
         res.setHeader("Access-Control-Allow-Credentials", "true");
     }
     next();
 });
-
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -80,7 +85,6 @@ const updateAllowedOrigins = async () => {
     }
 };
 
-
 // 🌍 **CORS Middleware**
 await updateAllowedOrigins();
 
@@ -89,15 +93,24 @@ app.use(cors({
         console.log("🔍 CORS Check -> Request Origin:", origin);
         console.log("✅ Allowed Origins List:", allowedOrigins);
 
+        // Allow requests from any origin for the tracker
+        if (req.path.startsWith('/js/tracker') || req.path.startsWith('/api/data/track')) {
+            callback(null, true);
+            return;
+        }
+
         if (!origin || allowedOrigins.includes(origin)) {
             console.log("✔️ Allowed:", origin);
             callback(null, true);
         } else {
             console.error(`❌ CORS Error: ${origin} is not allowed.`);
-            callback(new Error("Not allowed by CORS"));
+            callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Origin', 'Authorization'],
+    maxAge: 86400 // 24 hours
 }));
 
 app.options("*", cors());
