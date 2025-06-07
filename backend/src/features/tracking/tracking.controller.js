@@ -352,16 +352,53 @@ export const getAnalysis = async (req, res) => {
                 } 
             },
             {
-                $group: {
-                    _id: {
-                        url: {
-                            $cond: {
-                                if: { $regexMatch: { input: "$url", regex: "^http" } },
-                                then: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
-                                else: "$url"
+                $addFields: {
+                    pathname: {
+                        $let: {
+                            vars: {
+                                urlParts: {
+                                    $split: ["$url", "?"]
+                                }
+                            },
+                            in: {
+                                $let: {
+                                    vars: {
+                                        fullUrl: { $arrayElemAt: ["$$urlParts", 0] }
+                                    },
+                                    in: {
+                                        $cond: {
+                                            if: { $regexMatch: { input: "$$fullUrl", regex: "^https?://" } },
+                                            then: {
+                                                $let: {
+                                                    vars: {
+                                                        urlObj: {
+                                                            $regexFind: {
+                                                                input: "$$fullUrl",
+                                                                regex: "^https?://[^/]+(.*)$"
+                                                            }
+                                                        }
+                                                    },
+                                                    in: {
+                                                        $cond: {
+                                                            if: { $eq: [{ $size: "$$urlObj.captures" }, 0] },
+                                                            then: "/",
+                                                            else: { $arrayElemAt: ["$$urlObj.captures", 0] }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            else: "$$fullUrl"
+                                        }
+                                    }
+                                }
                             }
                         }
-                    },
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$pathname",
                     views: { $sum: 1 },
                     totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },
                     sessions: { $addToSet: "$sessionId" },
@@ -372,7 +409,7 @@ export const getAnalysis = async (req, res) => {
             { $limit: 10 },
             {
                 $project: {
-                    url: "$_id.url",
+                    url: "$_id",
                     views: 1,
                     avgTimeSpent: { 
                         $cond: {
@@ -413,17 +450,54 @@ export const getAnalysis = async (req, res) => {
                     }
                 },
                 {
-                    $group: {
-                        _id: "$sessionId",
-                        uniquePages: { 
-                            $addToSet: {
-                                $cond: {
-                                    if: { $regexMatch: { input: "$url", regex: "^http" } },
-                                    then: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
-                                    else: "$url"
+                    $addFields: {
+                        pathname: {
+                            $let: {
+                                vars: {
+                                    urlParts: {
+                                        $split: ["$url", "?"]
+                                    }
+                                },
+                                in: {
+                                    $let: {
+                                        vars: {
+                                            fullUrl: { $arrayElemAt: ["$$urlParts", 0] }
+                                        },
+                                        in: {
+                                            $cond: {
+                                                if: { $regexMatch: { input: "$$fullUrl", regex: "^https?://" } },
+                                                then: {
+                                                    $let: {
+                                                        vars: {
+                                                            urlObj: {
+                                                                $regexFind: {
+                                                                    input: "$$fullUrl",
+                                                                    regex: "^https?://[^/]+(.*)$"
+                                                                }
+                                                            }
+                                                        },
+                                                        in: {
+                                                            $cond: {
+                                                                if: { $eq: [{ $size: "$$urlObj.captures" }, 0] },
+                                                                then: "/",
+                                                                else: { $arrayElemAt: ["$$urlObj.captures", 0] }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                else: "$$fullUrl"
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$sessionId",
+                        uniquePages: { $addToSet: "$pathname" }
                     }
                 },
                 {
