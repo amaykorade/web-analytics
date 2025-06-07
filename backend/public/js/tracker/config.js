@@ -1,8 +1,6 @@
 // Endpoint configuration for tracker
 
-const ENV = 'production';
-// const ENV = 'local';
-
+const ENV = 'local';
 
 const ENDPOINTS = {
   production: {
@@ -17,6 +15,9 @@ const ENDPOINTS = {
   },
 };
 
-const API_ENDPOINTS = ENDPOINTS[ENV] || ENDPOINTS.production;
+const API_ENDPOINTS = {
+    TRACK: 'https://backend.webmeter.in/api/data/track',
+    VERIFY: 'https://backend.webmeter.in/api/script/verify-script',
+};
 
-export const API = API_ENDPOINTS;
+export const API = ENDPOINTS[ENV] || ENDPOINTS.production;
