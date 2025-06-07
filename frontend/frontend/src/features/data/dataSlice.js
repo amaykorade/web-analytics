@@ -83,8 +83,15 @@ const dataSlice = createSlice({
         devices: null,
         loading: false,
         error: null,
+        currentWebsiteId: null,
     },
-    reducers: {},
+    reducers: {
+        clearAnalytics: (state) => {
+            state.analytics = null;
+            state.devices = null;
+            state.currentWebsiteId = null;
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getAnalyticsThunk.pending, (state) => {
@@ -116,7 +123,10 @@ const dataSlice = createSlice({
                 state.error = null;
             })
             .addCase(getVisitorsThunk.fulfilled, (state, action) => {
-                state.data = action.payload;
+                state.analytics = {
+                    ...state.analytics,
+                    totalVisitors: action.payload
+                };
                 state.loading = false;
             })
             .addCase(getVisitorsThunk.rejected, (state, action) => {
@@ -128,7 +138,10 @@ const dataSlice = createSlice({
                 state.error = null;
             })
             .addCase(getClickRateThunk.fulfilled, (state, action) => {
-                state.data = action.payload;
+                state.analytics = {
+                    ...state.analytics,
+                    clickRate: action.payload
+                };
                 state.loading = false;
             })
             .addCase(getClickRateThunk.rejected, (state, action) => {
@@ -140,7 +153,10 @@ const dataSlice = createSlice({
                 state.error = null;
             })
             .addCase(getConversionRateThunk.fulfilled, (state, action) => {
-                state.data = action.payload;
+                state.analytics = {
+                    ...state.analytics,
+                    conversionRate: action.payload
+                };
                 state.loading = false;
             })
             .addCase(getConversionRateThunk.rejected, (state, action) => {
@@ -152,16 +168,19 @@ const dataSlice = createSlice({
                 state.error = null;
             })
             .addCase(getActiveUsersThunk.fulfilled, (state, action) => {
-                state.data = action.payload;
+                state.analytics = {
+                    ...state.analytics,
+                    activeUsers: action.payload
+                };
                 state.loading = false;
             })
             .addCase(getActiveUsersThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            })
+            });
     }
-})
+});
 
+export const { clearAnalytics } = dataSlice.actions;
 export const analyticsData = (state) => state.analyticsData.analytics;
-
 export default dataSlice.reducer;

@@ -100,15 +100,46 @@ export default function Dashboard() {
       .unwrap()
       .then((response) => {
         const verifiedWebsites = response.scripts.filter(website => website.isVerified);
+        console.log('Verified websites:', verifiedWebsites);
         
-        if (verifiedWebsites.length > 0) {
-          const scriptData = verifiedWebsites[0];
+        // Get the current website from localStorage or use the first verified website
+        const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
+        const websiteToUse = currentWebsite || verifiedWebsites[0];
+        
+        if (websiteToUse) {
           setData((prevData) => ({
             ...prevData,
-            userID: scriptData?.userId,
-            websiteName: scriptData?.websiteName,
+            userID: websiteToUse.userId,
+            websiteName: websiteToUse.websiteName,
           }));
-          setSelectedWebsite(scriptData);
+          setSelectedWebsite(websiteToUse);
+          
+          // Clear existing analytics data
+          dispatch(clearAnalytics());
+          
+          // Fetch initial analytics data for the selected website
+          dispatch(getVisitorsThunk({ 
+            userID: websiteToUse.userId, 
+            websiteName: websiteToUse.websiteName 
+          }));
+          dispatch(getClickRateThunk({ 
+            userID: websiteToUse.userId, 
+            websiteName: websiteToUse.websiteName 
+          }));
+          dispatch(getConversionRateThunk({ 
+            userID: websiteToUse.userId, 
+            websiteName: websiteToUse.websiteName 
+          }));
+          dispatch(getActiveUsersThunk({ 
+            userID: websiteToUse.userId, 
+            websiteName: websiteToUse.websiteName 
+          }));
+          dispatch(getAnalyticsThunk({ 
+            userID: websiteToUse.userId, 
+            websiteName: websiteToUse.websiteName,
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate
+          }));
         }
       })
       .catch((err) => setError(err.message))
@@ -129,6 +160,7 @@ export default function Dashboard() {
   }, [result]);
 
   const handleWebsiteChange = (website) => {
+    console.log('Changing to website:', website);
     setSelectedWebsite(website);
     setData((prevData) => ({
       ...prevData,
@@ -136,12 +168,67 @@ export default function Dashboard() {
       websiteName: website.websiteName,
     }));
     localStorage.setItem("currentWebsite", JSON.stringify(website));
+    
+    // Clear existing analytics data
+    dispatch(clearAnalytics());
+    
+    // Fetch new analytics data for the selected website
+    dispatch(getVisitorsThunk({ 
+      userID: website.userId, 
+      websiteName: website.websiteName 
+    }));
+    dispatch(getClickRateThunk({ 
+      userID: website.userId, 
+      websiteName: website.websiteName 
+    }));
+    dispatch(getConversionRateThunk({ 
+      userID: website.userId, 
+      websiteName: website.websiteName 
+    }));
+    dispatch(getActiveUsersThunk({ 
+      userID: website.userId, 
+      websiteName: website.websiteName 
+    }));
+    dispatch(getAnalyticsThunk({ 
+      userID: website.userId, 
+      websiteName: website.websiteName,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate
+    }));
   };
 
   const handleDismiss = () => {
     localStorage.setItem("subscriptionExpiryDismissed", "true");
     setShowExpiringSoonMessage(false);
   };
+
+  // Update the date range effect to use the current website
+  useEffect(() => {
+    if (selectedWebsite) {
+      dispatch(getVisitorsThunk({ 
+        userID: selectedWebsite.userId, 
+        websiteName: selectedWebsite.websiteName 
+      }));
+      dispatch(getClickRateThunk({ 
+        userID: selectedWebsite.userId, 
+        websiteName: selectedWebsite.websiteName 
+      }));
+      dispatch(getConversionRateThunk({ 
+        userID: selectedWebsite.userId, 
+        websiteName: selectedWebsite.websiteName 
+      }));
+      dispatch(getActiveUsersThunk({ 
+        userID: selectedWebsite.userId, 
+        websiteName: selectedWebsite.websiteName 
+      }));
+      dispatch(getAnalyticsThunk({ 
+        userID: selectedWebsite.userId, 
+        websiteName: selectedWebsite.websiteName,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      }));
+    }
+  }, [dateRange, selectedWebsite, dispatch]);
 
   if (loading || subscriptionStatus === "loading") {
     return <div>Loading...</div>;
@@ -158,7 +245,9 @@ export default function Dashboard() {
                   value={selectedWebsite?._id}
                   onChange={(value) => {
                     const website = scriptData?.scripts?.find(s => s._id === value);
-                    handleWebsiteChange(website);
+                    if (website) {
+                      handleWebsiteChange(website);
+                    }
                   }}
                   style={{ width: 200 }}
                   placeholder="Select Website"
