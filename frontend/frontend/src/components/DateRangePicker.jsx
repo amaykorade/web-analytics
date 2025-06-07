@@ -16,30 +16,35 @@ const DateRangePicker = () => {
   const [pollingInterval, setPollingInterval] = useState(null);
   const pollingIntervalRef = useRef(null);
 
-  // User script data
-  const scriptData = useSelector(userData);
-  const userID = scriptData?.scripts?.[0]?.userId || "";
-  const websiteName = scriptData?.scripts?.[0]?.websiteName || "";
+  // Get the current website from localStorage
+  const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
+  const userID = currentWebsite?.userId || "";
+  const websiteName = currentWebsite?.websiteName || "";
 
   useEffect(() => {
-    fetchAnalytics(selectedRange);
-    startPolling();
+    if (userID && websiteName) {
+      fetchAnalytics(selectedRange);
+      startPolling();
+    }
 
     return () => {
       stopPolling();
     };
-  }, []);
+  }, [userID, websiteName]);
 
   useEffect(() => {
-    fetchAnalytics(selectedRange);
-
-    stopPolling();
-    startPolling();
-  }, [selectedRange]);
+    if (userID && websiteName) {
+      fetchAnalytics(selectedRange);
+      stopPolling();
+      startPolling();
+    }
+  }, [selectedRange, userID, websiteName]);
 
   const startPolling = () => {
     pollingIntervalRef.current = setInterval(() => {
-      fetchAnalytics(selectedRange);
+      if (userID && websiteName) {
+        fetchAnalytics(selectedRange);
+      }
     }, 10000);
   };
 
@@ -96,11 +101,16 @@ const DateRangePicker = () => {
   };
 
   return (
-    <div className="ml-6">
+    <div className="flex items-center space-x-4">
       <Select
         value={selectedRange}
-        onChange={(value) => setSelectedRange(value)}
-        style={{ width: 200, marginRight: 10 }}
+        onChange={(value) => {
+          setSelectedRange(value);
+          if (value === "Custom") {
+            // Handle custom range selection
+          }
+        }}
+        style={{ width: 120 }}
       >
         <Option value="Today">Today</Option>
         <Option value="Last 24 Hours">Last 24 Hours</Option>
@@ -108,16 +118,19 @@ const DateRangePicker = () => {
         <Option value="Last 30 Days">Last 30 Days</Option>
         <Option value="Last 12 Months">Last 12 Months</Option>
         <Option value="All Time">All Time</Option>
-        <Option value="Custom">Custom Range</Option>
+        <Option value="Custom">Custom</Option>
       </Select>
 
       {selectedRange === "Custom" && (
         <RangePicker
           value={customRange}
           onChange={(dates) => {
-            setCustomRange(dates);
-            fetchAnalytics("Custom");
+            if (dates) {
+              setCustomRange(dates);
+              setSelectedRange("Custom");
+            }
           }}
+          style={{ width: 240 }}
         />
       )}
     </div>

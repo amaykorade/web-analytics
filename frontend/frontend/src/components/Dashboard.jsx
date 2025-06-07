@@ -258,19 +258,21 @@ export default function Dashboard() {
                     </Option>
                   ))}
                 </Select>
-                <DateRangePicker
-                  value={[dayjs(dateRange.startDate), dayjs(dateRange.endDate)]}
-                  onChange={(dates) => {
-                    if (dates) {
-                      setDateRange({
-                        startDate: dates[0].toDate(),
-                        endDate: dates[1].toDate(),
-                      });
-                    }
-                  }}
-                  className="w-72"
-                  disabled={subscriptionStatus === "expired"}
-                />
+                <div className="ml-8">
+                  <DateRangePicker
+                    value={[dayjs(dateRange.startDate), dayjs(dateRange.endDate)]}
+                    onChange={(dates) => {
+                      if (dates) {
+                        setDateRange({
+                          startDate: dates[0].toDate(),
+                          endDate: dates[1].toDate(),
+                        });
+                      }
+                    }}
+                    className="w-72"
+                    disabled={subscriptionStatus === "expired"}
+                  />
+                </div>
               </div>
             </div>
           </div>
