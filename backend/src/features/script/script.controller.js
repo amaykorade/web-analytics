@@ -67,27 +67,13 @@ export const generateScript = async (req, res) => {
 
         const existingScript = await ScriptModel.findOne({ url });
 
-        // Generate a unique script ID for this website
-        const scriptId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-
-        const script = `
-        <script>
-            window.__TRACKER_CONFIG__ = {
-                websiteId: "${userId}",
-                websiteName: "${name}",
-                scriptId: "${scriptId}",
-                baseUrl: "${TRACKER_BASE_URL}"
-            };
-        </script>
-        <script 
-            defer
-            data-website-id="${userId}"
-            data-domain="${url}"
-            website-name="${name}"
-            data-script-id="${scriptId}"
-            crossorigin="anonymous"
-            src="${TRACKER_BASE_URL}/js/tracker.js">
-        </script>`;
+        const script = ` <script 
+        defer
+        data-website-id="${userId}"
+        data-domain="${url}"
+        website-name="${name}"
+        src="${TRACKER_BASE_URL}/js/tracker.js">
+        </script> `;
 
         console.log("Generated script:", script);
 
@@ -95,12 +81,7 @@ export const generateScript = async (req, res) => {
             return res.status(200).json({ script });
         }
 
-        const newScript = new ScriptModel({ 
-            userId, 
-            url, 
-            websiteName: name,
-            scriptId 
-        });
+        const newScript = new ScriptModel({ userId, url, websiteName: name });
         await newScript.save();
 
         res.status(200).json({ script });
