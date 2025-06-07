@@ -1,11 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Select, Card } from "antd";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import { geoMercator } from "d3-geo";
+import { Select } from "antd";
 import { userData } from "../features/script/scriptSlice";
 import { analyticsData, getDeviceThunk } from "../features/data/dataSlice";
-import { ArrowUpRight, Monitor } from "lucide-react";
+
+// Browser logos
+const browserLogos = {
+  chrome: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg",
+  firefox: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Firefox_logo%2C_2019.svg",
+  safari: "https://upload.wikimedia.org/wikipedia/commons/5/52/Safari_browser_logo.svg",
+  edge: "https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_Edge_logo_%282019%29.svg",
+  opera: "https://upload.wikimedia.org/wikipedia/commons/4/49/Opera_2015_icon.svg",
+  default: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Internet_Explorer_10%2B11_logo.svg"
+};
+
+// OS logos
+const osLogos = {
+  windows: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Windows_logo_%282012%E2%80%932017%29.svg",
+  macos: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Apple_logo_black.svg",
+  ios: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Apple_logo_black.svg",
+  android: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Android_logo_2019.svg",
+  linux: "https://upload.wikimedia.org/wikipedia/commons/3/35/Tux.svg",
+  default: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Apple_logo_black.svg"
+};
+
+// Device type logos
+const deviceLogos = {
+  desktop: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Desktop_computer_clipart_-_Yellow_theme.svg",
+  mobile: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Smartphone_icon.svg",
+  tablet: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Tablet_icon.svg",
+  default: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Desktop_computer_clipart_-_Yellow_theme.svg"
+};
 
 const filterOptions = [
   { value: "browser", label: "Browser" },
@@ -26,104 +51,58 @@ export default function Devices() {
   // Calculate total users for selected category
   const totalUsers = deviceData.reduce((sum, item) => sum + item.count, 0);
 
-  // Find most popular device
-  const mostPopularDevice =
-    deviceData.length > 0
-      ? deviceData.reduce(
-          (max, item) => (item.count > max.count ? item : max),
-          deviceData[0]
-        )
-      : null;
+  const getLogo = (name) => {
+    const normalizedName = name.toLowerCase();
+    switch (filterBy) {
+      case 'browser':
+        return browserLogos[normalizedName] || browserLogos.default;
+      case 'os':
+        return osLogos[normalizedName] || osLogos.default;
+      case 'device':
+        return deviceLogos[normalizedName] || deviceLogos.default;
+      default:
+        return browserLogos.default;
+    }
+  };
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">
-          Device Analytics
-        </h3>
-        <select
-          className="px-4 py-2 bg-gray-100 border-0 rounded-lg text-sm font-medium text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Device Analytics</h2>
+        <Select
           value={filterBy}
-          onChange={(e) => setFilterBy(e.target.value)}
-        >
-          {filterOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={setFilterBy}
+          style={{ width: 200 }}
+          options={filterOptions}
+        />
       </div>
 
-      {/* Summary Cards */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-indigo-50 rounded-lg p-4">
-          <div className="text-indigo-600 text-sm font-medium">Total Users</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {totalUsers.toLocaleString()}
-          </div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-green-600 text-sm font-medium">Most Popular</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {mostPopularDevice?.name || "N/A"}
-          </div>
-        </div>
-        <div className="bg-purple-50 rounded-lg p-4">
-          <div className="text-purple-600 text-sm font-medium">
-            Market Share
-          </div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">
-            {mostPopularDevice?.percentage || 0}%
-          </div>
-        </div>
-      </div> */}
-
-      {/* Detailed Stats */}
-      <div className="space-y-4">
-        {deviceData.length > 0 ? (
-          deviceData.map((item, index) => (
-            <div
-              key={index}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white rounded-lg">
-                    <Monitor className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {item.name}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {item.count.toLocaleString()} users
-                    </div>
-                  </div>
+      <div className="space-y-1">
+        {deviceData.map((item) => (
+          <div key={item.name} className="bg-white rounded-lg p-2.5 hover:bg-gray-50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <img 
+                    src={getLogo(item.name)} 
+                    alt={item.name}
+                    className="w-6 h-6 object-contain"
+                  />
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="text-sm font-medium text-gray-900">
-                    {item.percentage}%
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-gray-400" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                  <p className="text-xs text-gray-500">{item.count} users</p>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${item.percentage}%` }}
-                />
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">
+                  {((item.count / totalUsers) * 100).toFixed(1)}%
+                </p>
               </div>
             </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-500">No data available</p>
-        )}
+          </div>
+        ))}
       </div>
-
-      {/* Time Period Note */}
-      {/* <div className="mt-6 text-sm text-gray-500 text-center">
-        Data shown for the last 30 days
-      </div> */}
     </div>
   );
 }

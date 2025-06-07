@@ -1,12 +1,30 @@
 import mongoose from "mongoose";
 
 const scriptSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    url: { type: String, required: true, unique: true },
-    websiteName: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+    userId: {
+        type: String,
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    },
+    websiteName: {
+        type: String,
+        required: true
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verifiedAt: {
+        type: Date,
+        default: null
+    }
+}, {
+    timestamps: true
 });
 
-const ScriptModel = mongoose.model("ScriptInstallation", scriptSchema);
+const ScriptModel = mongoose.model("Script", scriptSchema);
 
 export default ScriptModel;

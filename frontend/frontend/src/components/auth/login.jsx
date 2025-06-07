@@ -61,8 +61,8 @@ export default function Login() {
         console.log("scriptData:", scriptData);
 
         if (scriptData?.isPresent) {
-          console.log("Navigating to /dashboard...");
-          navigate("/dashboard");
+          console.log("Navigating to /websites...");
+          navigate("/websites");
         } else {
           console.log("Navigating to /setup...");
           navigate("/setup");

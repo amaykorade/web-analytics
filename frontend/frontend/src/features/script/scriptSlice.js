@@ -7,8 +7,10 @@ export const getScriptThunk = createAsyncThunk(
     'script/get-script', async (_, { rejectWithValue }) => {
         try {
             const response = await getScript();
+            console.log('Script API Response:', response);
             return response;
         } catch (error) {
+            console.error('Script API Error:', error);
             return rejectWithValue(error.response?.data?.message || "Unknown error occurred");
         }
     }
@@ -55,10 +57,12 @@ const scriptSlice = createSlice({
                 state.error = null;
             })
             .addCase(getScriptThunk.fulfilled, (state, action) => {
+                console.log('Script Redux State Update:', action.payload);
                 state.data = action.payload;
                 state.loading = false;
             })
             .addCase(getScriptThunk.rejected, (state, action) => {
+                console.error('Script Redux Error:', action.payload);
                 state.loading = false;
                 state.error = action.payload;
             })

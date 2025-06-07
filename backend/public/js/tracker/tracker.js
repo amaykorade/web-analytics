@@ -89,9 +89,42 @@ import { extractUTMParams, sendData } from './api.js';
 
         const sessionStartTime = Date.now();
         let pageStartTime = Date.now();
+        let lastTimeUpdate = Date.now();
+        let timeUpdateInterval;
+
+        // Function to send time spent data
+        const sendTimeSpentData = () => {
+            const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
+            const pageEndData = {
+                type: "page_visit",
+                sessionId,
+                url: window.location.href,
+                timeSpent: timeSpent,
+                exitPage: false,
+                timestamp: new Date().toISOString(),
+            };
+            sendData(pageEndData, websiteId, websiteName);
+
+            // Also send session data
+            const sessionTimeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+            const sessionEndData = {
+                type: "session_end",
+                sessionId,
+                url: window.location.href,
+                timeSpent: sessionTimeSpent,
+                exitPage: false,
+                timestamp: new Date().toISOString(),
+            };
+            sendData(sessionEndData, websiteId, websiteName);
+            lastTimeUpdate = Date.now();
+        };
+
+        // Send time spent data every 30 seconds
+        timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
 
         // Track time spent on page when user leaves
         window.addEventListener("beforeunload", () => {
+            clearInterval(timeUpdateInterval);
             const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
             const pageEndData = {
                 type: "page_visit",
@@ -118,6 +151,7 @@ import { extractUTMParams, sendData } from './api.js';
 
         // Track time spent on page when user navigates to a new page
         window.addEventListener("popstate", () => {
+            clearInterval(timeUpdateInterval);
             const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
             const pageEndData = {
                 type: "page_visit",
@@ -129,12 +163,14 @@ import { extractUTMParams, sendData } from './api.js';
             };
             sendData(pageEndData, websiteId, websiteName);
             pageStartTime = Date.now();
+            timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
         });
 
         // Track time spent on page when user clicks a link
         document.addEventListener("click", (event) => {
             const link = event.target.closest("a");
             if (link && link.href && !link.href.startsWith("javascript:") && !link.href.startsWith("#")) {
+                clearInterval(timeUpdateInterval);
                 const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
                 const pageEndData = {
                     type: "page_visit",
@@ -145,6 +181,26 @@ import { extractUTMParams, sendData } from './api.js';
                     timestamp: new Date().toISOString(),
                 };
                 sendData(pageEndData, websiteId, websiteName);
+            }
+        });
+
+        // Track time spent when page visibility changes
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                clearInterval(timeUpdateInterval);
+                const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
+                const pageEndData = {
+                    type: "page_visit",
+                    sessionId,
+                    url: window.location.href,
+                    timeSpent: timeSpent,
+                    exitPage: false,
+                    timestamp: new Date().toISOString(),
+                };
+                sendData(pageEndData, websiteId, websiteName);
+            } else if (document.visibilityState === "visible") {
+                pageStartTime = Date.now();
+                timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
             }
         });
     }

@@ -20,6 +20,7 @@ import session from "express-session";
 import PaymentRouter from './src/features/payment/payment.routes.js';
 // import funnelRoutes from './features/funnel/funnel.routes.js';
 import FunnelRouter from './src/features/funnel/funnel.routes.js';
+import { migrateVerificationStatus } from './src/features/script/script.migration.js';
 
 // cron job
 import './src/cron-job/subscription.cron.js';
@@ -142,6 +143,10 @@ app.use('/api/funnel', FunnelRouter);
     try {
         await connectUsingMongoose();
         console.log("✅ Database connected successfully!");
+
+        // Run migration for verification status
+        await migrateVerificationStatus();
+        console.log("✅ Verification status migration completed!");
 
         await updateAllowedOrigins(); // Fetch domains before starting server
 

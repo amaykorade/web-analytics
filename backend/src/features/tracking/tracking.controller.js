@@ -355,7 +355,7 @@ export const getAnalysis = async (req, res) => {
                 $group: {
                     _id: "$url",
                     views: { $sum: 1 },
-                    avgTimeSpent: { $avg: { $ifNull: ["$timeSpent", 0] } },  // Handle null timeSpent
+                    totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },  // Sum of time spent
                     sessions: { $addToSet: "$sessionId" },
                     uniqueVisitors: { $addToSet: "$visitorId" }
                 }
@@ -366,7 +366,23 @@ export const getAnalysis = async (req, res) => {
                 $project: {
                     url: "$_id",
                     views: 1,
-                    avgTimeSpent: { $round: [{ $ifNull: ["$avgTimeSpent", 0] }, 2] },  // Handle null values
+                    avgTimeSpent: { 
+                        $cond: {
+                            if: { $eq: [{ $size: "$sessions" }, 0] },
+                            then: 0,
+                            else: {
+                                $round: [
+                                    { 
+                                        $divide: [
+                                            "$totalTimeSpent",
+                                            { $size: "$sessions" }
+                                        ]
+                                    },
+                                    2
+                                ]
+                            }
+                        }
+                    },
                     sessionCount: { $size: "$sessions" },
                     uniqueVisitors: { $size: "$uniqueVisitors" },
                     sessions: 1,
