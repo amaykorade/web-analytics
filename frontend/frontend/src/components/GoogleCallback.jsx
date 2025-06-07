@@ -22,8 +22,8 @@ export default function GoogleCallback() {
           const scriptData = await dispatch(getScriptThunk()).unwrap();
 
           if (scriptData?.isPresent) {
-            console.log("Navigating to /dashboard...");
-            setRedirectPath("/dashboard");
+            console.log("Navigating to /websites...");
+            setRedirectPath("/websites");
           } else {
             console.log("Navigating to /setup...");
             setRedirectPath("/setup");

@@ -19,25 +19,19 @@ export default function TopPages() {
 
   // Function to format time in MM:SS
   const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor(seconds / 3600 / 60);
+    if (!seconds || seconds === 0) return "0:00";
+    
+    const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.round(seconds % 60);
-
-    if (hours > 0) {
-      return `${hours}:${minutes < 10 ? "0" : ""}${minutes}:${
-        remainingSeconds < 10 ? "0" : ""
-      }${remainingSeconds}`;
-    } else {
-      return `${minutes}:${
-        remainingSeconds < 10 ? "0" : ""
-      }${remainingSeconds}`;
-    }
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
   // Function to determine bounce rate status
   const getBounceRateStatus = (rate) => {
-    if (rate <= 30) return "good";
-    if (rate <= 50) return "average";
+    // Remove the % symbol and convert to number
+    const numericRate = parseFloat(rate);
+    if (numericRate <= 30) return "good";
+    if (numericRate <= 50) return "average";
     return "poor";
   };
 
@@ -160,7 +154,6 @@ export default function TopPages() {
                     <div className="font-medium">
                       {page.views.toLocaleString()}
                     </div>
-                    {/* <div className="text-xs text-green-600">+12.3%</div> */}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-900 text-right">
                     <div className="font-medium">

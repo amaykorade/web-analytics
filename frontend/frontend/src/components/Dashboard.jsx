@@ -18,7 +18,7 @@ import ReferralSources from "./ReferralSources";
 import TopPages from "./TopPages";
 import DateRangePicker from "./DateRangePicker";
 import { useDispatch, useSelector } from "react-redux";
-import { getScriptThunk } from "../features/script/scriptSlice";
+import { getScriptThunk, userData } from "../features/script/scriptSlice";
 import {
   analyticsData,
   getActiveUsersThunk,
@@ -32,10 +32,14 @@ import Location from "./Location";
 import VisitorsRevenueChart from "./VisitorsChart";
 import { getCurrentUserthunk } from "../features/user/userSlice";
 import { Link } from "react-router-dom";
+import { Select } from "antd";
+
+const { Option } = Select;
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const result = useSelector(analyticsData);
+  const scriptData = useSelector(userData);
 
   const [data, setData] = useState({
     userID: null,
@@ -51,6 +55,7 @@ export default function Dashboard() {
   const [subscriptionStatus, setSubscriptionStatus] = useState("loading");
   const [subscriptionEndDate, setSubscriptionEndDate] = useState(null);
   const [showExpiringSoonMessage, setShowExpiringSoonMessage] = useState(false);
+  const [selectedWebsite, setSelectedWebsite] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -94,12 +99,17 @@ export default function Dashboard() {
     dispatch(getScriptThunk())
       .unwrap()
       .then((response) => {
-        const scriptData = response.scripts[0];
-        setData((prevData) => ({
-          ...prevData,
-          userID: scriptData?.userId,
-          websiteName: scriptData?.websiteName,
-        }));
+        const verifiedWebsites = response.scripts.filter(website => website.isVerified);
+        
+        if (verifiedWebsites.length > 0) {
+          const scriptData = verifiedWebsites[0];
+          setData((prevData) => ({
+            ...prevData,
+            userID: scriptData?.userId,
+            websiteName: scriptData?.websiteName,
+          }));
+          setSelectedWebsite(scriptData);
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -118,6 +128,16 @@ export default function Dashboard() {
     }
   }, [result]);
 
+  const handleWebsiteChange = (website) => {
+    setSelectedWebsite(website);
+    setData((prevData) => ({
+      ...prevData,
+      userID: website.userId,
+      websiteName: website.websiteName,
+    }));
+    localStorage.setItem("currentWebsite", JSON.stringify(website));
+  };
+
   const handleDismiss = () => {
     localStorage.setItem("subscriptionExpiryDismissed", "true");
     setShowExpiringSoonMessage(false);
@@ -133,7 +153,22 @@ export default function Dashboard() {
         <nav className="bg-white border-b border-gray-200 relative z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
+                <Select
+                  value={selectedWebsite?._id}
+                  onChange={(value) => {
+                    const website = scriptData?.scripts?.find(s => s._id === value);
+                    handleWebsiteChange(website);
+                  }}
+                  style={{ width: 200 }}
+                  placeholder="Select Website"
+                >
+                  {scriptData?.scripts?.filter(website => website.isVerified).map((website) => (
+                    <Option key={website._id} value={website._id}>
+                      {website.websiteName}
+                    </Option>
+                  ))}
+                </Select>
                 <DateRangePicker
                   value={[dayjs(dateRange.startDate), dayjs(dateRange.endDate)]}
                   onChange={(dates) => {
@@ -195,7 +230,7 @@ export default function Dashboard() {
         )}
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 mt-10">
             {/* Total Visitors */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">

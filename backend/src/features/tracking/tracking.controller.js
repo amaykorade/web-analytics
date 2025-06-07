@@ -6,12 +6,13 @@ import dayjs from 'dayjs';
 import { UAParser } from 'ua-parser-js';
 import pricingPlans from '../../../pricingPlans.js';
 import { strict as assert } from 'assert';
-
-import countries from "i18n-iso-countries";
-import enLocale from "i18n-iso-countries/langs/en.json" assert { type: "json" };
+import { createRequire } from 'module';
 import { AuthModel } from '../auth/auth.schema.js';
 
+const require = createRequire(import.meta.url);
 
+const countries = require('i18n-iso-countries');
+const enLocale = require('i18n-iso-countries/langs/en.json');
 countries.registerLocale(enLocale);
 
 const getCountryName = (isoCode) => countries.getName(isoCode, "en") || isoCode;
@@ -224,9 +225,26 @@ export const getAnalysis = async (req, res) => {
         // **3. Bounce Rate**
         const getBounceSessions = async (rangeStart, rangeEnd) => {
             return await TrackingModule.aggregate([
-                { $match: { userId: userObjectId, websiteName, timestamp: { $gte: rangeStart, $lte: rangeEnd } } },
-                { $group: { _id: "$sessionId", pageViews: { $sum: 1 } } },
-                { $match: { pageViews: 1 } },
+                { 
+                    $match: { 
+                        userId: userObjectId, 
+                        websiteName, 
+                        timestamp: { $gte: rangeStart, $lte: rangeEnd },
+                        type: "page_visit"  // Only count page visits
+                    } 
+                },
+                { 
+                    $group: { 
+                        _id: "$sessionId", 
+                        uniquePages: { $addToSet: "$url" },  // Count unique pages visited
+                        pageViews: { $sum: 1 }
+                    } 
+                },
+                { 
+                    $match: { 
+                        $expr: { $eq: [{ $size: "$uniquePages" }, 1] }  // Only one unique page visited
+                    } 
+                }
             ]);
         };
 
@@ -325,13 +343,21 @@ export const getAnalysis = async (req, res) => {
 
         // **7. Top Pages**
         const pageStats = await TrackingModule.aggregate([
-            { $match: { userId: userObjectId, websiteName, timestamp: { $gte: start, $lte: end } } },
+            { 
+                $match: { 
+                    userId: userObjectId, 
+                    websiteName, 
+                    timestamp: { $gte: start, $lte: end },
+                    type: "page_visit"  // Only count page visits
+                } 
+            },
             {
                 $group: {
                     _id: "$url",
                     views: { $sum: 1 },
-                    avgTimeSpent: { $avg: "$timeSpent" },
-                    sessions: { $addToSet: "$sessionId" }
+                    totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },  // Sum of time spent
+                    sessions: { $addToSet: "$sessionId" },
+                    uniqueVisitors: { $addToSet: "$visitorId" }
                 }
             },
             { $sort: { views: -1 } },
@@ -340,24 +366,72 @@ export const getAnalysis = async (req, res) => {
                 $project: {
                     url: "$_id",
                     views: 1,
-                    avgTimeSpent: { $round: ["$avgTimeSpent", 2] },
+                    avgTimeSpent: { 
+                        $cond: {
+                            if: { $eq: [{ $size: "$sessions" }, 0] },
+                            then: 0,
+                            else: {
+                                $round: [
+                                    { 
+                                        $divide: [
+                                            "$totalTimeSpent",
+                                            { $size: "$sessions" }
+                                        ]
+                                    },
+                                    2
+                                ]
+                            }
+                        }
+                    },
                     sessionCount: { $size: "$sessions" },
-                    sessions: 1, // ✅ Keep `sessions` for further use
+                    uniqueVisitors: { $size: "$uniqueVisitors" },
+                    sessions: 1,
                     _id: 0
                 }
-            },
+            }
         ]);
 
-        // Ensure bouncedSessions is defined
+        // Calculate bounce rate for each page
+        for (const page of pageStats) {
+            // Get all sessions that only visited this page
+            const singlePageSessions = await TrackingModule.aggregate([
+                {
+                    $match: {
+                        userId: userObjectId,
+                        websiteName,
+                        timestamp: { $gte: start, $lte: end },
+                        type: "page_visit",
+                        sessionId: { $in: page.sessions }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$sessionId",
+                        uniquePages: { $addToSet: "$url" }
+                    }
+                },
+                {
+                    $match: {
+                        $expr: { $eq: [{ $size: "$uniquePages" }, 1] }
+                    }
+                }
+            ]);
 
-        const validBouncedSessions = Array.isArray(currentBouncedSessions) ? currentBouncedSessions : [];
+            // Calculate bounce rate for this page
+            const bouncedSessions = singlePageSessions.filter(session => 
+                session.uniquePages[0] === page.url
+            ).length;
 
-        pageStats.forEach((page) => {
-            if (!page.sessions) page.sessions = []; // ✅ Ensure `sessions` exists
-
-            const bouncedCount = validBouncedSessions.filter((s) => page.sessions.includes(s._id)).length;
-            page.bounceRate = `${((bouncedCount / (page.sessionCount || 1)) * 100).toFixed(2)}%`; // ✅ Prevent division by zero
-        });
+            // Ensure we don't divide by zero and handle edge cases
+            const bounceRate = page.sessionCount > 0 
+                ? ((bouncedSessions / page.sessionCount) * 100).toFixed(2)
+                : "0.00";
+            
+            page.bounceRate = `${bounceRate}%`;
+            
+            // Ensure avgTimeSpent is a valid number
+            page.avgTimeSpent = page.avgTimeSpent || 0;
+        }
 
         response.topPages = pageStats;
 

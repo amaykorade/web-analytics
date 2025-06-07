@@ -1,3 +1,5 @@
+import('./tracker/tracker.js');
+
 (function () {
     if (window.__TRACKER_LOADED__) return;
     window.__TRACKER_LOADED__ = true;

@@ -96,7 +96,7 @@ const DateRangePicker = () => {
   };
 
   return (
-    <div>
+    <div className="ml-6">
       <Select
         value={selectedRange}
         onChange={(value) => setSelectedRange(value)}

@@ -20,6 +20,7 @@ import Location from "./components/Location";
 import { useSelector } from "react-redux";
 import { userData } from "./features/script/scriptSlice";
 import PrivacyPolicy from "./components/PrivacyPolicy";
+import WebsiteList from "./components/WebsiteList";
 
 import ContactPage from "./components/legal/ContactUs";
 import TermsAndConditions from "./components/legal/TermsAndCondition";
@@ -28,6 +29,7 @@ import GoogleCallback from "./components/GoogleCallback";
 import BillingPage from "./components/BillingPage";
 import PaymentSuccess from "./components/payment/PaymentSuccess";
 import PaymentFailure from "./components/payment/PyamentFailure";
+import FunnelManager from './components/FunnelManager';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -60,13 +62,19 @@ function App() {
             path="/dashboard"
             element={
               isAuthenticated ? (
-                hasWebsite ? (
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                ) : (
-                  <Navigate to="/setup" replace />
-                )
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/websites"
+            element={
+              isAuthenticated ? (
+                <WebsiteList />
               ) : (
                 <Navigate to="/login" replace />
               )
@@ -87,7 +95,6 @@ function App() {
             element={<RefundCancellationPage />}
           />
           <Route path="/google/callback" element={<GoogleCallback />} />
-          <Route path="/google/callback" element={<GoogleCallback />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentFailure />} />
@@ -102,6 +109,7 @@ function App() {
               )
             }
           />
+          <Route path="/funnel" element={<FunnelManager />} />
         </Routes>
       </Router>
     </>
