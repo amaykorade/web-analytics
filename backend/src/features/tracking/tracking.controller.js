@@ -353,9 +353,17 @@ export const getAnalysis = async (req, res) => {
             },
             {
                 $group: {
-                    _id: "$url",
+                    _id: {
+                        url: {
+                            $cond: {
+                                if: { $regexMatch: { input: "$url", regex: "^http" } },
+                                then: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                                else: "$url"
+                            }
+                        }
+                    },
                     views: { $sum: 1 },
-                    totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },  // Sum of time spent
+                    totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },
                     sessions: { $addToSet: "$sessionId" },
                     uniqueVisitors: { $addToSet: "$visitorId" }
                 }
@@ -364,7 +372,7 @@ export const getAnalysis = async (req, res) => {
             { $limit: 10 },
             {
                 $project: {
-                    url: "$_id",
+                    url: "$_id.url",
                     views: 1,
                     avgTimeSpent: { 
                         $cond: {
@@ -407,7 +415,15 @@ export const getAnalysis = async (req, res) => {
                 {
                     $group: {
                         _id: "$sessionId",
-                        uniquePages: { $addToSet: "$url" }
+                        uniquePages: { 
+                            $addToSet: {
+                                $cond: {
+                                    if: { $regexMatch: { input: "$url", regex: "^http" } },
+                                    then: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                                    else: "$url"
+                                }
+                            }
+                        }
                     }
                 },
                 {
