@@ -25,31 +25,65 @@ import { extractUTMParams, sendData } from './api.js';
         const entryPage = !sessionStorage.getItem("entryPage");
         sessionStorage.setItem("entryPage", "true");
 
-        const pageVisitData = {
-            type: "page_visit",
-            url: window.location.href,
-            referrer: document.referrer,
-            utmSource: utmParams.utmSource,
-            utmMedium: utmParams.utmMedium,
-            utmCampaign: utmParams.utmCampaign,
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform,
-            browser: deviceInfo.browser,
-            deviceType: deviceInfo.deviceType,
-            ip: geoData?.ip || null,
-            geoLocation: {
-                country: geoData?.country_name || null,
-                region: geoData?.region || null,
-                city: geoData?.city || null,
-                latitude: geoData?.latitude || null,
-                longitude: geoData?.longitude || null,
-            },
-            timestamp: new Date().toISOString(),
-            entryPage,
+        // Function to track page visit
+        const trackPageVisit = (isEntryPage = false) => {
+            const pageVisitData = {
+                type: "page_visit",
+                url: window.location.href,
+                referrer: document.referrer,
+                utmSource: utmParams.utmSource,
+                utmMedium: utmParams.utmMedium,
+                utmCampaign: utmParams.utmCampaign,
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                browser: deviceInfo.browser,
+                deviceType: deviceInfo.deviceType,
+                ip: geoData?.ip || null,
+                geoLocation: {
+                    country: geoData?.country_name || null,
+                    region: geoData?.region || null,
+                    city: geoData?.city || null,
+                    latitude: geoData?.latitude || null,
+                    longitude: geoData?.longitude || null,
+                },
+                timestamp: new Date().toISOString(),
+                entryPage: isEntryPage,
+            };
+
+            sendData(pageVisitData, websiteId, websiteName);
         };
 
-        sendData(pageVisitData, websiteId, websiteName);
+        // Track initial page visit
+        trackPageVisit(entryPage);
+
+        // Track SPA route changes
+        let lastUrl = window.location.href;
+        const observer = new MutationObserver(() => {
+            if (window.location.href !== lastUrl) {
+                lastUrl = window.location.href;
+                trackPageVisit(false);
+            }
+        });
+
+        observer.observe(document, { subtree: true, childList: true });
+
+        // Also track history changes
+        const pushState = history.pushState;
+        history.pushState = function() {
+            pushState.apply(this, arguments);
+            trackPageVisit(false);
+        };
+
+        const replaceState = history.replaceState;
+        history.replaceState = function() {
+            replaceState.apply(this, arguments);
+            trackPageVisit(false);
+        };
+
+        window.addEventListener('popstate', () => {
+            trackPageVisit(false);
+        });
 
         document.addEventListener("click", (event) => {
             const rect = event.target.getBoundingClientRect();
