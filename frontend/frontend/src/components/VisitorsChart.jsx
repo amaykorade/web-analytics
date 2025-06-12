@@ -65,7 +65,10 @@ const VisitorsRevenueChart = () => {
     return acc;
   }, {});
 
-  const formattedData = Object.values(groupedData);
+  const formattedData = Object.values(groupedData).map((item, index) => ({
+    ...item,
+    key: `data-${index}`
+  }));
 
   return (
     <div>
@@ -133,7 +136,7 @@ const VisitorsRevenueChart = () => {
               content={({ payload }) => (
                 <div className="flex justify-end space-x-4">
                   {payload?.map((entry, index) => (
-                    <div key={index} className="flex items-center">
+                    <div key={`legend-${index}`} className="flex items-center">
                       <div
                         className="w-3 h-3 rounded-full mr-2"
                         style={{ backgroundColor: entry.color }}
@@ -147,13 +150,16 @@ const VisitorsRevenueChart = () => {
             {showVisitors && (
               <>
                 <Area
+                  key="visitors-area"
                   yAxisId="left"
                   type="monotone"
                   dataKey="visitors"
                   stroke="none"
                   fill="url(#colorVisitors)"
+                  isAnimationActive={false}
                 />
                 <Line
+                  key="visitors-line"
                   yAxisId="left"
                   type="monotone"
                   dataKey="visitors"
@@ -161,17 +167,20 @@ const VisitorsRevenueChart = () => {
                   strokeWidth={2}
                   dot={false}
                   name="Visitors"
+                  isAnimationActive={false}
                 />
               </>
             )}
             {showRevenue && (
               <Bar
+                key="revenue-bar"
                 yAxisId="right"
                 dataKey="revenue"
                 fill="#10B981"
                 barSize={20}
                 radius={[4, 4, 0, 0]}
                 name="Revenue"
+                isAnimationActive={false}
               />
             )}
           </ComposedChart>

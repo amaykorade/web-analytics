@@ -30,6 +30,7 @@ import { extractUTMParams, sendData } from './api.js';
             const pageVisitData = {
                 type: "page_visit",
                 url: window.location.href,
+                path: window.location.pathname,
                 referrer: document.referrer,
                 utmSource: utmParams.utmSource,
                 utmMedium: utmParams.utmMedium,
@@ -49,6 +50,7 @@ import { extractUTMParams, sendData } from './api.js';
                 },
                 timestamp: new Date().toISOString(),
                 entryPage: isEntryPage,
+                visitorId: sessionId,
             };
 
             sendData(pageVisitData, websiteId, websiteName);
@@ -57,60 +59,105 @@ import { extractUTMParams, sendData } from './api.js';
         // Track initial page visit
         trackPageVisit(entryPage);
 
-        // Track SPA route changes
+        // Track SPA route changes using a more robust approach
         let lastUrl = window.location.href;
-        const observer = new MutationObserver(() => {
-            if (window.location.href !== lastUrl) {
-                lastUrl = window.location.href;
+        let lastPath = window.location.pathname;
+
+        // Function to check if URL has actually changed
+        const hasUrlChanged = () => {
+            const currentUrl = window.location.href;
+            const currentPath = window.location.pathname;
+            const hasChanged = currentUrl !== lastUrl || currentPath !== lastPath;
+            if (hasChanged) {
+                lastUrl = currentUrl;
+                lastPath = currentPath;
+            }
+            return hasChanged;
+        };
+
+        // Track route changes using multiple methods
+        const trackRouteChange = () => {
+            if (hasUrlChanged()) {
+                trackPageVisit(false);
+            }
+        };
+
+        // Method 1: History API
+        const originalPushState = history.pushState;
+        history.pushState = function() {
+            originalPushState.apply(this, arguments);
+            trackRouteChange();
+        };
+
+        const originalReplaceState = history.replaceState;
+        history.replaceState = function() {
+            originalReplaceState.apply(this, arguments);
+            trackRouteChange();
+        };
+
+        // Method 2: PopState event
+        window.addEventListener('popstate', trackRouteChange);
+
+        // Method 3: HashChange event (for hash-based routing)
+        window.addEventListener('hashchange', trackRouteChange);
+
+        // Method 4: MutationObserver for DOM changes
+        const observer = new MutationObserver((mutations) => {
+            // Check if the URL has changed after DOM mutations
+            if (hasUrlChanged()) {
                 trackPageVisit(false);
             }
         });
 
-        observer.observe(document, { subtree: true, childList: true });
-
-        // Also track history changes
-        const pushState = history.pushState;
-        history.pushState = function() {
-            pushState.apply(this, arguments);
-            trackPageVisit(false);
-        };
-
-        const replaceState = history.replaceState;
-        history.replaceState = function() {
-            replaceState.apply(this, arguments);
-            trackPageVisit(false);
-        };
-
-        window.addEventListener('popstate', () => {
-            trackPageVisit(false);
+        observer.observe(document, { 
+            subtree: true, 
+            childList: true,
+            attributes: true,
+            attributeFilter: ['href']
         });
 
+        // Method 5: Click event handler for links
         document.addEventListener("click", (event) => {
-            const rect = event.target.getBoundingClientRect();
-            const clickData = {
-                type: "click",
-                sessionId,
-                url: window.location.href,
-                elementClicked: {
-                    tag: event.target.tagName,
-                    id: event.target.id || null,
-                    classes: event.target.className || null,
-                    text: event.target.innerText || null,
-                    x: rect.left + window.scrollX,
-                    y: rect.top + window.scrollY,
-                },
-                timestamp: new Date().toISOString(),
-            };
-            sendData(clickData, websiteId, websiteName);
+            const link = event.target.closest("a");
+            if (link && link.href && !link.href.startsWith("javascript:") && !link.href.startsWith("#")) {
+                // Track click event
+                const rect = event.target.getBoundingClientRect();
+                const clickData = {
+                    type: "click",
+                    sessionId,
+                    visitorId: sessionId,
+                    url: window.location.href,
+                    path: window.location.pathname,
+                    elementClicked: {
+                        tag: event.target.tagName,
+                        id: event.target.id || null,
+                        classes: event.target.className || null,
+                        text: event.target.innerText || null,
+                        x: rect.left + window.scrollX,
+                        y: rect.top + window.scrollY,
+                    },
+                    timestamp: new Date().toISOString(),
+                };
+                sendData(clickData, websiteId, websiteName);
+
+                // If it's a same-origin link, track it as a page visit
+                if (link.hostname === window.location.hostname) {
+                    setTimeout(trackRouteChange, 100); // Small delay to ensure URL has changed
+                }
+            }
         });
 
+        // Rest of the tracking code (scroll, time spent, etc.)
         let lastScrollTime = 0;
         document.addEventListener("scroll", () => {
             const now = Date.now();
             if (now - lastScrollTime > 1000) {
                 const scrollData = {
                     type: "scroll",
+                    sessionId,
+                    visitorId: sessionId,
                     url: window.location.href,
+                    path: window.location.pathname,
                     scrollPosition: window.scrollY,
                     viewportHeight: window.innerHeight,
                     documentHeight: document.documentElement.scrollHeight,
@@ -132,7 +179,9 @@ import { extractUTMParams, sendData } from './api.js';
             const pageEndData = {
                 type: "page_visit",
                 sessionId,
+                visitorId: sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
                 timeSpent: timeSpent,
                 exitPage: false,
                 timestamp: new Date().toISOString(),
@@ -144,7 +193,9 @@ import { extractUTMParams, sendData } from './api.js';
             const sessionEndData = {
                 type: "session_end",
                 sessionId,
+                visitorId: sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
                 timeSpent: sessionTimeSpent,
                 exitPage: false,
                 timestamp: new Date().toISOString(),
@@ -163,7 +214,9 @@ import { extractUTMParams, sendData } from './api.js';
             const pageEndData = {
                 type: "page_visit",
                 sessionId,
+                visitorId: sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
                 timeSpent: timeSpent,
                 exitPage: true,
                 timestamp: new Date().toISOString(),
@@ -175,7 +228,9 @@ import { extractUTMParams, sendData } from './api.js';
             const sessionEndData = {
                 type: "session_end",
                 sessionId,
+                visitorId: sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
                 timeSpent: sessionTimeSpent,
                 exitPage: true,
                 timestamp: new Date().toISOString(),
@@ -190,7 +245,9 @@ import { extractUTMParams, sendData } from './api.js';
             const pageEndData = {
                 type: "page_visit",
                 sessionId,
+                visitorId: sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
                 timeSpent: timeSpent,
                 exitPage: true,
                 timestamp: new Date().toISOString(),
@@ -198,24 +255,6 @@ import { extractUTMParams, sendData } from './api.js';
             sendData(pageEndData, websiteId, websiteName);
             pageStartTime = Date.now();
             timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
-        });
-
-        // Track time spent on page when user clicks a link
-        document.addEventListener("click", (event) => {
-            const link = event.target.closest("a");
-            if (link && link.href && !link.href.startsWith("javascript:") && !link.href.startsWith("#")) {
-                clearInterval(timeUpdateInterval);
-                const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
-                const pageEndData = {
-                    type: "page_visit",
-                    sessionId,
-                    url: window.location.href,
-                    timeSpent: timeSpent,
-                    exitPage: true,
-                    timestamp: new Date().toISOString(),
-                };
-                sendData(pageEndData, websiteId, websiteName);
-            }
         });
 
         // Track time spent when page visibility changes
@@ -226,7 +265,9 @@ import { extractUTMParams, sendData } from './api.js';
                 const pageEndData = {
                     type: "page_visit",
                     sessionId,
+                    visitorId: sessionId,
                     url: window.location.href,
+                    path: window.location.pathname,
                     timeSpent: timeSpent,
                     exitPage: false,
                     timestamp: new Date().toISOString(),
@@ -248,7 +289,7 @@ import { extractUTMParams, sendData } from './api.js';
                 trackUserActivity();
             },
             () => {
-                setCookie("trackingConsent", "false", 365);
+                console.log("Tracking consent denied");
             }
         );
     }

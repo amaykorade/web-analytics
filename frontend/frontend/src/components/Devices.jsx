@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Select } from "antd";
 import { userData } from "../features/script/scriptSlice";
-import { analyticsData, getDeviceThunk } from "../features/data/dataSlice";
+import { analyticsData } from "../features/data/dataSlice";
 
 // Browser logos
 const browserLogos = {

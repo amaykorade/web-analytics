@@ -2,7 +2,6 @@ import apiClient from "./apiClient";
 
 export const getAnalytics = async (userID, websiteName, formattedStartDate, formattedEndDate) => {
     const response = await apiClient.get(`/data/analytics/total-data?userId=${userID}&websiteName=${websiteName}&startDate=${formattedStartDate}&endDate=${formattedEndDate}`);
-
     return response.data;
 }
 
