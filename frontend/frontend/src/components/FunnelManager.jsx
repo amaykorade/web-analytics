@@ -17,8 +17,27 @@ export default function FunnelManager() {
         steps: [{ type: 'url', value: '' }]
     });
 
-    const userId = scriptData?.scripts?.[0]?.userId;
-    const websiteName = scriptData?.scripts?.[0]?.websiteName;
+    // Get the current website's data
+    const currentDomain = window.location.hostname;
+    const currentScript = scriptData?.scripts?.find(script => {
+        try {
+            const scriptUrl = new URL(script.url);
+            return scriptUrl.hostname === currentDomain;
+        } catch (e) {
+            return false;
+        }
+    });
+
+    const userId = currentScript?.userId;
+    const websiteName = currentScript?.websiteName;
+
+    // Debug logs
+    useEffect(() => {
+        console.log('Script Data:', scriptData);
+        console.log('Current Domain:', currentDomain);
+        console.log('Current Script:', currentScript);
+        console.log('Current websiteName:', websiteName);
+    }, [scriptData, currentDomain, currentScript, websiteName]);
 
     // Fetch script data when component mounts
     useEffect(() => {
@@ -28,6 +47,7 @@ export default function FunnelManager() {
     // Fetch funnels when userId and websiteName are available
     useEffect(() => {
         if (userId && websiteName) {
+            console.log('Fetching funnels with:', { userId, websiteName });
             dispatch(getFunnelsThunk({ userId, websiteName }));
         }
     }, [dispatch, userId, websiteName]);
@@ -35,11 +55,18 @@ export default function FunnelManager() {
     // Fetch funnel stats when a funnel is selected
     useEffect(() => {
         if (selectedFunnel && userId && websiteName) {
+            console.log('Fetching funnel stats with:', {
+                funnelId: selectedFunnel._id,
+                userId,
+                websiteName,
+                startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                endDate: new Date()
+            });
             dispatch(getFunnelStatsThunk({
                 funnelId: selectedFunnel._id,
                 userId,
                 websiteName,
-                startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+                startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
                 endDate: new Date()
             }));
         }
