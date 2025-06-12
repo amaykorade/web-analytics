@@ -176,43 +176,71 @@ import('./tracker/tracker.js');
         }
     }
 
-    async function trackUserActivity() {
-        const sessionId = getSessionId();
-        const visitorId = getVisitorId();
+    function sendPageVisit(entryPage = false) {
         const utmParams = extractUTMParams();
-        const geoData = await getGeoLocation();
         const deviceInfo = getDeviceInfo();
+        const geoDataPromise = getGeoLocation();
+        geoDataPromise.then(geoData => {
+            const pageVisitData = {
+                type: "page_visit",
+                url: window.location.href,
+                path: window.location.pathname,
+                referrer: document.referrer,
+                utmSource: utmParams.utmSource,
+                utmMedium: utmParams.utmMedium,
+                utmCampaign: utmParams.utmCampaign,
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                browser: deviceInfo.browser,
+                deviceType: deviceInfo.deviceType,
+                ip: geoData?.ip || null,
+                geoLocation: {
+                    country: geoData?.country_name || null,
+                    region: geoData?.region || null,
+                    city: geoData?.city || null,
+                    latitude: geoData?.latitude || null,
+                    longitude: geoData?.longitude || null,
+                },
+                timestamp: new Date().toISOString(),
+                entryPage,
+                visitorId: getVisitorId(),
+                sessionId: getSessionId(),
+            };
+            sendData(pageVisitData);
+        });
+    }
+
+    async function trackUserActivity() {
         const entryPage = !sessionStorage.getItem("entryPage");
         sessionStorage.setItem("entryPage", "true");
 
-        const pageVisitData = {
-            type: "page_visit",
-            url: window.location.href,
-            path: window.location.pathname,
-            referrer: document.referrer,
-            utmSource: utmParams.utmSource,
-            utmMedium: utmParams.utmMedium,
-            utmCampaign: utmParams.utmCampaign,
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform,
-            browser: deviceInfo.browser,
-            deviceType: deviceInfo.deviceType,
-            ip: geoData?.ip || null,
-            geoLocation: {
-                country: geoData?.country_name || null,
-                region: geoData?.region || null,
-                city: geoData?.city || null,
-                latitude: geoData?.latitude || null,
-                longitude: geoData?.longitude || null,
-            },
-            timestamp: new Date().toISOString(),
-            entryPage,
-            visitorId,
-            sessionId,
-        };
+        // Initial page visit
+        sendPageVisit(entryPage);
 
-        sendData(pageVisitData);
+        // SPA route change tracking
+        let lastPath = window.location.pathname;
+        function checkAndSendPageVisit() {
+            if (window.location.pathname !== lastPath) {
+                lastPath = window.location.pathname;
+                sendPageVisit(false);
+            }
+        }
+        // History API overrides
+        const originalPushState = history.pushState;
+        history.pushState = function() {
+            originalPushState.apply(this, arguments);
+            setTimeout(checkAndSendPageVisit, 0);
+        };
+        const originalReplaceState = history.replaceState;
+        history.replaceState = function() {
+            originalReplaceState.apply(this, arguments);
+            setTimeout(checkAndSendPageVisit, 0);
+        };
+        window.addEventListener('popstate', checkAndSendPageVisit);
+
+        // Also handle hash changes (for hash-based routing)
+        window.addEventListener('hashchange', checkAndSendPageVisit);
 
         document.addEventListener("click", (event) => {
             const rect = event.target.getBoundingClientRect();
@@ -220,8 +248,8 @@ import('./tracker/tracker.js');
                 type: "click",
                 url: window.location.href,
                 path: window.location.pathname,
-                visitorId,
-                sessionId,
+                visitorId: getVisitorId(),
+                sessionId: getSessionId(),
                 elementClicked: {
                     tag: event.target.tagName,
                     id: event.target.id || null,
@@ -243,8 +271,8 @@ import('./tracker/tracker.js');
                     type: "scroll",
                     url: window.location.href,
                     path: window.location.pathname,
-                    visitorId,
-                    sessionId,
+                    visitorId: getVisitorId(),
+                    sessionId: getSessionId(),
                     scrollPosition: window.scrollY,
                     viewportHeight: window.innerHeight,
                     documentHeight: document.documentElement.scrollHeight,
@@ -262,8 +290,8 @@ import('./tracker/tracker.js');
                 type: "session_end",
                 url: window.location.href,
                 path: window.location.pathname,
-                visitorId,
-                sessionId,
+                visitorId: getVisitorId(),
+                sessionId: getSessionId(),
                 timeSpent: timeSpent,
                 exitPage: true,
                 timestamp: new Date().toISOString(),
