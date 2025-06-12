@@ -160,9 +160,10 @@ import('./tracker/tracker.js');
 
     async function sendData(data) {
         data.visitorId = getVisitorId();
+        data.sessionId = getSessionId();
         data.userID = websiteId;
         data.websiteName = websiteName;
-
+        data.path = window.location.pathname;
         try {
             await fetch(endpoint, {
                 method: "POST",
@@ -177,6 +178,7 @@ import('./tracker/tracker.js');
 
     async function trackUserActivity() {
         const sessionId = getSessionId();
+        const visitorId = getVisitorId();
         const utmParams = extractUTMParams();
         const geoData = await getGeoLocation();
         const deviceInfo = getDeviceInfo();
@@ -186,6 +188,7 @@ import('./tracker/tracker.js');
         const pageVisitData = {
             type: "page_visit",
             url: window.location.href,
+            path: window.location.pathname,
             referrer: document.referrer,
             utmSource: utmParams.utmSource,
             utmMedium: utmParams.utmMedium,
@@ -205,6 +208,8 @@ import('./tracker/tracker.js');
             },
             timestamp: new Date().toISOString(),
             entryPage,
+            visitorId,
+            sessionId,
         };
 
         sendData(pageVisitData);
@@ -213,8 +218,10 @@ import('./tracker/tracker.js');
             const rect = event.target.getBoundingClientRect();
             const clickData = {
                 type: "click",
-                sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
+                visitorId,
+                sessionId,
                 elementClicked: {
                     tag: event.target.tagName,
                     id: event.target.id || null,
@@ -235,6 +242,9 @@ import('./tracker/tracker.js');
                 const scrollData = {
                     type: "scroll",
                     url: window.location.href,
+                    path: window.location.pathname,
+                    visitorId,
+                    sessionId,
                     scrollPosition: window.scrollY,
                     viewportHeight: window.innerHeight,
                     documentHeight: document.documentElement.scrollHeight,
@@ -250,8 +260,10 @@ import('./tracker/tracker.js');
             const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
             const sessionEndData = {
                 type: "session_end",
-                sessionId,
                 url: window.location.href,
+                path: window.location.pathname,
+                visitorId,
+                sessionId,
                 timeSpent: timeSpent,
                 exitPage: true,
                 timestamp: new Date().toISOString(),
