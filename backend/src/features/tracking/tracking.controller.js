@@ -352,36 +352,55 @@ export const getAnalysis = async (req, res) => {
                 } 
             },
             {
-                $addFields: {
-                    pathname: {
-                        $cond: {
-                            if: { $regexMatch: { input: "$url", regex: "^https?://" } },
-                            then: {
-                                $let: {
-                                    vars: {
-                                        urlParts: { $split: ["$url", "?"] },
-                                        baseUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] }
-                                    },
-                                    in: {
-                                        $let: {
-                                            vars: {
-                                                pathParts: { $split: [{ $arrayElemAt: [{ $split: ["$$baseUrl", "://"] }, 1] }, "/"] }
-                                            },
-                                            in: {
-                                                $cond: {
-                                                    if: { $eq: [{ $size: "$$pathParts" }, 1] },
-                                                    then: "/",
-                                                    else: "/" + { $arrayElemAt: ["$$pathParts", 1] }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                
+                    $addFields: {
+                      pathname: {
+                        $let: {
+                          vars: {
+                            cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                            fullPath: {
+                              $arrayElemAt: [
+                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                1
+                              ]
                             },
-                            else: "$url"
+                            afterDomain: {
+                              $slice: [
+                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                1,
+                                10
+                              ]
+                            }
+                          },
+                          in: {
+                            $cond: {
+                              if: { $gt: [{ $size: "$$afterDomain" }, 0] },
+                              then: {
+                                $concat: [
+                                  "/",
+                                  {
+                                    $reduce: {
+                                      input: "$$afterDomain",
+                                      initialValue: "",
+                                      in: {
+                                        $cond: [
+                                          { $eq: ["$$value", ""] },
+                                          "$$this",
+                                          { $concat: ["$$value", "/", "$$this"] }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              else: "/"
+                            }
+                          }
                         }
+                      }
                     }
-                }
+                  
+                  
             },
             {
                 $group: {
@@ -396,7 +415,8 @@ export const getAnalysis = async (req, res) => {
             { $limit: 10 },
             {
                 $project: {
-                    url: "$_id",
+                    _id: 0,
+                    url: { $toString: "$_id" },
                     views: 1,
                     avgTimeSpent: { 
                         $cond: {
@@ -417,11 +437,13 @@ export const getAnalysis = async (req, res) => {
                     },
                     sessionCount: { $size: "$sessions" },
                     uniqueVisitors: { $size: "$uniqueVisitors" },
-                    sessions: 1,
-                    _id: 0
+                    sessions: 1
                 }
             }
         ]);
+
+        // Log the page stats for debugging
+        console.log('Page Stats:', JSON.stringify(pageStats, null, 2));
 
         // Calculate bounce rate for each page
         for (const page of pageStats) {
@@ -438,36 +460,53 @@ export const getAnalysis = async (req, res) => {
                 },
                 {
                     $addFields: {
-                        pathname: {
-                            $cond: {
-                                if: { $regexMatch: { input: "$url", regex: "^https?://" } },
-                                then: {
-                                    $let: {
-                                        vars: {
-                                            urlParts: { $split: ["$url", "?"] },
-                                            baseUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] }
-                                        },
-                                        in: {
-                                            $let: {
-                                                vars: {
-                                                    pathParts: { $split: [{ $arrayElemAt: [{ $split: ["$$baseUrl", "://"] }, 1] }, "/"] }
-                                                },
-                                                in: {
-                                                    $cond: {
-                                                        if: { $eq: [{ $size: "$$pathParts" }, 1] },
-                                                        then: "/",
-                                                        else: "/" + { $arrayElemAt: ["$$pathParts", 1] }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                else: "$url"
+                      pathname: {
+                        $let: {
+                          vars: {
+                            cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                            fullPath: {
+                              $arrayElemAt: [
+                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                1
+                              ]
+                            },
+                            afterDomain: {
+                              $slice: [
+                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                1,
+                                10
+                              ]
                             }
+                          },
+                          in: {
+                            $cond: {
+                              if: { $gt: [{ $size: "$$afterDomain" }, 0] },
+                              then: {
+                                $concat: [
+                                  "/",
+                                  {
+                                    $reduce: {
+                                      input: "$$afterDomain",
+                                      initialValue: "",
+                                      in: {
+                                        $cond: [
+                                          { $eq: ["$$value", ""] },
+                                          "$$this",
+                                          { $concat: ["$$value", "/", "$$this"] }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              else: "/"
+                            }
+                          }
                         }
+                      }
                     }
-                },
+                  },
+                  
                 {
                     $group: {
                         _id: "$sessionId",
@@ -497,18 +536,49 @@ export const getAnalysis = async (req, res) => {
             page.avgTimeSpent = page.avgTimeSpent || 0;
         }
 
+        // Log the final response for debugging
+        console.log('Final Top Pages:', JSON.stringify(pageStats, null, 2));
+
         response.topPages = pageStats;
 
 
         // Referral Source Analysis
         const searchEngines = ["google.com", "bing.com", "yahoo.com", "duckduckgo.com", "baidu.com"];
-        const socialMedia = ["facebook.com", "twitter.com", "linkedin.com", "instagram.com", "reddit.com"];
+        const socialMedia = ["facebook.com", "twitter.com", "linkedin.com", "instagram.com", "reddit.com", "pinterest.com", "tiktok.com"];
+
+        const normalizeReferrer = (referrer) => {
+            if (!referrer || referrer.trim() === "") return "Direct";
+            
+            try {
+                const url = new URL(referrer);
+                const hostname = url.hostname.toLowerCase();
+                
+                // Check for search engines
+                for (const se of searchEngines) {
+                    if (hostname.includes(se)) {
+                        return se.split('.')[0].charAt(0).toUpperCase() + se.split('.')[0].slice(1);
+                    }
+                }
+                
+                // Check for social media
+                for (const sm of socialMedia) {
+                    if (hostname.includes(sm)) {
+                        return sm.split('.')[0].charAt(0).toUpperCase() + sm.split('.')[0].slice(1);
+                    }
+                }
+                
+                // Return the domain name for other sources
+                return hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
+            } catch (e) {
+                return "Direct";
+            }
+        };
 
         const categorizeReferrer = (referrer) => {
-            if (!referrer || referrer === "direct" || referrer.trim() === "") return "direct";
-            if (searchEngines.some(se => referrer.includes(se))) return "search";
-            if (socialMedia.some(sm => referrer.includes(sm))) return "social";
-            return "other"; // Other external sources
+            if (!referrer || referrer === "Direct" || referrer.trim() === "") return "direct";
+            if (searchEngines.some(se => referrer.toLowerCase().includes(se))) return "search";
+            if (socialMedia.some(sm => referrer.toLowerCase().includes(sm))) return "social";
+            return "other";
         };
 
         let referralStats = await TrackingModule.aggregate([
@@ -523,12 +593,11 @@ export const getAnalysis = async (req, res) => {
             },
             {
                 $project: {
-                    referrer: { $ifNull: ["$_id", "direct"] },
+                    referrer: { $ifNull: ["$_id", "Direct"] },
                     visitors: { $size: "$totalVisitors" },
                     conversions: "$totalConversions",
                     visits: "$totalVisits",
-                    category: { $literal: "" }, // Placeholder for category
-                    _id: 0
+                    category: { $literal: "" }
                 }
             },
             { $sort: { visits: -1 } }
@@ -536,10 +605,24 @@ export const getAnalysis = async (req, res) => {
 
         referralStats = referralStats.map(ref => ({
             ...ref,
+            referrer: normalizeReferrer(ref.referrer),
             category: categorizeReferrer(ref.referrer)
         }));
 
-        response.referralStats = referralStats;
+        // Group by normalized referrer to combine similar sources
+        const groupedStats = referralStats.reduce((acc, curr) => {
+            const existing = acc.find(item => item.referrer === curr.referrer);
+            if (existing) {
+                existing.visitors += curr.visitors;
+                existing.conversions += curr.conversions;
+                existing.visits += curr.visits;
+            } else {
+                acc.push(curr);
+            }
+            return acc;
+        }, []);
+
+        response.referralStats = groupedStats;
 
 
         // HeataMap Data

@@ -11,6 +11,7 @@ import {
   ArrowUpRightFromCircle,
   AlertCircle,
   XCircle,
+  GitBranch,
 } from "lucide-react";
 
 import dayjs from "dayjs";
@@ -21,11 +22,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { getScriptThunk, userData } from "../features/script/scriptSlice";
 import {
   analyticsData,
-  getActiveUsersThunk,
   getAnalyticsThunk,
-  getClickRateThunk,
-  getConversionRateThunk,
-  getVisitorsThunk,
+  clearAnalytics
 } from "../features/data/dataSlice";
 import Devices from "./Devices";
 import Location from "./Location";
@@ -117,23 +115,7 @@ export default function Dashboard() {
           // Clear existing analytics data
           dispatch(clearAnalytics());
           
-          // Fetch initial analytics data for the selected website
-          dispatch(getVisitorsThunk({ 
-            userID: websiteToUse.userId, 
-            websiteName: websiteToUse.websiteName 
-          }));
-          dispatch(getClickRateThunk({ 
-            userID: websiteToUse.userId, 
-            websiteName: websiteToUse.websiteName 
-          }));
-          dispatch(getConversionRateThunk({ 
-            userID: websiteToUse.userId, 
-            websiteName: websiteToUse.websiteName 
-          }));
-          dispatch(getActiveUsersThunk({ 
-            userID: websiteToUse.userId, 
-            websiteName: websiteToUse.websiteName 
-          }));
+          // Fetch analytics data for the selected website
           dispatch(getAnalyticsThunk({ 
             userID: websiteToUse.userId, 
             websiteName: websiteToUse.websiteName,
@@ -172,23 +154,7 @@ export default function Dashboard() {
     // Clear existing analytics data
     dispatch(clearAnalytics());
     
-    // Fetch new analytics data for the selected website
-    dispatch(getVisitorsThunk({ 
-      userID: website.userId, 
-      websiteName: website.websiteName 
-    }));
-    dispatch(getClickRateThunk({ 
-      userID: website.userId, 
-      websiteName: website.websiteName 
-    }));
-    dispatch(getConversionRateThunk({ 
-      userID: website.userId, 
-      websiteName: website.websiteName 
-    }));
-    dispatch(getActiveUsersThunk({ 
-      userID: website.userId, 
-      websiteName: website.websiteName 
-    }));
+    // Fetch analytics data for the selected website
     dispatch(getAnalyticsThunk({ 
       userID: website.userId, 
       websiteName: website.websiteName,
@@ -205,22 +171,6 @@ export default function Dashboard() {
   // Update the date range effect to use the current website
   useEffect(() => {
     if (selectedWebsite) {
-      dispatch(getVisitorsThunk({ 
-        userID: selectedWebsite.userId, 
-        websiteName: selectedWebsite.websiteName 
-      }));
-      dispatch(getClickRateThunk({ 
-        userID: selectedWebsite.userId, 
-        websiteName: selectedWebsite.websiteName 
-      }));
-      dispatch(getConversionRateThunk({ 
-        userID: selectedWebsite.userId, 
-        websiteName: selectedWebsite.websiteName 
-      }));
-      dispatch(getActiveUsersThunk({ 
-        userID: selectedWebsite.userId, 
-        websiteName: selectedWebsite.websiteName 
-      }));
       dispatch(getAnalyticsThunk({ 
         userID: selectedWebsite.userId, 
         websiteName: selectedWebsite.websiteName,
@@ -273,6 +223,15 @@ export default function Dashboard() {
                     disabled={subscriptionStatus === "expired"}
                   />
                 </div>
+              </div>
+              <div className="flex items-center">
+                <Link
+                  to="/funnel"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                >
+                  <GitBranch className="h-4 w-4 mr-2" />
+                  Build Funnel
+                </Link>
               </div>
             </div>
           </div>
@@ -410,11 +369,19 @@ export default function Dashboard() {
               <TopPages />
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              <Devices />
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Referral Sources
+              </h2>
+              <ReferralSources />
             </div>
           </div>
-          <div className="grid grid-cols-1 mt-10 gap-8 mb-8">
-            <Location />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              <Devices />
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <Location />
+            </div>
           </div>
         </main>
       </div>

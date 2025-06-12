@@ -1,34 +1,77 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
+import { analyticsData } from '../features/data/dataSlice';
+import { Tooltip } from 'antd';
 
-const mockData = [
-  { source: 'Google', visitors: 12453, conversion: 2.4 },
-  { source: 'Direct', visitors: 8234, conversion: 3.1 },
-  { source: 'Facebook', visitors: 4521, conversion: 1.8 },
-  { source: 'Twitter', visitors: 2341, conversion: 1.5 },
-  { source: 'LinkedIn', visitors: 1234, conversion: 2.9 }
-];
+const ReferralSources = () => {
+    const analytics = useSelector(analyticsData);
+    const referralStats = analytics?.referralStats || [];
 
-export default function ReferralSources() {
-  return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Source</th>
-            <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Visitors</th>
-            <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Conversion</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mockData.map((item, index) => (
-            <tr key={index} className="border-b border-gray-100">
-              <td className="py-3 px-4 text-sm text-gray-900">{item.source}</td>
-              <td className="py-3 px-4 text-sm text-gray-900 text-right">{item.visitors.toLocaleString()}</td>
-              <td className="py-3 px-4 text-sm text-gray-900 text-right">{item.conversion}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+    const calculateConversionRate = (conversions, visitors) => {
+        if (!visitors) return '0.00%';
+        return ((conversions / visitors) * 100).toFixed(2) + '%';
+    };
+
+    return (
+        <div className="w-full">
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Source
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Visitors
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Visits
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Conv.
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Conv. Rate
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {referralStats.length > 0 ? (
+                            referralStats.map((source, index) => (
+                                <tr key={index} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {source.referrer}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {source.visitors}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {source.visits}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <Tooltip title={`${source.conversions} Conversions`}>
+                                            <span>{source.conversions}</span>
+                                        </Tooltip>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <Tooltip title={`${calculateConversionRate(source.conversions, source.visitors)} Conversion Rate`}>
+                                            <span>{calculateConversionRate(source.conversions, source.visitors)}</span>
+                                        </Tooltip>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                                    No referral data available
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+export default ReferralSources;

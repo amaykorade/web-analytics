@@ -9,8 +9,12 @@ export default function TopPages() {
 
   const formatUrl = (url) => {
     try {
+      // If url is an object, try to get the pathname
+      if (typeof url === 'object' && url !== null) {
+        return url.pathname || '/';
+      }
       // If it's a full URL, extract the pathname
-      if (url.startsWith('http')) {
+      if (typeof url === 'string' && url.startsWith('http')) {
         const urlObj = new URL(url);
         return urlObj.pathname;
       }
