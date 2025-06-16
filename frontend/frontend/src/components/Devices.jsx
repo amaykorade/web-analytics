@@ -4,6 +4,8 @@ import { Select } from "antd";
 import { userData } from "../features/script/scriptSlice";
 import { analyticsData } from "../features/data/dataSlice";
 
+const { Option } = Select;
+
 // Browser logos
 const browserLogos = {
   chrome: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg",
@@ -68,34 +70,53 @@ export default function Devices() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Device Analytics</h2>
+        <h2 className="text-lg font-semibold text-white">Device Analytics</h2>
         <Select
           value={filterBy}
           onChange={setFilterBy}
-          style={{ width: 200 }}
-          options={filterOptions}
-        />
+          style={{ 
+            width: 200,
+            backgroundColor: '#1F2937',
+            borderColor: '#374151',
+            color: '#E5E7EB'
+          }}
+          className="dark-select"
+          dropdownStyle={{ 
+            backgroundColor: '#1F2937',
+            borderColor: '#374151'
+          }}
+        >
+          {filterOptions.map((option) => (
+            <Option 
+              key={option.value} 
+              value={option.value}
+              className="text-gray-200 hover:bg-gray-700"
+            >
+              {option.label}
+            </Option>
+          ))}
+        </Select>
       </div>
 
       <div className="space-y-1">
         {deviceData.map((item) => (
-          <div key={item.name} className="bg-white rounded-lg p-2.5 hover:bg-gray-50 transition-colors">
+          <div key={item.name} className="bg-gray-800 rounded-lg p-2.5 hover:bg-gray-700 transition-colors border border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 flex items-center justify-center">
                   <img 
                     src={getLogo(item.name)} 
                     alt={item.name}
-                    className="w-6 h-6 object-contain"
+                    className="w-6 h-6 object-contain invert"
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.count} users</p>
+                  <p className="text-sm font-medium text-white">{item.name}</p>
+                  <p className="text-xs text-gray-300">{item.count} users</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-white">
                   {((item.count / totalUsers) * 100).toFixed(1)}%
                 </p>
               </div>

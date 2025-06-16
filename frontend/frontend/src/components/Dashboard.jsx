@@ -186,8 +186,8 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 relative">
-        <nav className="bg-white border-b border-gray-200 relative z-50">
+      <div className="min-h-screen bg-gray-900 relative">
+        <nav className="bg-gray-800 border-b border-gray-700 relative z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center space-x-6">
@@ -200,11 +200,23 @@ export default function Dashboard() {
                     }
                   }}
                   style={{ width: 200 }}
+                  className="dark-select"
+                  dropdownStyle={{ 
+                    backgroundColor: '#1F2937',
+                    borderColor: '#374151'
+                  }}
                   placeholder="Select Website"
                 >
                   {scriptData?.scripts?.filter(website => website.isVerified).map((website) => (
-                    <Option key={website._id} value={website._id}>
-                      {website.websiteName}
+                    <Option 
+                      key={website._id} 
+                      value={website._id}
+                      className="text-gray-200 hover:bg-gray-700"
+                    >
+                      <div className="flex items-center">
+                        <Globe className="w-4 h-4 mr-2 text-indigo-400" />
+                        {website.websiteName}
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -219,15 +231,17 @@ export default function Dashboard() {
                         });
                       }
                     }}
-                    className="w-72"
+                    className="w-72 dark-datepicker"
                     disabled={subscriptionStatus === "expired"}
+                    popupClassName="dark-datepicker-popup"
+                    inputReadOnly
                   />
                 </div>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center space-x-4">
                 <Link
                   to="/funnel"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all transform hover:scale-105"
                 >
                   <GitBranch className="h-4 w-4 mr-2" />
                   Build Funnel
@@ -238,9 +252,9 @@ export default function Dashboard() {
         </nav>
 
         {showExpiringSoonMessage && (
-          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded z-50 shadow-md flex items-center justify-between w-[90%] md:w-[600px]">
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-900 border border-yellow-700 text-yellow-100 px-4 py-3 rounded z-50 shadow-md flex items-center justify-between w-[90%] md:w-[600px]">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-700" />
+              <AlertCircle className="h-5 w-5 text-yellow-300" />
               <span>
                 Your subscription is ending soon. Please renew to avoid service
                 interruption.
@@ -248,7 +262,7 @@ export default function Dashboard() {
             </div>
             <button
               onClick={handleDismiss}
-              className="ml-4 hover:text-yellow-900"
+              className="ml-4 hover:text-yellow-200"
             >
               <XCircle className="h-5 w-5" />
             </button>
@@ -256,22 +270,22 @@ export default function Dashboard() {
         )}
 
         {subscriptionStatus === "expired" && (
-          <div className="absolute inset-0 z-50 flex justify-center items-start pt-10 backdrop-blur-sm bg-white/40">
-            <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+          <div className="absolute inset-0 z-50 flex justify-center items-start pt-10 backdrop-blur-sm bg-gray-900/40">
+            <div className="bg-gray-800 rounded-lg shadow-xl p-8 max-w-md mx-4 border border-gray-700">
               <div className="flex items-center justify-center mb-4">
-                <AlertCircle className="h-12 w-12 text-red-500" />
+                <AlertCircle className="h-12 w-12 text-red-400" />
               </div>
-              <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-center text-white mb-4">
                 Subscription Expired
               </h2>
-              <p className="text-gray-600 text-center mb-6">
+              <p className="text-gray-300 text-center mb-6">
                 Your subscription has expired or your tokens have been
                 exhausted. Please renew your subscription to continue accessing
                 dashboard analytics.
               </p>
               <Link
                 to="/billing"
-                className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md text-center transition duration-200"
+                className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-md text-center transition-all transform hover:scale-105"
               >
                 Go to Billing
               </Link>
@@ -282,70 +296,70 @@ export default function Dashboard() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 relative">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 mt-10">
             {/* Total Visitors */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center">
-                <Users className="h-8 w-8 text-indigo-600" />
+                <Users className="h-8 w-8 text-indigo-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-300">
                     Total Visitors
                   </p>
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p className="text-2xl font-semibold text-white">
                     {data.totalVisitors}
                   </p>
                 </div>
               </div>
             </div>
             {/* Click Rate */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center">
-                <MousePointer2 className="h-8 w-8 text-indigo-600" />
+                <MousePointer2 className="h-8 w-8 text-indigo-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-300">
                     Avg. Click Rate
                   </p>
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p className="text-2xl font-semibold text-white">
                     {data.clickRate}
                   </p>
                 </div>
               </div>
             </div>
             {/* Conversion Rate */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center">
-                <ArrowUpRight className="h-8 w-8 text-indigo-600" />
+                <ArrowUpRight className="h-8 w-8 text-indigo-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-300">
                     Conversion Rate
                   </p>
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p className="text-2xl font-semibold text-white">
                     {data.conversionRate}
                   </p>
                 </div>
               </div>
             </div>
             {/* Bounce Rate */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center">
-                <ArrowUpRightFromCircle className="h-8 w-8 text-indigo-600" />
+                <ArrowUpRightFromCircle className="h-8 w-8 text-indigo-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-300">
                     Bounce Rate
                   </p>
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p className="text-2xl font-semibold text-white">
                     {data.bounceRate}
                   </p>
                 </div>
               </div>
             </div>
             {/* Active Users */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="flex items-center">
-                <Globe className="h-8 w-8 text-indigo-600" />
+                <Globe className="h-8 w-8 text-indigo-400" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-300">
                     Visitors now
                   </p>
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p className="text-2xl font-semibold text-white">
                     {data.activeUsers}
                   </p>
                 </div>
@@ -355,33 +369,33 @@ export default function Dashboard() {
 
           {/* Charts */}
           <div className="grid grid-cols-1 gap-8 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
               <VisitorsRevenueChart />
             </div>
           </div>
 
           {/* Bottom Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+              <h2 className="text-lg font-semibold text-white mb-4">
                 Top Pages
               </h2>
               <TopPages />
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+              <h2 className="text-lg font-semibold text-white mb-4">
                 Referral Sources
               </h2>
               <ReferralSources />
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
               <Devices />
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
               <Location />
-          </div>
+            </div>
           </div>
         </main>
       </div>

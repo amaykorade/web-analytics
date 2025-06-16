@@ -1,0 +1,213 @@
+/* Global dark theme styles */
+html, body {
+  background-color: #111827 !important;
+  color: #E5E7EB !important;
+}
+
+/* Dark theme styles for Ant Design components */
+
+/* Select component */
+.dark-select .ant-select-selector {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+  color: #E5E7EB !important;
+}
+
+.dark-select .ant-select-selection-item {
+  color: #E5E7EB !important;
+}
+
+.dark-select .ant-select-arrow {
+  color: #9CA3AF !important;
+}
+
+/* Select dropdown */
+.ant-select-dropdown {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+.ant-select-item {
+  color: #E5E7EB !important;
+}
+
+.ant-select-item-option-selected {
+  background-color: #374151 !important;
+}
+
+.ant-select-item-option-active {
+  background-color: #4B5563 !important;
+}
+
+/* DatePicker component */
+.dark-datepicker .ant-picker-input > input {
+  color: #E5E7EB !important;
+}
+
+.dark-datepicker .ant-picker-suffix {
+  color: #9CA3AF !important;
+}
+
+.dark-datepicker .ant-picker-clear {
+  background-color: #1F2937 !important;
+  color: #9CA3AF !important;
+}
+
+/* DatePicker popup */
+.dark-datepicker-popup .ant-picker-panel {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark-datepicker-popup .ant-picker-header {
+  color: #E5E7EB !important;
+}
+
+.dark-datepicker-popup .ant-picker-header button {
+  color: #9CA3AF !important;
+}
+
+.dark-datepicker-popup .ant-picker-cell {
+  color: #E5E7EB !important;
+}
+
+.dark-datepicker-popup .ant-picker-cell-in-view {
+  color: #E5E7EB !important;
+}
+
+.dark-datepicker-popup .ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: #4F46E5 !important;
+}
+
+.dark-datepicker-popup .ant-picker-cell-today .ant-picker-cell-inner {
+  border-color: #4F46E5 !important;
+}
+
+.dark-datepicker-popup .ant-picker-cell:hover .ant-picker-cell-inner {
+  background-color: #374151 !important;
+}
+
+/* RangePicker specific styles */
+.dark-datepicker .ant-picker-range-separator {
+  color: #9CA3AF !important;
+}
+
+.dark-datepicker .ant-picker-active-bar {
+  background-color: #4F46E5 !important;
+}
+
+.dark-datepicker-popup .ant-picker-panel-container {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark-datepicker-popup .ant-picker-footer {
+  border-top-color: #374151 !important;
+}
+
+.dark-datepicker-popup .ant-picker-footer-extra {
+  color: #E5E7EB !important;
+}
+
+.dark-datepicker-popup .ant-picker-footer-extra button {
+  color: #4F46E5 !important;
+}
+
+.dark-datepicker-popup .ant-picker-footer-extra button:hover {
+  color: #6366F1 !important;
+}
+
+/* Disabled states */
+.dark-select.ant-select-disabled .ant-select-selector {
+  background-color: #374151 !important;
+  color: #6B7280 !important;
+}
+
+.dark-datepicker.ant-picker-disabled {
+  background-color: #374151 !important;
+}
+
+.dark-datepicker.ant-picker-disabled .ant-picker-input > input {
+  color: #6B7280 !important;
+}
+
+/* Hover and focus states */
+.dark-select:hover .ant-select-selector {
+  border-color: #4F46E5 !important;
+}
+
+.dark-select.ant-select-focused .ant-select-selector {
+  border-color: #4F46E5 !important;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2) !important;
+}
+
+.dark-datepicker:hover {
+  border-color: #4F46E5 !important;
+}
+
+.dark-datepicker.ant-picker-focused {
+  border-color: #4F46E5 !important;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2) !important;
+}
+
+/* Additional Select styles */
+.ant-select-dropdown .ant-select-item-option-content {
+  color: #E5E7EB !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: #374151 !important;
+  color: #E5E7EB !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: #4B5563 !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) .ant-select-item-option-content {
+  color: #E5E7EB !important;
+}
+
+/* Additional DatePicker styles */
+.ant-picker-dropdown {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+.ant-picker-dropdown .ant-picker-panel-container {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+.ant-picker-dropdown .ant-picker-panel {
+  background-color: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+.ant-picker-dropdown .ant-picker-header {
+  color: #E5E7EB !important;
+}
+
+.ant-picker-dropdown .ant-picker-header button {
+  color: #9CA3AF !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell {
+  color: #E5E7EB !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view {
+  color: #E5E7EB !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: #4F46E5 !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-today .ant-picker-cell-inner {
+  border-color: #4F46E5 !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell:hover .ant-picker-cell-inner {
+  background-color: #374151 !important;
+} 
