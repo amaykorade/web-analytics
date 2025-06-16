@@ -408,7 +408,8 @@ export const getAnalysis = async (req, res) => {
                     views: { $sum: 1 },
                     totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },
                     sessions: { $addToSet: "$sessionId" },
-                    uniqueVisitors: { $addToSet: "$visitorId" }
+                    uniqueVisitors: { $addToSet: "$visitorId" },
+                    pageVisits: { $push: { timeSpent: "$timeSpent", sessionId: "$sessionId" } }
                 }
             },
             { $sort: { views: -1 } },
@@ -426,7 +427,7 @@ export const getAnalysis = async (req, res) => {
                                 $round: [
                                     { 
                                         $divide: [
-                                            "$totalTimeSpent",
+                                            { $sum: "$pageVisits.timeSpent" },
                                             { $size: "$sessions" }
                                         ]
                                     },
@@ -532,8 +533,8 @@ export const getAnalysis = async (req, res) => {
             
             page.bounceRate = `${bounceRate}%`;
             
-            // Ensure avgTimeSpent is a valid number
-            page.avgTimeSpent = page.avgTimeSpent || 0;
+            // Ensure avgTimeSpent is a valid number and convert to seconds
+            page.avgTimeSpent = page.avgTimeSpent ? Math.round(page.avgTimeSpent) : 0;
         }
 
         // Log the final response for debugging

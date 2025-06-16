@@ -7,6 +7,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import "./styles/antd-dark.css";
 
 import Signup from "./components/auth/signup";
 import Login from "./components/auth/login";

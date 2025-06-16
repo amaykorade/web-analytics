@@ -110,15 +110,25 @@ const DateRangePicker = () => {
             // Handle custom range selection
           }
         }}
-        style={{ width: 120 }}
+        style={{ 
+          width: 120,
+          backgroundColor: '#1F2937',
+          borderColor: '#374151',
+          color: '#E5E7EB'
+        }}
+        className="dark-select"
+        dropdownStyle={{ 
+          backgroundColor: '#1F2937',
+          borderColor: '#374151'
+        }}
       >
-        <Option value="Today">Today</Option>
-        <Option value="Last 24 Hours">Last 24 Hours</Option>
-        <Option value="Last 7 Days">Last 7 Days</Option>
-        <Option value="Last 30 Days">Last 30 Days</Option>
-        <Option value="Last 12 Months">Last 12 Months</Option>
-        <Option value="All Time">All Time</Option>
-        <Option value="Custom">Custom</Option>
+        <Option value="Today" className="text-gray-200 hover:bg-gray-700">Today</Option>
+        <Option value="Last 24 Hours" className="text-gray-200 hover:bg-gray-700">Last 24 Hours</Option>
+        <Option value="Last 7 Days" className="text-gray-200 hover:bg-gray-700">Last 7 Days</Option>
+        <Option value="Last 30 Days" className="text-gray-200 hover:bg-gray-700">Last 30 Days</Option>
+        <Option value="Last 12 Months" className="text-gray-200 hover:bg-gray-700">Last 12 Months</Option>
+        <Option value="All Time" className="text-gray-200 hover:bg-gray-700">All Time</Option>
+        <Option value="Custom" className="text-gray-200 hover:bg-gray-700">Custom</Option>
       </Select>
 
       {selectedRange === "Custom" && (
@@ -130,7 +140,15 @@ const DateRangePicker = () => {
               setSelectedRange("Custom");
             }
           }}
-          style={{ width: 240 }}
+          style={{ 
+            width: 240,
+            backgroundColor: '#1F2937',
+            borderColor: '#374151',
+            color: '#E5E7EB'
+          }}
+          className="dark-datepicker"
+          popupClassName="dark-datepicker-popup"
+          inputReadOnly
         />
       )}
     </div>
