@@ -37,12 +37,12 @@ export default function FunnelVisualization({ stats }) {
                             <Users className="h-4 w-4 mr-2" />
                             Users: {payload[0].value}
                         </p>
-                        {payload[1] && (
+                    {payload[1] && (
                             <p className="text-red-600 flex items-center">
                                 <TrendingDown className="h-4 w-4 mr-2" />
                                 Drop-off: {payload[1].value}%
                             </p>
-                        )}
+                    )}
                     </div>
                 </div>
             );

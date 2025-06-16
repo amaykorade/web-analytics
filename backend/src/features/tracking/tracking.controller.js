@@ -547,29 +547,38 @@ export const getAnalysis = async (req, res) => {
         const socialMedia = ["facebook.com", "twitter.com", "linkedin.com", "instagram.com", "reddit.com", "pinterest.com", "tiktok.com"];
 
         const normalizeReferrer = (referrer) => {
+            console.log("Raw referrer:", referrer);
             if (!referrer || referrer.trim() === "") return "Direct";
             
             try {
                 const url = new URL(referrer);
                 const hostname = url.hostname.toLowerCase();
+                console.log("Parsed hostname:", hostname);
                 
                 // Check for search engines
                 for (const se of searchEngines) {
                     if (hostname.includes(se)) {
-                        return se.split('.')[0].charAt(0).toUpperCase() + se.split('.')[0].slice(1);
+                        const result = se.split('.')[0].charAt(0).toUpperCase() + se.split('.')[0].slice(1);
+                        console.log("Normalized to search engine:", result);
+                        return result;
                     }
                 }
                 
                 // Check for social media
                 for (const sm of socialMedia) {
                     if (hostname.includes(sm)) {
-                        return sm.split('.')[0].charAt(0).toUpperCase() + sm.split('.')[0].slice(1);
+                        const result = sm.split('.')[0].charAt(0).toUpperCase() + sm.split('.')[0].slice(1);
+                        console.log("Normalized to social media:", result);
+                        return result;
                     }
                 }
                 
                 // Return the domain name for other sources
-                return hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
+                const result = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
+                console.log("Normalized to domain:", result);
+                return result;
             } catch (e) {
+                console.error("Error normalizing referrer:", e);
                 return "Direct";
             }
         };

@@ -381,7 +381,7 @@ export default function Dashboard() {
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <Location />
-            </div>
+          </div>
           </div>
         </main>
       </div>

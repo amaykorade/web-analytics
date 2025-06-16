@@ -181,33 +181,33 @@ import('./tracker/tracker.js');
         const deviceInfo = getDeviceInfo();
         const geoDataPromise = getGeoLocation();
         geoDataPromise.then(geoData => {
-            const pageVisitData = {
-                type: "page_visit",
-                url: window.location.href,
+        const pageVisitData = {
+            type: "page_visit",
+            url: window.location.href,
                 path: window.location.pathname,
-                referrer: document.referrer,
-                utmSource: utmParams.utmSource,
-                utmMedium: utmParams.utmMedium,
-                utmCampaign: utmParams.utmCampaign,
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                browser: deviceInfo.browser,
-                deviceType: deviceInfo.deviceType,
-                ip: geoData?.ip || null,
-                geoLocation: {
-                    country: geoData?.country_name || null,
-                    region: geoData?.region || null,
-                    city: geoData?.city || null,
-                    latitude: geoData?.latitude || null,
-                    longitude: geoData?.longitude || null,
-                },
-                timestamp: new Date().toISOString(),
-                entryPage,
+            referrer: document.referrer,
+            utmSource: utmParams.utmSource,
+            utmMedium: utmParams.utmMedium,
+            utmCampaign: utmParams.utmCampaign,
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            browser: deviceInfo.browser,
+            deviceType: deviceInfo.deviceType,
+            ip: geoData?.ip || null,
+            geoLocation: {
+                country: geoData?.country_name || null,
+                region: geoData?.region || null,
+                city: geoData?.city || null,
+                latitude: geoData?.latitude || null,
+                longitude: geoData?.longitude || null,
+            },
+            timestamp: new Date().toISOString(),
+            entryPage,
                 visitorId: getVisitorId(),
                 sessionId: getSessionId(),
-            };
-            sendData(pageVisitData);
+        };
+        sendData(pageVisitData);
         });
     }
 

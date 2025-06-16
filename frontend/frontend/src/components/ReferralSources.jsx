@@ -12,9 +12,9 @@ const ReferralSources = () => {
         return ((conversions / visitors) * 100).toFixed(2) + '%';
     };
 
-    return (
+  return (
         <div className="w-full">
-            <div className="overflow-x-auto">
+    <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -33,8 +33,8 @@ const ReferralSources = () => {
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Conv. Rate
                             </th>
-                        </tr>
-                    </thead>
+          </tr>
+        </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {referralStats.length > 0 ? (
                             referralStats.map((source, index) => (
@@ -65,13 +65,13 @@ const ReferralSources = () => {
                                 <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                                     No referral data available
                                 </td>
-                            </tr>
+            </tr>
                         )}
-                    </tbody>
-                </table>
+        </tbody>
+      </table>
             </div>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default ReferralSources;

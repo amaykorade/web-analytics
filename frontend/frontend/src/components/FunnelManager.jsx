@@ -12,36 +12,48 @@ export default function FunnelManager() {
     const { funnels, loading, error, funnelStats } = useSelector(state => state.funnel);
     const [selectedFunnel, setSelectedFunnel] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [isLoadingScript, setIsLoadingScript] = useState(true);
     const [newFunnel, setNewFunnel] = useState({
         funnelName: '',
         steps: [{ type: 'url', value: '' }]
     });
 
-    // Get the current website's data
-    const currentDomain = window.location.hostname;
-    const currentScript = scriptData?.scripts?.find(script => {
-        try {
-            const scriptUrl = new URL(script.url);
-            return scriptUrl.hostname === currentDomain;
-        } catch (e) {
-            return false;
-        }
-    });
+    // Get the selected website's data
+    const selectedWebsite = localStorage.getItem('selectedWebsite') || 'ecommerce';
+    const currentScript = scriptData?.scripts?.find(script => script.websiteName === selectedWebsite);
+
+    console.log('Selected Website:', selectedWebsite);
+    console.log('All Scripts:', scriptData?.scripts);
+    console.log('Found Script:', currentScript);
 
     const userId = currentScript?.userId;
     const websiteName = currentScript?.websiteName;
 
     // Debug logs
     useEffect(() => {
-        console.log('Script Data:', scriptData);
-        console.log('Current Domain:', currentDomain);
-        console.log('Current Script:', currentScript);
-        console.log('Current websiteName:', websiteName);
-    }, [scriptData, currentDomain, currentScript, websiteName]);
+        console.log('Debug Info:', {
+            scriptData,
+            selectedWebsite,
+            currentScript,
+            userId,
+            websiteName,
+            allScripts: scriptData?.scripts
+        });
+    }, [scriptData, selectedWebsite, currentScript, userId, websiteName]);
 
     // Fetch script data when component mounts
     useEffect(() => {
-        dispatch(getScriptThunk());
+        const fetchScriptData = async () => {
+            setIsLoadingScript(true);
+            try {
+                await dispatch(getScriptThunk()).unwrap();
+            } catch (error) {
+                console.error('Error fetching script data:', error);
+            } finally {
+                setIsLoadingScript(false);
+            }
+        };
+        fetchScriptData();
     }, [dispatch]);
 
     // Fetch funnels when userId and websiteName are available
@@ -49,6 +61,8 @@ export default function FunnelManager() {
         if (userId && websiteName) {
             console.log('Fetching funnels with:', { userId, websiteName });
             dispatch(getFunnelsThunk({ userId, websiteName }));
+        } else {
+            console.log('Cannot fetch funnels:', { userId, websiteName });
         }
     }, [dispatch, userId, websiteName]);
 
@@ -103,6 +117,12 @@ export default function FunnelManager() {
             return;
         }
 
+        if (!userId || !websiteName) {
+            console.error('Missing data:', { userId, websiteName });
+            alert('Please wait while we load your website data...');
+            return;
+        }
+
         const funnelData = {
             funnelName: newFunnel.funnelName,
             steps: newFunnel.steps.map(step => ({
@@ -113,10 +133,7 @@ export default function FunnelManager() {
             websiteName: websiteName
         };
 
-        if (!funnelData.userId || !funnelData.websiteName) {
-            alert('Missing user or website information. Please try refreshing the page.');
-            return;
-        }
+        console.log('Creating funnel with data:', funnelData);
 
         try {
             const result = await dispatch(createFunnelThunk(funnelData)).unwrap();
@@ -160,11 +177,37 @@ export default function FunnelManager() {
         }
     };
 
+    if (isLoadingScript) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading website data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!userId || !websiteName) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="text-red-600 mb-4">
+                        <X className="h-12 w-12 mx-auto" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Website Not Found</h2>
+                    <p className="text-gray-600 mb-4">We couldn't find the tracking script for this website.</p>
+                    <p className="text-sm text-gray-500">Please make sure you have installed the tracking script correctly.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Funnel Analytics</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Funnel Analytics</h1>
                     <p className="mt-1 text-sm text-gray-500">Track and analyze your conversion funnels</p>
                 </div>
                 <button
@@ -186,7 +229,7 @@ export default function FunnelManager() {
                 <div className="mb-8 p-6 bg-white rounded-lg shadow-lg border border-gray-200">
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900">Create New Funnel</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Create New Funnel</h2>
                             <p className="mt-1 text-sm text-gray-500">Define your conversion funnel steps</p>
                         </div>
                         <button
@@ -210,50 +253,50 @@ export default function FunnelManager() {
                         </div>
 
                         <div className="space-y-4">
-                            {newFunnel.steps.map((step, index) => (
+                        {newFunnel.steps.map((step, index) => (
                                 <div key={index} className="flex items-start space-x-4">
-                                    <div className="flex-1">
+                                <div className="flex-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Step {index + 1}
                                         </label>
                                         <div className="flex rounded-md shadow-sm">
-                                            <select
-                                                value={step.type}
-                                                onChange={(e) => handleStepChange(index, 'type', e.target.value)}
+                                        <select
+                                            value={step.type}
+                                            onChange={(e) => handleStepChange(index, 'type', e.target.value)}
                                                 className="rounded-l-md border-gray-300 bg-gray-50 text-gray-500 sm:text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            >
-                                                <option value="url">URL</option>
-                                                <option value="event">Event</option>
-                                            </select>
-                                            <input
-                                                type="text"
-                                                value={step.value}
-                                                onChange={(e) => handleStepChange(index, 'value', e.target.value)}
-                                                placeholder={step.type === 'url' ? 'Enter URL' : 'Enter event name'}
-                                                className="flex-1 rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                    {index > 0 && (
-                                        <button
-                                            onClick={() => handleRemoveStep(index)}
-                                            className="mt-7 p-2 text-gray-400 hover:text-red-600 transition-colors duration-200"
                                         >
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
-                                    )}
+                                            <option value="url">URL</option>
+                                            <option value="event">Event</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            value={step.value}
+                                            onChange={(e) => handleStepChange(index, 'value', e.target.value)}
+                                            placeholder={step.type === 'url' ? 'Enter URL' : 'Enter event name'}
+                                            className="flex-1 rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        />
+                                    </div>
                                 </div>
-                            ))}
+                                {index > 0 && (
+                                    <button
+                                        onClick={() => handleRemoveStep(index)}
+                                            className="mt-7 p-2 text-gray-400 hover:text-red-600 transition-colors duration-200"
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
 
-                            {newFunnel.steps.length < 5 && (
-                                <button
-                                    onClick={handleAddStep}
+                        {newFunnel.steps.length < 5 && (
+                            <button
+                                onClick={handleAddStep}
                                     className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Step
-                                </button>
-                            )}
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Step
+                            </button>
+                        )}
                         </div>
 
                         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -321,12 +364,12 @@ export default function FunnelManager() {
                                                     <ChevronRight className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
                                                         selectedFunnel?._id === funnel._id ? 'transform rotate-90' : ''
                                                     }`} />
-                                                    <button
-                                                        onClick={(e) => handleDeleteFunnel(funnel._id, e)}
+                                                <button
+                                                    onClick={(e) => handleDeleteFunnel(funnel._id, e)}
                                                         className="text-gray-400 hover:text-red-600 transition-colors duration-200"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -343,9 +386,9 @@ export default function FunnelManager() {
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <h2 className="text-xl font-semibold text-gray-900">
-                                        {selectedFunnel.funnelName}
-                                    </h2>
+                                <h2 className="text-xl font-semibold text-gray-900">
+                                    {selectedFunnel.funnelName}
+                                </h2>
                                     <p className="mt-1 text-sm text-gray-500">
                                         {selectedFunnel.steps.length} steps • Last 30 days
                                     </p>
@@ -356,7 +399,7 @@ export default function FunnelManager() {
                                 <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
                                     <div className="flex items-center justify-center space-x-3">
                                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                                        <p className="text-gray-500">Loading funnel data...</p>
+                                    <p className="text-gray-500">Loading funnel data...</p>
                                     </div>
                                 </div>
                             ) : (
