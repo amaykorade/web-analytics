@@ -352,64 +352,80 @@ export const getAnalysis = async (req, res) => {
                 } 
             },
             {
-                
-                    $addFields: {
-                      pathname: {
+                $addFields: {
+                    pathname: {
                         $let: {
-                          vars: {
-                            cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
-                            fullPath: {
-                              $arrayElemAt: [
-                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
-                                1
-                              ]
+                            vars: {
+                                cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                                fullPath: {
+                                    $arrayElemAt: [
+                                        { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                        1
+                                    ]
+                                },
+                                afterDomain: {
+                                    $slice: [
+                                        { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                        1,
+                                        10
+                                    ]
+                                }
                             },
-                            afterDomain: {
-                              $slice: [
-                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
-                                1,
-                                10
-                              ]
-                            }
-                          },
-                          in: {
-                            $cond: {
-                              if: { $gt: [{ $size: "$$afterDomain" }, 0] },
-                              then: {
-                                $concat: [
-                                  "/",
-                                  {
-                                    $reduce: {
-                                      input: "$$afterDomain",
-                                      initialValue: "",
-                                      in: {
-                                        $cond: [
-                                          { $eq: ["$$value", ""] },
-                                          "$$this",
-                                          { $concat: ["$$value", "/", "$$this"] }
+                            in: {
+                                $cond: {
+                                    if: { $gt: [{ $size: "$$afterDomain" }, 0] },
+                                    then: {
+                                        $concat: [
+                                            "/",
+                                            {
+                                                $reduce: {
+                                                    input: "$$afterDomain",
+                                                    initialValue: "",
+                                                    in: {
+                                                        $cond: [
+                                                            { $eq: ["$$value", ""] },
+                                                            "$$this",
+                                                            { $concat: ["$$value", "/", "$$this"] }
+                                                        ]
+                                                    }
+                                                }
+                                            }
                                         ]
-                                      }
-                                    }
-                                  }
-                                ]
-                              },
-                              else: "/"
+                                    },
+                                    else: "/"
+                                }
                             }
-                          }
                         }
-                      }
                     }
-                  
-                  
+                }
             },
             {
                 $group: {
                     _id: "$pathname",
                     views: { $sum: 1 },
-                    totalTimeSpent: { $sum: { $ifNull: ["$timeSpent", 0] } },
+                    totalTimeSpent: { 
+                        $sum: { 
+                            $cond: [
+                                { $isNumber: "$timeSpent" },
+                                "$timeSpent",
+                                0
+                            ]
+                        }
+                    },
                     sessions: { $addToSet: "$sessionId" },
                     uniqueVisitors: { $addToSet: "$visitorId" },
-                    pageVisits: { $push: { timeSpent: "$timeSpent", sessionId: "$sessionId" } }
+                    pageVisits: { 
+                        $push: { 
+                            timeSpent: { 
+                                $cond: [
+                                    { $isNumber: "$timeSpent" },
+                                    "$timeSpent",
+                                    0
+                                ]
+                            },
+                            sessionId: "$sessionId" 
+                        } 
+                    }
                 }
             },
             { $sort: { views: -1 } },
@@ -427,7 +443,7 @@ export const getAnalysis = async (req, res) => {
                                 $round: [
                                     { 
                                         $divide: [
-                                            { $sum: { $map: { input: "$pageVisits", as: "visit", in: { $ifNull: ["$$visit.timeSpent", 0] } } } },
+                                            "$totalTimeSpent",
                                             { $size: "$sessions" }
                                         ]
                                     },
