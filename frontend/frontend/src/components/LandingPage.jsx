@@ -16,6 +16,9 @@ import {
   Users,
   LineChart,
   MousePointer2,
+  TrendingUp,
+  BarChart,
+  Activity,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -60,36 +63,6 @@ export default function LandingPage() {
     },
   ];
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Marketing Director",
-      company: "TechCorp",
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      content:
-        "Our early testing shows incredible potential. The privacy-first approach is exactly what modern businesses need.",
-    },
-    {
-      name: "Michael Chen",
-      role: "Product Manager",
-      company: "InnovateLabs",
-      image:
-        "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      content:
-        "The level of detail and commitment to user privacy is truly impressive. This is a game-changer for web analytics.",
-    },
-    {
-      name: "Emma Davis",
-      role: "E-commerce Strategist",
-      company: "ShopWave",
-      image:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      content:
-        "We're excited about the potential of this platform. The focus on ethical data collection is exactly what we've been looking for.",
-    },
-  ];
-
   const faqs = [
     {
       question: "Why is privacy so important in web analytics?",
@@ -119,57 +92,97 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-indigo-600 to-indigo-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950">
+        {/* Background decoration */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-10"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Analytics that respects
-              <span className="block text-indigo-200">
-                Privacy. Performance. Insights.
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+              Every Click You Miss Is
+              <span className="block text-indigo-400 mt-2">
+                Revenue You Lose
               </span>
             </h1>
-            <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
-              Get powerful insights about your website visitors while
-              maintaining their privacy. No cookies required, GDPR-compliant,
-              and lightning fast.
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Stop guessing. Start tracking what actually drives growth. Transform your website data into actionable insights that boost your bottom line.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
                 to="/signup"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-white text-indigo-600 font-semibold hover:bg-indigo-50 transition-colors"
+                className="inline-flex items-center px-8 py-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Early access
-                <ChevronRight className="ml-2 h-5 w-5" />
+                Start Growing Revenue
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <a
                 href="#demo"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-indigo-700 text-white font-semibold hover:bg-indigo-600 transition-colors"
+                className="inline-flex items-center px-8 py-4 rounded-lg bg-gray-800 text-white font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Learn More
+                See How It Works
               </a>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-1/2 left-1/2 transform -translate-x-1/2 w-[1000px] h-[1000px] bg-indigo-500 rounded-full opacity-10"></div>
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-500 opacity-10"></div>
+      {/* Value Proposition Section */}
+      <div className="py-24 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Turn Data Into Dollars
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Discover exactly what drives your revenue and optimize for growth
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="text-4xl font-bold text-indigo-400 mb-4">+27%</div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Average Revenue Increase
+              </h3>
+              <p className="text-gray-300">
+                Our customers see significant revenue growth by optimizing their user journey based on real data.
+              </p>
+            </div>
+            <div className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="text-4xl font-bold text-indigo-400 mb-4">-35%</div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Reduced Bounce Rate
+              </h3>
+              <p className="text-gray-300">
+                Identify and fix conversion killers with precise user behavior tracking.
+              </p>
+            </div>
+            <div className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="text-4xl font-bold text-indigo-400 mb-4">2.4x</div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Higher Conversion Rate
+              </h3>
+              <p className="text-gray-300">
+                Make data-driven decisions that turn visitors into paying customers.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="py-24 bg-gray-50">
+      <div className="py-24 bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Our Commitment to Ethical Analytics
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Revenue-Boosting Features
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We're building a platform that respects users while providing
-              meaningful insights for businesses.
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Everything you need to optimize your website for maximum revenue
             </p>
           </div>
 
@@ -177,13 +190,13 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow"
+                className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
               >
-                <feature.icon className="h-12 w-12 text-indigo-600 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <feature.icon className="h-12 w-12 text-indigo-400 mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <p className="text-gray-300">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -191,121 +204,236 @@ export default function LandingPage() {
       </div>
 
       {/* Live Demo Section */}
-      <div id="demo" className="py-24 bg-white">
+      <div id="demo" className="py-24 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Early Access Preview
+            <h2 className="text-3xl font-bold text-white mb-4">
+              See Your Growth in Real-Time
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We're currently developing and refining our platform. Join our
-              early access program to help shape the future of web analytics.
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Watch your revenue grow with our powerful analytics dashboard. Every metric is designed to help you make better business decisions.
             </p>
           </div>
 
-          <div className="bg-gray-900 rounded-lg shadow-2xl overflow-hidden">
-            <div className="flex items-center space-x-2 px-4 py-3 bg-gray-800">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="relative">
+            {/* Decorative elements */}
+            <div className="absolute -top-4 -left-4 w-72 h-72 bg-indigo-900 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+            <div className="absolute -bottom-8 right-0 w-72 h-72 bg-purple-900 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-900 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+
+            {/* Dashboard Preview */}
+            <div className="relative bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-300">
+              <div className="flex items-center space-x-2 px-4 py-3 bg-gray-900 border-b border-gray-700">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div className="ml-4 text-sm text-gray-400">Analytics Dashboard</div>
+              </div>
+              <div className="relative">
+                <img 
+                  src="/real-dahboard.png" 
+                  alt="Analytics Dashboard" 
+                  className="w-full h-auto rounded-b-xl"
+                />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/20 to-transparent pointer-events-none"></div>
+              </div>
             </div>
-            <div className="p-6 text-center">
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Coming Soon
-              </h3>
-              <p className="text-indigo-100 max-w-xl mx-auto">
-                Our comprehensive analytics dashboard is currently in
-                development. Early access participants will get exclusive first
-                look and the opportunity to provide direct feedback to our
-                development team.
+
+            {/* Feature highlights */}
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-indigo-900 rounded-xl flex items-center justify-center">
+                    <LineChart className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <h3 className="ml-4 text-lg font-semibold text-white">Real-Time Metrics</h3>
+                </div>
+                <p className="text-gray-300">Track visitor behavior and conversion rates as they happen, with instant updates.</p>
+              </div>
+
+              <div className="bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-indigo-900 rounded-xl flex items-center justify-center">
+                    <MousePointer2 className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <h3 className="ml-4 text-lg font-semibold text-white">User Journey Maps</h3>
+                </div>
+                <p className="text-gray-300">Visualize how users navigate your site and identify optimization opportunities.</p>
+              </div>
+
+              <div className="bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-indigo-900 rounded-xl flex items-center justify-center">
+                    <Target className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <h3 className="ml-4 text-lg font-semibold text-white">Conversion Funnels</h3>
+                </div>
+                <p className="text-gray-300">Track and optimize your conversion funnels to maximize revenue.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Success Stories Section */}
+      <div className="py-24 bg-gray-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Success Stories
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              See how businesses like yours are growing revenue with our analytics platform
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-900 flex items-center justify-center">
+                  <span className="text-indigo-400 font-bold text-xl">E</span>
+                </div>
+                <div className="ml-4">
+                  <div className="font-semibold text-white">
+                    E-commerce Store
+                  </div>
+                  <div className="text-sm text-indigo-400">
+                    +45% Revenue
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-300">
+                "By tracking user behavior, we identified and fixed our checkout process, leading to a 45% increase in revenue within 3 months."
+              </p>
+            </div>
+
+            <div className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-900 flex items-center justify-center">
+                  <span className="text-indigo-400 font-bold text-xl">S</span>
+                </div>
+                <div className="ml-4">
+                  <div className="font-semibold text-white">
+                    SaaS Platform
+                  </div>
+                  <div className="text-sm text-indigo-400">
+                    +60% Conversions
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-300">
+                "The funnel analytics helped us optimize our onboarding process, resulting in a 60% increase in trial-to-paid conversions."
+              </p>
+            </div>
+
+            <div className="bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-900 flex items-center justify-center">
+                  <span className="text-indigo-400 font-bold text-xl">B</span>
+                </div>
+                <div className="ml-4">
+                  <div className="font-semibold text-white">
+                    Blog Network
+                  </div>
+                  <div className="text-sm text-indigo-400">
+                    +80% Engagement
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-300">
+                "Understanding user behavior helped us optimize our content strategy, leading to an 80% increase in user engagement."
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <div className="py-24 bg-gray-50">
+      {/* How It Works Section */}
+      <div className="py-24 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Early Adopter Insights
+            <h2 className="text-3xl font-bold text-white mb-4">
+              How It Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Hear from innovative companies excited about our privacy-first
-              approach.
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Three simple steps to start growing your revenue
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 shadow-lg">
-                <div className="flex items-center mb-4">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <div className="ml-4">
-                    <div className="font-semibold text-gray-900">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {testimonial.role}
-                    </div>
-                    <div className="text-sm text-indigo-600">
-                      {testimonial.company}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-5 w-5 text-yellow-400 fill-current"
-                    />
-                  ))}
-                </div>
-                <p className="text-gray-600">{testimonial.content}</p>
+            <div className="text-center">
+              <div className="w-20 h-20 bg-indigo-900 rounded-xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl font-bold text-indigo-400">1</span>
               </div>
-            ))}
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Install Tracking
+              </h3>
+              <p className="text-gray-300">
+                Add our lightweight tracking code to your website in minutes. No complex setup required.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-indigo-900 rounded-xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl font-bold text-indigo-400">2</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Collect Data
+              </h3>
+              <p className="text-gray-300">
+                Start gathering real-time insights about your visitors' behavior and journey.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-indigo-900 rounded-xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl font-bold text-indigo-400">3</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Optimize & Grow
+              </h3>
+              <p className="text-gray-300">
+                Use data-driven insights to optimize your website and watch your revenue grow.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* FAQ Section */}
-      <div className="py-24 bg-gray-50">
+      <div className="py-24 bg-gray-950">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-white mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-300">
               Learn more about our upcoming analytics platform.
             </p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-lg shadow">
+              <div key={index} className="bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all">
                 <button
                   className="w-full px-6 py-4 flex items-center justify-between focus:outline-none"
                   onClick={() =>
                     setActiveFaq(activeFaq === index ? null : index)
                   }
                 >
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-white">
                     {faq.question}
                   </span>
                   {activeFaq === index ? (
-                    <Minus className="h-5 w-5 text-gray-500" />
+                    <Minus className="h-5 w-5 text-gray-400" />
                   ) : (
-                    <Plus className="h-5 w-5 text-gray-500" />
+                    <Plus className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
                 {activeFaq === index && (
                   <div className="px-6 pb-4">
-                    <p className="text-gray-600">{faq.answer}</p>
+                    <p className="text-gray-300">{faq.answer}</p>
                   </div>
                 )}
               </div>
@@ -314,37 +442,68 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div className="bg-indigo-600">
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="text-center md:text-left mb-8 md:mb-0">
-              <h2 className="text-3xl font-bold text-white mb-2">
-                Be Part of Our Journey
-              </h2>
-              <p className="text-indigo-100">
-                Join our early access program and help shape the future of
-                ethical web analytics.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
+          {/* CTA Section */}
+          <div className="mb-16 text-center">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Ready to Grow Your Revenue?
+            </h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Start tracking what matters and make data-driven decisions today.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
                 to="/signup"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-white text-indigo-600 font-semibold hover:bg-indigo-50 transition-colors"
+                className="inline-flex items-center px-8 py-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Early Access
+                Start Growing Revenue
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <a
                 href="#demo"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-indigo-700 text-white font-semibold hover:bg-indigo-600 transition-colors"
+                className="inline-flex items-center px-8 py-4 rounded-lg bg-gray-800 text-white font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Learn More
+                See How It Works
+              </a>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-px bg-gray-800 mb-16"></div>
+
+          {/* Brand and Social */}
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="flex flex-col items-center md:items-start mb-8 md:mb-0">
+              <div className="flex items-center space-x-2 mb-4">
+                <img src="/logo4.png" alt="Logo" className="h-8 w-8" />
+                <span className="text-xl font-bold text-white">Analytics</span>
+              </div>
+              <p className="text-sm text-gray-400 text-center md:text-left max-w-md">
+                Transform your website data into actionable insights that drive revenue growth.
+              </p>
+            </div>
+            <div className="flex space-x-6">
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
               </a>
             </div>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

@@ -105,7 +105,7 @@ import { extractUTMParams, sendData } from './api.js';
         const observer = new MutationObserver((mutations) => {
             // Check if the URL has changed after DOM mutations
             if (hasUrlChanged()) {
-                trackPageVisit(false);
+            trackPageVisit(false);
             }
         });
 
@@ -121,24 +121,24 @@ import { extractUTMParams, sendData } from './api.js';
             const link = event.target.closest("a");
             if (link && link.href && !link.href.startsWith("javascript:") && !link.href.startsWith("#")) {
                 // Track click event
-                const rect = event.target.getBoundingClientRect();
-                const clickData = {
-                    type: "click",
-                    sessionId,
+            const rect = event.target.getBoundingClientRect();
+            const clickData = {
+                type: "click",
+                sessionId,
                     visitorId: sessionId,
-                    url: window.location.href,
+                url: window.location.href,
                     path: window.location.pathname,
-                    elementClicked: {
-                        tag: event.target.tagName,
-                        id: event.target.id || null,
-                        classes: event.target.className || null,
-                        text: event.target.innerText || null,
-                        x: rect.left + window.scrollX,
-                        y: rect.top + window.scrollY,
-                    },
-                    timestamp: new Date().toISOString(),
-                };
-                sendData(clickData, websiteId, websiteName);
+                elementClicked: {
+                    tag: event.target.tagName,
+                    id: event.target.id || null,
+                    classes: event.target.className || null,
+                    text: event.target.innerText || null,
+                    x: rect.left + window.scrollX,
+                    y: rect.top + window.scrollY,
+                },
+                timestamp: new Date().toISOString(),
+            };
+            sendData(clickData, websiteId, websiteName);
 
                 // If it's a same-origin link, track it as a page visit
                 if (link.hostname === window.location.hostname) {
