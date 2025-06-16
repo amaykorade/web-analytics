@@ -427,7 +427,7 @@ export const getAnalysis = async (req, res) => {
                                 $round: [
                                     { 
                                         $divide: [
-                                            { $sum: "$pageVisits.timeSpent" },
+                                            { $sum: { $map: { input: "$pageVisits", as: "visit", in: { $ifNull: ["$$visit.timeSpent", 0] } } } },
                                             { $size: "$sessions" }
                                         ]
                                     },
@@ -443,9 +443,6 @@ export const getAnalysis = async (req, res) => {
             }
         ]);
 
-        // Log the page stats for debugging
-        console.log('Page Stats:', JSON.stringify(pageStats, null, 2));
-
         // Calculate bounce rate for each page
         for (const page of pageStats) {
             // Get all sessions that only visited this page
@@ -460,58 +457,10 @@ export const getAnalysis = async (req, res) => {
                     }
                 },
                 {
-                    $addFields: {
-                      pathname: {
-                        $let: {
-                          vars: {
-                            cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
-                            fullPath: {
-                              $arrayElemAt: [
-                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
-                                1
-                              ]
-                            },
-                            afterDomain: {
-                              $slice: [
-                                { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
-                                1,
-                                10
-                              ]
-                            }
-                          },
-                          in: {
-                            $cond: {
-                              if: { $gt: [{ $size: "$$afterDomain" }, 0] },
-                              then: {
-                                $concat: [
-                                  "/",
-                                  {
-                                    $reduce: {
-                                      input: "$$afterDomain",
-                                      initialValue: "",
-                                      in: {
-                                        $cond: [
-                                          { $eq: ["$$value", ""] },
-                                          "$$this",
-                                          { $concat: ["$$value", "/", "$$this"] }
-                                        ]
-                                      }
-                                    }
-                                  }
-                                ]
-                              },
-                              else: "/"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  
-                {
                     $group: {
                         _id: "$sessionId",
-                        uniquePages: { $addToSet: "$pathname" }
+                        uniquePages: { $addToSet: "$pathname" },
+                        pageCount: { $sum: 1 }
                     }
                 },
                 {
