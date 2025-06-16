@@ -498,9 +498,16 @@ export const getAnalysis = async (req, res) => {
 
         const normalizeReferrer = (referrer) => {
             console.log("Raw referrer:", referrer);
-            if (!referrer || referrer.trim() === "") return "Direct";
+            if (!referrer || referrer.trim() === "" || referrer === "Direct") {
+                return "Direct";
+            }
             
             try {
+                // Check if the referrer is a valid URL
+                if (!referrer.startsWith('http://') && !referrer.startsWith('https://')) {
+                    referrer = 'https://' + referrer;
+                }
+                
                 const url = new URL(referrer);
                 const hostname = url.hostname.toLowerCase();
                 console.log("Parsed hostname:", hostname);
