@@ -459,6 +459,9 @@ export const getAnalysis = async (req, res) => {
 
         // Calculate bounce rate for each page
         for (const page of pageStats) {
+            // Ensure sessions is an array
+            const sessionIds = Array.isArray(page.sessions) ? page.sessions : [];
+            
             // Get all sessions that only visited this page
             const singlePageSessions = await TrackingModule.aggregate([
                 {
@@ -467,7 +470,7 @@ export const getAnalysis = async (req, res) => {
                         websiteName,
                         timestamp: { $gte: start, $lte: end },
                         type: "page_visit",
-                        sessionId: { $in: { $ifNull: [page.sessions, []] } }
+                        sessionId: { $in: sessionIds }
                     }
                 },
                 {
