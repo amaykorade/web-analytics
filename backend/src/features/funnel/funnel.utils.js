@@ -36,19 +36,23 @@ export function calculateFunnelStats(trackingData, funnelSteps) {
             // Skip if we've already seen this step in this session
             if (seenSteps.has(stepIdx)) continue;
             
+            // Get the path from the event
+            const eventPath = event.path;
+            
             console.log('Checking event:', {
-                eventPath: event.path,
+                eventPath,
                 eventType: event.type,
                 stepValue: step.value,
-                stepType: step.type
+                stepType: step.type,
+                eventUrl: event.url // Log the full URL for debugging
             });
             
             // Use path instead of url for matching
-            if (
-                (step.type === 'url' && event.path && event.path === step.value) ||
-                (step.type === 'event' && event.type === step.value)
-            ) {
-                console.log('Match found for step', stepIdx);
+            const pathMatches = step.type === 'url' && eventPath === step.value;
+            const eventMatches = step.type === 'event' && event.type === step.value;
+            
+            if (pathMatches || eventMatches) {
+                console.log('Match found for step', stepIdx, 'with path:', eventPath);
                 stepUserSets[stepIdx].add(event.visitorId);
                 seenSteps.add(stepIdx);
                 stepIdx++;
