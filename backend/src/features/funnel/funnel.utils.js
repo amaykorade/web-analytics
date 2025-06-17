@@ -36,15 +36,15 @@ export function calculateFunnelStats(trackingData, funnelSteps) {
             // Skip if we've already seen this step in this session
             if (seenSteps.has(stepIdx)) continue;
             
-            // Get the path from the event
-            const eventPath = event.path;
+            // Get the path from the event - try both path and pathname fields
+            const eventPath = event.path || event.pathname || (event.url ? new URL(event.url).pathname : null);
             
             console.log('Checking event:', {
                 eventPath,
                 eventType: event.type,
                 stepValue: step.value,
                 stepType: step.type,
-                eventUrl: event.url // Log the full URL for debugging
+                eventUrl: event.url
             });
             
             // Use path instead of url for matching

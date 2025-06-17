@@ -79,9 +79,29 @@ export const getFunnelStats = async (req, res) => {
     
     console.log('Found Tracking Data:', trackingData.length, 'events');
     if (trackingData.length > 0) {
-      console.log('Sample Events:');
+      console.log('Sample Events (Full Data):');
       trackingData.slice(0, 3).forEach((event, idx) => {
-        console.log(`Event ${idx + 1}:`, {
+        console.log(`Event ${idx + 1} Full Data:`, JSON.stringify(event, null, 2));
+      });
+
+      // Extract pathname from URL for each event
+      const processedTrackingData = trackingData.map(event => {
+        try {
+          // If path is not available, extract it from URL
+          if (!event.path && event.url) {
+            const url = new URL(event.url);
+            event.path = url.pathname;
+          }
+          return event;
+        } catch (error) {
+          console.error('Error processing URL:', event.url, error);
+          return event;
+        }
+      });
+
+      console.log('Processed Events Sample:');
+      processedTrackingData.slice(0, 3).forEach((event, idx) => {
+        console.log(`Processed Event ${idx + 1}:`, {
           path: event.path,
           url: event.url,
           type: event.type,
@@ -90,16 +110,19 @@ export const getFunnelStats = async (req, res) => {
           sessionId: event.sessionId
         });
       });
+
+      // Calculate funnel stats with processed data
+      const stats = calculateFunnelStats(processedTrackingData, funnel.steps);
+      console.log('Calculated Stats:', stats);
+      res.json({ funnel: funnel.funnelName, steps: funnel.steps, stats });
     } else {
       console.log('No tracking data found for the given criteria');
+      res.json({ funnel: funnel.funnelName, steps: funnel.steps, stats: {
+        steps: funnel.steps.map(step => ({ step, users: 0, dropoff: null })),
+        conversionRate: '0.00%',
+        highestDropoff: null
+      }});
     }
-
-    // Calculate funnel stats
-    const stats = calculateFunnelStats(trackingData, funnel.steps);
-    
-    console.log('Calculated Stats:', stats);
-    
-    res.json({ funnel: funnel.funnelName, steps: funnel.steps, stats });
   } catch (error) {
     console.error('Error in getFunnelStats:', error);
     res.status(500).json({ message: 'Failed to calculate funnel stats', error: error.message });
