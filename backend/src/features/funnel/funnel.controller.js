@@ -48,6 +48,8 @@ export const getFunnelStats = async (req, res) => {
     const websiteName = req.query.websiteName;
     const { startDate, endDate } = req.query;
 
+    console.log('Funnel Stats Request:', { funnelId, userId, websiteName, startDate, endDate });
+
     if (!funnelId || !userId || !websiteName) {
       return res.status(400).json({ message: 'funnelId, userId, and websiteName are required' });
     }
@@ -57,22 +59,35 @@ export const getFunnelStats = async (req, res) => {
       return res.status(404).json({ message: 'Funnel not found' });
     }
 
+    console.log('Found Funnel:', funnel);
+
     // Fetch tracking data for this user/website/date range
     const match = {
       userId: new mongoose.Types.ObjectId(userId),
       websiteName,
+      type: "page_visit"  // Only look for page visits
     };
     if (startDate || endDate) {
       match.timestamp = {};
       if (startDate) match.timestamp.$gte = new Date(startDate);
       if (endDate) match.timestamp.$lte = new Date(endDate);
     }
+
+    console.log('Tracking Data Query:', JSON.stringify(match, null, 2));
+    
     const trackingData = await TrackingModule.find(match).lean();
+    
+    console.log('Found Tracking Data:', trackingData.length, 'events');
+    console.log('Sample Event:', trackingData[0]);
 
     // Calculate funnel stats
     const stats = calculateFunnelStats(trackingData, funnel.steps);
+    
+    console.log('Calculated Stats:', stats);
+    
     res.json({ funnel: funnel.funnelName, steps: funnel.steps, stats });
   } catch (error) {
+    console.error('Error in getFunnelStats:', error);
     res.status(500).json({ message: 'Failed to calculate funnel stats', error: error.message });
   }
 };
