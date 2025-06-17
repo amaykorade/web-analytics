@@ -373,13 +373,13 @@ export const getAnalysis = async (req, res) => {
                             },
                             in: {
                                 $cond: {
-                                    if: { $eq: [{ $size: "$afterDomain" }, 0] },
+                                    if: { $eq: [{ $size: { $ifNull: ["$$afterDomain", []] } }, 0] },
                                     then: "/",
                                     else: {
                                         $concat: [
                                             "/",
                                             { $reduce: {
-                                                input: "$afterDomain",
+                                                input: { $ifNull: ["$$afterDomain", []] },
                                                 initialValue: "",
                                                 in: {
                                                     $cond: {
@@ -435,14 +435,14 @@ export const getAnalysis = async (req, res) => {
                     views: 1,
                     avgTimeSpent: { 
                         $cond: {
-                            if: { $eq: [{ $size: "$sessions" }, 0] },
+                            if: { $eq: [{ $size: { $ifNull: ["$sessions", []] } }, 0] },
                             then: 0,
                             else: {
                                 $round: [
                                     { 
                                         $divide: [
                                             "$totalTimeSpent",
-                                            { $size: "$sessions" }
+                                            { $size: { $ifNull: ["$sessions", []] } }
                                         ]
                                     },
                                     2
@@ -450,8 +450,8 @@ export const getAnalysis = async (req, res) => {
                             }
                         }
                     },
-                    sessionCount: { $size: "$sessions" },
-                    uniqueVisitors: { $size: "$uniqueVisitors" },
+                    sessionCount: { $size: { $ifNull: ["$sessions", []] } },
+                    uniqueVisitors: { $size: { $ifNull: ["$uniqueVisitors", []] } },
                     sessions: 1
                 }
             }
@@ -467,7 +467,7 @@ export const getAnalysis = async (req, res) => {
                         websiteName,
                         timestamp: { $gte: start, $lte: end },
                         type: "page_visit",
-                        sessionId: { $in: page.sessions }
+                        sessionId: { $in: { $ifNull: [page.sessions, []] } }
                     }
                 },
                 {
@@ -479,7 +479,7 @@ export const getAnalysis = async (req, res) => {
                 },
                 {
                     $match: {
-                        $expr: { $eq: [{ $size: "$uniquePages" }, 1] }
+                        $expr: { $eq: [{ $size: { $ifNull: ["$uniquePages", []] } }, 1] }
                     }
                 }
             ]);
