@@ -373,26 +373,24 @@ export const getAnalysis = async (req, res) => {
                             },
                             in: {
                                 $cond: {
-                                    if: { $gt: [{ $size: "$$afterDomain" }, 0] },
-                                    then: {
+                                    if: { $eq: [{ $size: "$afterDomain" }, 0] },
+                                    then: "/",
+                                    else: {
                                         $concat: [
                                             "/",
-                                            {
-                                                $reduce: {
-                                                    input: "$$afterDomain",
-                                                    initialValue: "",
-                                                    in: {
-                                                        $cond: [
-                                                            { $eq: ["$$value", ""] },
-                                                            "$$this",
-                                                            { $concat: ["$$value", "/", "$$this"] }
-                                                        ]
+                                            { $reduce: {
+                                                input: "$afterDomain",
+                                                initialValue: "",
+                                                in: {
+                                                    $cond: {
+                                                        if: { $eq: ["$$value", ""] },
+                                                        then: "$$this",
+                                                        else: { $concat: ["$$value", "/", "$$this"] }
                                                     }
                                                 }
-                                            }
+                                            }}
                                         ]
-                                    },
-                                    else: "/"
+                                    }
                                 }
                             }
                         }
