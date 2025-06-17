@@ -184,6 +184,7 @@ import { extractUTMParams, sendData } from './api.js';
                 timeSpent: timeSpent,
                 timestamp: new Date().toISOString(),
             };
+            console.log('Sending time spent data:', data); // Debug log
             sendData(data, websiteId, websiteName);
         };
 
@@ -204,6 +205,7 @@ import { extractUTMParams, sendData } from './api.js';
                 exitPage: true,
                 timestamp: new Date().toISOString(),
             };
+            console.log('Sending page end data:', pageEndData); // Debug log
             sendData(pageEndData, websiteId, websiteName);
 
             // Also send session end data
@@ -218,6 +220,7 @@ import { extractUTMParams, sendData } from './api.js';
                 exitPage: true,
                 timestamp: new Date().toISOString(),
             };
+            console.log('Sending session end data:', sessionEndData); // Debug log
             sendData(sessionEndData, websiteId, websiteName);
         });
 
@@ -235,6 +238,7 @@ import { extractUTMParams, sendData } from './api.js';
                 exitPage: true,
                 timestamp: new Date().toISOString(),
             };
+            console.log('Sending popstate data:', pageEndData); // Debug log
             sendData(pageEndData, websiteId, websiteName);
             pageStartTime = Date.now();
             timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
@@ -255,6 +259,7 @@ import { extractUTMParams, sendData } from './api.js';
                     exitPage: false,
                     timestamp: new Date().toISOString(),
                 };
+                console.log('Sending visibility change data:', pageEndData); // Debug log
                 sendData(pageEndData, websiteId, websiteName);
             } else if (document.visibilityState === "visible") {
                 pageStartTime = Date.now();

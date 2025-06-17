@@ -501,6 +501,14 @@ export const getAnalysis = async (req, res) => {
             
             // Ensure avgTimeSpent is a valid number and convert to seconds
             page.avgTimeSpent = page.avgTimeSpent ? Math.round(page.avgTimeSpent) : 0;
+
+            // Log the calculations for debugging
+            console.log(`Page: ${page.url}`);
+            console.log(`Total Time Spent: ${page.totalTimeSpent}`);
+            console.log(`Session Count: ${page.sessionCount}`);
+            console.log(`Average Time: ${page.avgTimeSpent}`);
+            console.log(`Bounced Sessions: ${bouncedSessions}`);
+            console.log(`Bounce Rate: ${bounceRate}%`);
         }
 
         // Log the final response for debugging
