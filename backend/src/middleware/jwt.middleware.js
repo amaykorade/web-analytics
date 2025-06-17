@@ -3,33 +3,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const jwtAuth = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Unauthorized: No token provided' });
-    }
-
-    // const token = authHeader;
-    const token = authHeader.split(' ')[1];
-
-    console.log("token:", token);
+export const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-        return res.status(401).send({ error: 'Unauthorized: No token provided' });
+        return res.status(401).json({ message: "No token provided" });
     }
 
     try {
-        const payload = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
-        req.userID = payload.userID;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.userID = decoded.userId;
         next();
     } catch (err) {
-        console.log(err);
-        return res.status(401).send({ error: 'Unauthorized: Invalid token' });
+        console.error("Error verifying token:", err);
+        return res.status(401).json({ message: "Invalid token" });
     }
 };
 
-export default jwtAuth;
+export default verifyToken;

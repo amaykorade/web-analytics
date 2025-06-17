@@ -25,57 +25,35 @@ const razorpay = new Razorpay({
 // ✅ Create Razorpay Order with fixed conversion rate (1 USD = 83 INR)
 export const createOrder = async (req, res) => {
     try {
-        const { email, currentPlan, isYearly } = req.body;
-        console.log("body", req.body);
+        const { amount, currency } = req.body;
 
-        if (!email || !currentPlan?.price) {
-            return res.status(400).json({ message: "Invalid request body" });
+        if (!amount || !currency) {
+            return res.status(400).json({ message: "Amount and currency are required" });
         }
 
-        const user = await AuthModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
+        // Convert USD to INR if needed
+        let amountInINR = amount;
+        if (currency === 'USD') {
+            const exchangeRate = await getExchangeRate('USD', 'INR');
+            amountInINR = Math.round(amount * exchangeRate);
         }
-
-        // Fixed exchange rate (1 USD = 83 INR)
-        const exchangeRate = 83;
-        console.log("Exchange rate (USD to INR):", exchangeRate);
-
-        // Convert the amount from USD to INR
-        const amountInUSD = currentPlan.price;
-        const amountInINR = amountInUSD * exchangeRate * 100; // Razorpay accepts amount in paise
 
         const options = {
-            amount: amountInINR,
-            currency: "INR",
-            receipt: `receipt_${Math.floor(Math.random() * 10000)}`,
+            amount: amountInINR * 100, // Razorpay expects amount in paise
+            currency: 'INR',
+            receipt: `receipt_${Date.now()}`,
         };
 
         const order = await razorpay.orders.create(options);
-        console.log("Generated Razorpay Order:", order);
 
-        const newPayment = new PaymentModel({
-            userId: user._id,
+        res.status(200).json({
             orderId: order.id,
-            amount: amountInUSD,
-            currency: "USD",
-            status: "created",
-        });
-
-        await newPayment.save();
-
-        // Return INR amount for frontend display
-        res.status(201).json({
-            razorpay_order_id: order.id,
-            amount: amountInINR / 100,  // INR in rupees
-            currency: "INR",
+            amount: order.amount,
+            currency: order.currency
         });
     } catch (error) {
-        console.error("Error creating Razorpay order:", error);
-        res.status(500).json({
-            message: "Error creating Razorpay order",
-            error: error.message,
-        });
+        console.error("Error creating order:", error);
+        res.status(500).json({ message: "Error creating order" });
     }
 };
 
@@ -83,59 +61,21 @@ export const createOrder = async (req, res) => {
 // ✅ Verify Razorpay Payment
 export const verifyPayment = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, email, currentPlan, isYearly } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        // Generate expected signature
-        const generated_signature = createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        const generated_signature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-            .digest("hex");
+            .digest('hex');
 
-
-        console.log("razorpay_signature from Razorpay:", razorpay_signature);
-        console.log("generated_signature:", generated_signature);
-
-
-        if (generated_signature !== razorpay_signature) {
-            return res.status(400).json({ message: "Invalid payment signature" });
+        if (generated_signature === razorpay_signature) {
+            res.status(200).json({ message: "Payment verified successfully" });
+        } else {
+            res.status(400).json({ message: "Invalid payment signature" });
         }
-
-        const user = await AuthModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const startDate = new Date();
-        const endDate = isYearly
-            ? new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000)
-            : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-        user.paymentStatus = "active";
-        user.subscriptionId = razorpay_order_id;
-        user.pricingPlan = currentPlan.plan || user.pricingPlan;
-        user.subscriptionStartDate = startDate;
-        user.subscriptionEndDate = endDate;
-        user.isYearly = isYearly;
-
-        await user.save();
-
-        await PaymentModel.findOneAndUpdate(
-            { orderId: razorpay_order_id },
-            {
-                paymentId: razorpay_payment_id,
-                status: "paid",
-                pricingPlan: currentPlan.plan,
-            },
-            { new: true }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: "Payment verified",
-            user,
-        });
     } catch (error) {
-        console.error("Error verifying Razorpay payment:", error);
-        res.status(500).json({ message: "Error verifying Razorpay payment" });
+        console.error("Error verifying payment:", error);
+        res.status(500).json({ message: "Error verifying payment" });
     }
 };
 
