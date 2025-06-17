@@ -17,6 +17,10 @@ export default function FunnelManager() {
         funnelName: '',
         steps: [{ type: 'url', value: '' }]
     });
+    const [dateRange, setDateRange] = useState({
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        endDate: new Date()
+    });
 
     // Get the selected website's data
     const selectedWebsite = localStorage.getItem('selectedWebsite') || 'ecommerce';
@@ -66,25 +70,18 @@ export default function FunnelManager() {
         }
     }, [dispatch, userId, websiteName]);
 
-    // Fetch funnel stats when a funnel is selected
+    // Fetch funnel stats when a funnel is selected or date range changes
     useEffect(() => {
-        if (selectedFunnel && userId && websiteName) {
-            console.log('Fetching funnel stats with:', {
-                funnelId: selectedFunnel._id,
-                userId,
-                websiteName,
-                startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-                endDate: new Date()
-            });
+        if (selectedFunnel && userId && websiteName && dateRange.startDate && dateRange.endDate) {
             dispatch(getFunnelStatsThunk({
                 funnelId: selectedFunnel._id,
                 userId,
                 websiteName,
-                startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-                endDate: new Date()
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate
             }));
         }
-    }, [dispatch, selectedFunnel, userId, websiteName]);
+    }, [dispatch, selectedFunnel, userId, websiteName, dateRange]);
 
     const handleAddStep = () => {
         if (newFunnel.steps.length < 5) {
@@ -392,7 +389,17 @@ export default function FunnelManager() {
                                         {selectedFunnel.steps.length} steps • Last 30 days
                                     </p>
                                 </div>
-                                <DateRangePicker />
+                                <DateRangePicker
+                                    value={[dateRange.startDate, dateRange.endDate]}
+                                    onChange={(dates) => {
+                                        if (dates && dates[0] && dates[1]) {
+                                            setDateRange({
+                                                startDate: dates[0].toDate ? dates[0].toDate() : dates[0],
+                                                endDate: dates[1].toDate ? dates[1].toDate() : dates[1]
+                                            });
+                                        }
+                                    }}
+                                />
                             </div>
                             {loading ? (
                                 <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6">
