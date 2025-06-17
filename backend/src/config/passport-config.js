@@ -3,6 +3,8 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { AuthModel } from "../features/auth/auth.schema.js";
+import bcrypt from "bcrypt";
+import { Strategy as LocalStrategy } from "passport-local";
 
 
 dotenv.config();
@@ -16,7 +18,6 @@ passport.use(
             passReqToCallback: true,
         },
         async (req, accessToken, refreshToken, profile, done) => {
-            console.log("🔍 done function:", done);
             try {
                 let user = await AuthModel.findOne({ email: profile.emails[0].value });
 
@@ -40,6 +41,28 @@ passport.use(
         }
     )
 );
+
+passport.use(new LocalStrategy(
+    {
+        usernameField: 'email',
+        passwordField: 'password'
+    },
+    async (email, password, done) => {
+        try {
+            const user = await AuthModel.findOne({ email });
+            if (!user) {
+                return done(null, false, { message: 'Incorrect email.' });
+            }
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return done(null, false, { message: 'Incorrect password.' });
+            }
+            return done(null, user);
+        } catch (error) {
+            return done(error);
+        }
+    }
+));
 
 
 passport.serializeUser((user, done) => {

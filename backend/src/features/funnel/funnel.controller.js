@@ -43,89 +43,57 @@ export const getFunnels = async (req, res) => {
 // Get stats for a funnel
 export const getFunnelStats = async (req, res) => {
   try {
-    const { funnelId } = req.params;
-    const userId = req.userID || req.query.userId;
-    const websiteName = req.query.websiteName;
-    const { startDate, endDate } = req.query;
-
-    console.log('Funnel Stats Request:', { funnelId, userId, websiteName, startDate, endDate });
+    const { funnelId, userId, websiteName, startDate, endDate } = req.query;
 
     if (!funnelId || !userId || !websiteName) {
-      return res.status(400).json({ message: 'funnelId, userId, and websiteName are required' });
+      return res.status(400).json({ message: "Missing required parameters" });
     }
 
-    const funnel = await FunnelModel.findById(funnelId);
+    const funnel = await FunnelModel.findOne({
+      _id: funnelId,
+      userId,
+      websiteName
+    });
+
     if (!funnel) {
-      return res.status(404).json({ message: 'Funnel not found' });
+      return res.status(404).json({ message: "Funnel not found" });
     }
 
-    console.log('Found Funnel:', funnel);
-
-    // Fetch tracking data for this user/website/date range
     const match = {
       userId: new mongoose.Types.ObjectId(userId),
       websiteName,
-      type: "page_visit"  // Only look for page visits
+      timestamp: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
     };
-    if (startDate || endDate) {
-      match.timestamp = {};
-      if (startDate) match.timestamp.$gte = new Date(startDate);
-      if (endDate) match.timestamp.$lte = new Date(endDate);
-    }
 
-    console.log('Tracking Data Query:', JSON.stringify(match, null, 2));
-    
-    const trackingData = await TrackingModule.find(match).lean();
-    
-    console.log('Found Tracking Data:', trackingData.length, 'events');
-    if (trackingData.length > 0) {
-      console.log('Sample Events (Full Data):');
-      trackingData.slice(0, 3).forEach((event, idx) => {
-        console.log(`Event ${idx + 1} Full Data:`, JSON.stringify(event, null, 2));
-      });
+    const trackingData = await TrackingModule.find(match).sort({ timestamp: 1 });
 
-      // Extract pathname from URL for each event
-      const processedTrackingData = trackingData.map(event => {
-        try {
-          // If path is not available, extract it from URL
-          if (!event.path && event.url) {
-            const url = new URL(event.url);
-            event.path = url.pathname;
-          }
-          return event;
-        } catch (error) {
-          console.error('Error processing URL:', event.url, error);
-          return event;
+    if (!trackingData || trackingData.length === 0) {
+      return res.status(200).json({
+        message: "No tracking data found for the given criteria",
+        stats: {
+          totalVisitors: 0,
+          conversionRate: "0%",
+          steps: funnel.steps.map(step => ({
+            name: step.name,
+            visitors: 0,
+            dropoff: "0%"
+          }))
         }
       });
-
-      console.log('Processed Events Sample:');
-      processedTrackingData.slice(0, 3).forEach((event, idx) => {
-        console.log(`Processed Event ${idx + 1}:`, {
-          path: event.path,
-          url: event.url,
-          type: event.type,
-          timestamp: event.timestamp,
-          visitorId: event.visitorId,
-          sessionId: event.sessionId
-        });
-      });
-
-      // Calculate funnel stats with processed data
-      const stats = calculateFunnelStats(processedTrackingData, funnel.steps);
-      console.log('Calculated Stats:', stats);
-      res.json({ funnel: funnel.funnelName, steps: funnel.steps, stats });
-    } else {
-      console.log('No tracking data found for the given criteria');
-      res.json({ funnel: funnel.funnelName, steps: funnel.steps, stats: {
-        steps: funnel.steps.map(step => ({ step, users: 0, dropoff: null })),
-        conversionRate: '0.00%',
-        highestDropoff: null
-      }});
     }
+
+    const stats = calculateFunnelStats(trackingData, funnel.steps);
+
+    res.status(200).json({
+      message: "Funnel stats retrieved successfully",
+      stats
+    });
   } catch (error) {
-    console.error('Error in getFunnelStats:', error);
-    res.status(500).json({ message: 'Failed to calculate funnel stats', error: error.message });
+    console.error("Error getting funnel stats:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

@@ -55,39 +55,71 @@ export const getUserScripts = async (req, res) => {
     }
 };
 
+export const getUserScript = async (req, res) => {
+    try {
+        const userId = req.userID || req.query.userId;
+        const websiteName = req.query.websiteName;
+
+        if (!userId || !websiteName) {
+            return res.status(400).json({ message: "userId and websiteName are required" });
+        }
+
+        const scripts = await ScriptModel.find({ userId, websiteName });
+        res.status(200).json(scripts);
+    } catch (error) {
+        console.error("Error getting user script:", error);
+        res.status(500).json({ message: "Error getting user script" });
+    }
+};
+
 export const generateScript = async (req, res) => {
     try {
-        console.log("Generate script request:", req.body);
-        const { url, name } = req.body;
-        const userId = req.userID;
+        const { websiteName, userId } = req.body;
 
-        if (!url || !userId) {
-            return res.status(400).json({ message: "Website URL and User ID are required" });
+        if (!websiteName || !userId) {
+            return res.status(400).json({ message: "websiteName and userId are required" });
         }
 
-        const existingScript = await ScriptModel.findOne({ url });
+        const script = new ScriptModel({
+            websiteName,
+            userId,
+            scriptId: `script_${Date.now()}`,
+            status: "active"
+        });
 
-        const script = ` <script 
-        defer
-        data-website-id="${userId}"
-        data-domain="${url}"
-        website-name="${name}"
-        src="${TRACKER_BASE_URL}/js/tracker.js">
-        </script> `;
-
-        console.log("Generated script:", script);
-
-        if (existingScript) {
-            return res.status(200).json({ script });
-        }
-
-        const newScript = new ScriptModel({ userId, url, websiteName: name });
-        await newScript.save();
-
-        res.status(200).json({ script });
+        await script.save();
+        res.status(201).json(script);
     } catch (error) {
         console.error("Error generating script:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Error generating script" });
+    }
+};
+
+export const verifyScript = async (req, res) => {
+    try {
+        const { websiteName, scriptId } = req.body;
+
+        if (!websiteName || !scriptId) {
+            return res.status(400).json({ message: "websiteName and scriptId are required" });
+        }
+
+        const formattedURL = websiteName.startsWith('http') ? websiteName : `https://${websiteName}`;
+        const response = await fetch(formattedURL);
+        const htmlContent = await response.text();
+
+        const scriptTag = htmlContent.includes(scriptId);
+        const status = scriptTag ? "verified" : "not_found";
+
+        await ScriptModel.findOneAndUpdate(
+            { scriptId },
+            { status },
+            { new: true }
+        );
+
+        res.status(200).json({ status });
+    } catch (error) {
+        console.error("Error verifying script:", error);
+        res.status(500).json({ message: "Error verifying script" });
     }
 };
 

@@ -16,42 +16,41 @@ const pricingPlanLimits = {
 
 const getLimitForPlan = (plan) => pricingPlanLimits[plan] || 0;
 
-const checkAndUpdateSubscriptions = async () => {
+export const checkSubscriptions = async () => {
     try {
-        console.log(`[CRON] Subscription check started at ${new Date().toISOString()}`);
-        const users = await AuthModel.find({ paymentStatus: "active" });
+        const users = await AuthModel.find({});
+        const currentDate = new Date();
 
         for (const user of users) {
-            const eventLimit = getLimitForPlan(user.pricingPlan);
+            const plan = pricingPlans.find(p => p.plan === user.pricingPlan);
+            if (!plan) continue;
 
-            // 1. Expire if over limit (excluding unlimited)
-            if (user.eventsUsed > eventLimit && eventLimit !== Infinity) {
+            // Check if user has exceeded event limit
+            if (plan.events !== Infinity && user.eventsUsed >= plan.events) {
                 user.paymentStatus = "expired";
-                console.log(`[EXPIRE] ${user.email} exceeded ${eventLimit} events. Marked as expired.`);
+                await user.save();
             }
 
-            // 2. Reset usage if it's a yearly plan and 30 days have passed
-            if (user.isYearly && user.subscriptionStartDate) {
-                const now = new Date();
-                const daysPassed = Math.floor(
-                    (now - new Date(user.subscriptionStartDate)) / (1000 * 60 * 60 * 24)
-                );
+            // Check if subscription has expired
+            if (currentDate > user.subscriptionEndDate) {
+                user.paymentStatus = "expired";
+                await user.save();
+            }
 
-                if (daysPassed >= 30 && user.eventsUsed > 0) {
+            // Reset usage if subscription is active and days have passed
+            if (user.paymentStatus === "active") {
+                const daysPassed = Math.floor((currentDate - user.lastUsageReset) / (1000 * 60 * 60 * 24));
+                if (daysPassed >= 30) {
                     user.eventsUsed = 0;
-                    user.subscriptionStartDate = now;
-                    console.log(`[RESET] ${user.email}'s usage reset after ${daysPassed} days.`);
+                    user.lastUsageReset = currentDate;
+                    await user.save();
                 }
             }
-
-            await user.save();
         }
-
-        console.log(`[CRON] Subscription check completed at ${new Date().toISOString()}`);
     } catch (error) {
-        console.error("[CRON ERROR] Subscription update failed:", error);
+        console.error("Error in subscription check:", error);
     }
 };
 
 // Runs every day at midnight
-cron.schedule("0 0 * * *", checkAndUpdateSubscriptions);
+cron.schedule("0 0 * * *", checkSubscriptions);
