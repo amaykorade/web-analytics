@@ -168,43 +168,26 @@ import { extractUTMParams, sendData } from './api.js';
             }
         });
 
-        const sessionStartTime = Date.now();
         let pageStartTime = Date.now();
-        let lastTimeUpdate = Date.now();
+        let sessionStartTime = Date.now();
         let timeUpdateInterval;
 
         // Function to send time spent data
         const sendTimeSpentData = () => {
             const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
-            const pageEndData = {
+            const data = {
                 type: "page_visit",
                 sessionId,
                 visitorId: sessionId,
                 url: window.location.href,
                 path: window.location.pathname,
                 timeSpent: timeSpent,
-                exitPage: false,
                 timestamp: new Date().toISOString(),
             };
-            sendData(pageEndData, websiteId, websiteName);
-
-            // Also send session data
-            const sessionTimeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
-            const sessionEndData = {
-                type: "session_end",
-                sessionId,
-                visitorId: sessionId,
-                url: window.location.href,
-                path: window.location.pathname,
-                timeSpent: sessionTimeSpent,
-                exitPage: false,
-                timestamp: new Date().toISOString(),
-            };
-            sendData(sessionEndData, websiteId, websiteName);
-            lastTimeUpdate = Date.now();
+            sendData(data, websiteId, websiteName);
         };
 
-        // Send time spent data every 30 seconds
+        // Start tracking time spent
         timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
 
         // Track time spent on page when user leaves
