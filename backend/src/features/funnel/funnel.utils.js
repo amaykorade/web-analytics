@@ -27,8 +27,9 @@ export function calculateFunnelStats(trackingData, funnelSteps) {
             // Skip if we've already seen this step in this session
             if (seenSteps.has(stepIdx)) continue;
             
+            // Use path instead of url for matching
             if (
-                (step.type === 'url' && event.url && matchUrl(step.value, event.url)) ||
+                (step.type === 'url' && event.path && event.path === step.value) ||
                 (step.type === 'event' && event.type === step.value)
             ) {
                 stepUserSets[stepIdx].add(event.visitorId);
