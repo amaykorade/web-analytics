@@ -113,7 +113,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                to="/signup"
+                to="/websites"
                 className="inline-flex items-center px-8 py-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Start Growing Revenue
@@ -455,7 +455,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                to="/signup"
+                to="/websites"
                 className="inline-flex items-center px-8 py-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Start Growing Revenue

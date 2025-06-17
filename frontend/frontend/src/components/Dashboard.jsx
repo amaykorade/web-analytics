@@ -181,7 +181,7 @@ export default function Dashboard() {
   }, [dateRange, selectedWebsite, dispatch]);
 
   if (loading || subscriptionStatus === "loading") {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-200">Loading...</div>;
   }
 
   return (
@@ -199,24 +199,14 @@ export default function Dashboard() {
                       handleWebsiteChange(website);
                     }
                   }}
-                  style={{ width: 200 }}
-                  className="dark-select"
-                  dropdownStyle={{ 
-                    backgroundColor: '#1F2937',
-                    borderColor: '#374151'
-                  }}
-                  placeholder="Select Website"
+                  className="bg-gray-900 text-gray-100 border border-gray-700 rounded-md dark-select"
+                  dropdownStyle={{ backgroundColor: '#1f2937', color: '#f3f4f6' }}
+                  popupClassName="dark-select-dropdown"
+                  style={{ backgroundColor: '#1f2937', color: '#f3f4f6', borderColor: '#374151' }}
                 >
-                  {scriptData?.scripts?.filter(website => website.isVerified).map((website) => (
-                    <Option 
-                      key={website._id} 
-                      value={website._id}
-                      className="text-gray-200 hover:bg-gray-700"
-                    >
-                      <div className="flex items-center">
-                        <Globe className="w-4 h-4 mr-2 text-indigo-400" />
-                        {website.websiteName}
-                      </div>
+                  {scriptData?.scripts?.map((website) => (
+                    <Option key={website._id} value={website._id} className="bg-gray-900 text-gray-100">
+                      {website.websiteName}
                     </Option>
                   ))}
                 </Select>

@@ -52,10 +52,10 @@ export default function WebsiteList() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-      case 'verification_incomplete': return 'bg-amber-50 text-amber-700 border border-amber-200';
-      case 'inactive': return 'bg-red-50 text-red-700 border border-red-200';
-      default: return 'bg-gray-50 text-gray-700 border border-gray-200';
+      case 'active': return 'bg-emerald-900/40 text-emerald-300 border border-emerald-700';
+      case 'verification_incomplete': return 'bg-amber-900/40 text-amber-200 border border-amber-700';
+      case 'inactive': return 'bg-red-900/40 text-red-300 border border-red-700';
+      default: return 'bg-gray-800 text-gray-300 border border-gray-700';
     }
   };
 
@@ -69,11 +69,11 @@ export default function WebsiteList() {
 
   const getPerformanceColor = (performance) => {
     switch (performance) {
-      case 'excellent': return 'text-green-600';
-      case 'good': return 'text-blue-600';
-      case 'average': return 'text-yellow-600';
-      case 'poor': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'excellent': return 'text-green-400';
+      case 'good': return 'text-blue-400';
+      case 'average': return 'text-yellow-300';
+      case 'poor': return 'text-red-400';
+      default: return 'text-gray-400';
     }
   };
 
@@ -115,7 +115,7 @@ export default function WebsiteList() {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       </Layout>
@@ -124,7 +124,7 @@ export default function WebsiteList() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-900">
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Search and Add Website Row */}
@@ -138,12 +138,12 @@ export default function WebsiteList() {
                 placeholder="Search websites..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm text-gray-900 placeholder-gray-500 transition-all duration-200"
+                className="block w-full pl-9 pr-4 py-2 border border-gray-700 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-800 text-sm text-gray-100 placeholder-gray-400 transition-all duration-200"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200"
                 >
                   ×
                 </button>
@@ -151,7 +151,7 @@ export default function WebsiteList() {
             </div>
             <button 
               onClick={handleAddWebsite}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium whitespace-nowrap"
+              className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium whitespace-nowrap border border-blue-900"
             >
               <Plus className="w-4 h-4" />
               <span>Add Website</span>
@@ -164,20 +164,20 @@ export default function WebsiteList() {
               <div
                 key={website._id}
                 onClick={() => handleWebsiteClick(website)}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300 cursor-pointer group overflow-hidden"
+                className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 hover:shadow-lg hover:border-blue-500 transition-all duration-300 cursor-pointer group overflow-hidden"
               >
                 <div className="p-6">
                   {/* Website Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4 min-w-0 flex-1">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center text-lg border border-blue-200/50">
-                        <Globe className="w-6 h-6 text-blue-600" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-900/40 to-blue-800/60 rounded-xl flex items-center justify-center text-lg border border-blue-700/50">
+                        <Globe className="w-6 h-6 text-blue-400" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-base truncate">
+                        <h3 className="font-semibold text-gray-100 group-hover:text-blue-400 transition-colors text-base truncate">
                           {website.websiteName}
                         </h3>
-                        <p className="text-sm text-gray-500 truncate font-medium">{website.url}</p>
+                        <p className="text-sm text-gray-400 truncate font-medium">{website.url}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -186,7 +186,7 @@ export default function WebsiteList() {
                       </span>
                       <button
                         onClick={(e) => handleDeleteClick(e, website)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Delete website"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -197,11 +197,11 @@ export default function WebsiteList() {
                   {/* Stats */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Visitors</p>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Visitors</p>
                       <p className="text-base font-semibold text-gray-900 mt-1">-</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Revenue</p>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Revenue</p>
                       <p className="text-base font-semibold text-gray-900 mt-1">-</p>
                     </div>
                   </div>
