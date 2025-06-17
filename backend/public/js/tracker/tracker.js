@@ -10,7 +10,6 @@ import { extractUTMParams, sendData } from './api.js';
 
     const scriptTag = document.querySelector("script[data-website-id]");
     if (!scriptTag) {
-        console.error("Tracker script missing required attributes.");
         return;
     }
 
@@ -272,7 +271,6 @@ import { extractUTMParams, sendData } from './api.js';
                 trackUserActivity();
             },
             () => {
-                console.log("Tracking consent denied");
             }
         );
     }
