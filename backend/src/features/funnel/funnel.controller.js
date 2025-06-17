@@ -78,7 +78,21 @@ export const getFunnelStats = async (req, res) => {
     const trackingData = await TrackingModule.find(match).lean();
     
     console.log('Found Tracking Data:', trackingData.length, 'events');
-    console.log('Sample Event:', trackingData[0]);
+    if (trackingData.length > 0) {
+      console.log('Sample Events:');
+      trackingData.slice(0, 3).forEach((event, idx) => {
+        console.log(`Event ${idx + 1}:`, {
+          path: event.path,
+          url: event.url,
+          type: event.type,
+          timestamp: event.timestamp,
+          visitorId: event.visitorId,
+          sessionId: event.sessionId
+        });
+      });
+    } else {
+      console.log('No tracking data found for the given criteria');
+    }
 
     // Calculate funnel stats
     const stats = calculateFunnelStats(trackingData, funnel.steps);
