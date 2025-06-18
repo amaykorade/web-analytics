@@ -267,6 +267,7 @@ import { extractUTMParams, sendData } from './api.js';
         });
     }
 
+    console.log("About to check consent...");
     console.log("Consent cookie value:", getCookie("trackingConsent"));
     console.log("Consent cookie type:", typeof getCookie("trackingConsent"));
     console.log("Consent cookie === 'true':", getCookie("trackingConsent") === "true");
