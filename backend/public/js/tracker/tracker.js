@@ -53,7 +53,7 @@ import { extractUTMParams, sendData } from './api.js';
                 visitorId: sessionId,
                 timeSpent: 0 // Always include timeSpent for initial event
             };
-
+            console.log("trackPageVisit called", pageVisitData);
             sendData(pageVisitData, websiteId, websiteName);
         };
 
