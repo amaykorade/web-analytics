@@ -1,3 +1,4 @@
+console.log("Loader script running!");
 import('./tracker/tracker.js');
 
 (function () {
