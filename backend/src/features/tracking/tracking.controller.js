@@ -559,8 +559,17 @@ export const getAnalysis = async (req, res) => {
 
 
         // Referral Source Analysis
-        const searchEngines = ["google.com", "bing.com", "yahoo.com", "duckduckgo.com", "baidu.com"];
-        const socialMedia = ["facebook.com", "twitter.com", "linkedin.com", "instagram.com", "reddit.com", "pinterest.com", "tiktok.com"];
+        const searchEngines = [
+            "google.com", "bing.com", "yahoo.com", "duckduckgo.com", "baidu.com",
+            "yandex.com", "searchencrypt.com", "startpage.com", "ecosia.org",
+            "qwant.com", "swisscows.com", "mojeek.com", "gibiru.com"
+        ];
+        const socialMedia = [
+            "facebook.com", "twitter.com", "linkedin.com", "instagram.com", 
+            "reddit.com", "pinterest.com", "tiktok.com", "youtube.com",
+            "whatsapp.com", "telegram.org", "discord.com", "snapchat.com",
+            "twitch.tv", "medium.com", "github.com", "stackoverflow.com"
+        ];
 
         const normalizeReferrer = (referrer) => {
             if (!referrer || referrer.trim() === "" || referrer === "Direct") {
@@ -576,9 +585,12 @@ export const getAnalysis = async (req, res) => {
                 const url = new URL(referrer);
                 const hostname = url.hostname.toLowerCase();
                 
+                // Remove www. prefix for better matching
+                const cleanHostname = hostname.replace(/^www\./, '');
+                
                 // Check for search engines
                 for (const se of searchEngines) {
-                    if (hostname.includes(se)) {
+                    if (cleanHostname.includes(se)) {
                         const result = se.split('.')[0].charAt(0).toUpperCase() + se.split('.')[0].slice(1);
                         return result;
                     }
@@ -586,14 +598,22 @@ export const getAnalysis = async (req, res) => {
                 
                 // Check for social media
                 for (const sm of socialMedia) {
-                    if (hostname.includes(sm)) {
+                    if (cleanHostname.includes(sm)) {
                         const result = sm.split('.')[0].charAt(0).toUpperCase() + sm.split('.')[0].slice(1);
                         return result;
                     }
                 }
                 
-                // Return the domain name for other sources
-                const result = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
+                // Return the main domain name for other sources
+                const domainParts = cleanHostname.split('.');
+                if (domainParts.length >= 2) {
+                    const mainDomain = domainParts[domainParts.length - 2]; // Get second-to-last part
+                    const result = mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+                    return result;
+                }
+                
+                // Fallback to first part if domain structure is unusual
+                const result = domainParts[0].charAt(0).toUpperCase() + domainParts[0].slice(1);
                 return result;
             } catch (e) {
                 console.error("Error normalizing referrer:", e);
@@ -603,8 +623,15 @@ export const getAnalysis = async (req, res) => {
 
         const categorizeReferrer = (referrer) => {
             if (!referrer || referrer === "Direct" || referrer.trim() === "") return "direct";
-            if (searchEngines.some(se => referrer.toLowerCase().includes(se))) return "search";
-            if (socialMedia.some(sm => referrer.toLowerCase().includes(sm))) return "social";
+            
+            const referrerLower = referrer.toLowerCase();
+            
+            // Check for search engines
+            if (searchEngines.some(se => referrerLower.includes(se.replace('.com', '')))) return "search";
+            
+            // Check for social media
+            if (socialMedia.some(sm => referrerLower.includes(sm.replace('.com', '')))) return "social";
+            
             return "other";
         };
 
@@ -630,11 +657,24 @@ export const getAnalysis = async (req, res) => {
             { $sort: { visits: -1 } }
         ]);
 
-        referralStats = referralStats.map(ref => ({
-            ...ref,
-            referrer: normalizeReferrer(ref.referrer),
-            category: categorizeReferrer(ref.referrer)
-        }));
+        referralStats = referralStats.map(ref => {
+            const normalizedReferrer = normalizeReferrer(ref.referrer);
+            const category = categorizeReferrer(normalizedReferrer);
+            
+            console.log(`[DEBUG] Referrer processing:`, {
+                original: ref.referrer,
+                normalized: normalizedReferrer,
+                category: category,
+                visitors: ref.visitors,
+                visits: ref.visits
+            });
+            
+            return {
+                ...ref,
+                referrer: normalizedReferrer,
+                category: category
+            };
+        });
 
         // Group by normalized referrer to combine similar sources
         const groupedStats = referralStats.reduce((acc, curr) => {
