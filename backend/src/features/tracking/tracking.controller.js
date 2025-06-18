@@ -473,6 +473,52 @@ export const getAnalysis = async (req, res) => {
                     }
                 },
                 {
+                    $addFields: {
+                        pathname: {
+                            $let: {
+                                vars: {
+                                    cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                                    fullPath: {
+                                        $arrayElemAt: [
+                                            { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                            1
+                                        ]
+                                    },
+                                    afterDomain: {
+                                        $slice: [
+                                            { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                            1,
+                                            10
+                                        ]
+                                    }
+                                },
+                                in: {
+                                    $cond: {
+                                        if: { $eq: [{ $size: { $ifNull: ["$$afterDomain", []] } }, 0] },
+                                        then: "/",
+                                        else: {
+                                            $concat: [
+                                                "/",
+                                                { $reduce: {
+                                                    input: { $ifNull: ["$$afterDomain", []] },
+                                                    initialValue: "",
+                                                    in: {
+                                                        $cond: {
+                                                            if: { $eq: ["$$value", ""] },
+                                                            then: "$$this",
+                                                            else: { $concat: ["$$value", "/", "$$this"] }
+                                                        }
+                                                    }
+                                                }}
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     $group: {
                         _id: "$sessionId",
                         uniquePages: { $addToSet: "$pathname" },
@@ -490,6 +536,13 @@ export const getAnalysis = async (req, res) => {
             const bouncedSessions = singlePageSessions.filter(session => 
                 session.uniquePages[0] === page.url
             ).length;
+
+            console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
+                sessionCount: page.sessionCount,
+                singlePageSessions: singlePageSessions.length,
+                bouncedSessions,
+                uniquePages: singlePageSessions.map(s => s.uniquePages[0])
+            });
 
             // Ensure we don't divide by zero and handle edge cases
             const bounceRate = page.sessionCount > 0 
