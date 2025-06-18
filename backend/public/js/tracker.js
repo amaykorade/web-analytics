@@ -75,7 +75,6 @@ import('./tracker/tracker.js');
         document.getElementById("consent-accept").addEventListener("click", () => {
             document.cookie = "trackingConsent=true; path=/; max-age=" + 60 * 60 * 24 * 365; // 1 year
             document.body.removeChild(consentDiv);
-            trackUserActivity(); // Start tracking after consent
         });
 
         document.getElementById("consent-decline").addEventListener("click", () => {
@@ -83,7 +82,6 @@ import('./tracker/tracker.js');
             document.body.removeChild(consentDiv);
         });
     }
-
 
     const websiteId = scriptTag.getAttribute("data-website-id");
     const websiteName = scriptTag.getAttribute("website-name");
