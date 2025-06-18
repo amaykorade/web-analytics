@@ -473,6 +473,52 @@ export const getAnalysis = async (req, res) => {
                     }
                 },
                 {
+                    $addFields: {
+                        pathname: {
+                            $let: {
+                                vars: {
+                                    cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                                    fullPath: {
+                                        $arrayElemAt: [
+                                            { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                            1
+                                        ]
+                                    },
+                                    afterDomain: {
+                                        $slice: [
+                                            { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                            1,
+                                            10
+                                        ]
+                                    }
+                                },
+                                in: {
+                                    $cond: {
+                                        if: { $eq: [{ $size: { $ifNull: ["$$afterDomain", []] } }, 0] },
+                                        then: "/",
+                                        else: {
+                                            $concat: [
+                                                "/",
+                                                { $reduce: {
+                                                    input: { $ifNull: ["$$afterDomain", []] },
+                                                    initialValue: "",
+                                                    in: {
+                                                        $cond: {
+                                                            if: { $eq: ["$$value", ""] },
+                                                            then: "$$this",
+                                                            else: { $concat: ["$$value", "/", "$$this"] }
+                                                        }
+                                                    }
+                                                }}
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     $group: {
                         _id: "$sessionId",
                         uniquePages: { $addToSet: "$pathname" },
