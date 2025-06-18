@@ -18,9 +18,11 @@ import { extractUTMParams, sendData } from './api.js';
     const websiteName = scriptTag.getAttribute("website-name");
 
     async function trackUserActivity() {
+        console.log("trackUserActivity called");
         const sessionId = getSessionId();
         const utmParams = extractUTMParams();
         const geoData = await getGeoLocation();
+        console.log("geoData loaded", geoData);
         const deviceInfo = getDeviceInfo();
         const entryPage = !sessionStorage.getItem("entryPage");
         sessionStorage.setItem("entryPage", "true");
@@ -58,6 +60,7 @@ import { extractUTMParams, sendData } from './api.js';
         };
 
         // Track initial page visit
+        console.log("Calling trackPageVisit with entryPage =", entryPage);
         trackPageVisit(entryPage);
 
         // Track SPA route changes using a more robust approach
