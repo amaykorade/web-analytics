@@ -441,6 +441,7 @@ export const getAnalysis = async (req, res) => {
                                     { 
                                         $divide: [
                                             "$totalTimeSpent",
+
                                             "$views"
                                         ]
                                     },
