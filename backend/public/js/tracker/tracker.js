@@ -51,6 +51,7 @@ import { extractUTMParams, sendData } from './api.js';
                 timestamp: new Date().toISOString(),
                 entryPage: isEntryPage,
                 visitorId: sessionId,
+                timeSpent: 0 // Always include timeSpent for initial event
             };
 
             sendData(pageVisitData, websiteId, websiteName);
