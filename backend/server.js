@@ -33,6 +33,16 @@ const PORT = process.env.PORT || 3000;
 const _filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(_filename);
 
+// Allow CORS for static tracker scripts
+app.use('/js', (req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 let allowedOrigins = [
