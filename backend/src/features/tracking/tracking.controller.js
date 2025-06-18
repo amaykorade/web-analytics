@@ -491,18 +491,13 @@ export const getAnalysis = async (req, res) => {
                 const sessionPathname = session.uniquePages[0];
                 const pagePathname = page.url;
                 
-                // Extract pathname from page.url if it's a full URL
-                let pagePath = pagePathname;
-                if (pagePathname.startsWith('http')) {
-                    try {
-                        const url = new URL(pagePathname);
-                        pagePath = url.pathname;
-                    } catch (e) {
-                        pagePath = pagePathname;
-                    }
-                }
+                console.log(`[DEBUG] Comparing paths:`, {
+                    sessionPathname,
+                    pagePathname,
+                    match: sessionPathname === pagePathname
+                });
                 
-                return sessionPathname === pagePath;
+                return sessionPathname === pagePathname;
             }).length;
 
             console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
