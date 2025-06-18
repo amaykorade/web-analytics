@@ -433,6 +433,7 @@ export const getAnalysis = async (req, res) => {
                     _id: 0,
                     url: { $toString: "$_id" },
                     views: 1,
+                    totalTimeSpent: 1,
                     avgTimeSpent: { 
                         $cond: {
                             if: { $eq: [{ $size: { $ifNull: ["$sessions", []] } }, 0] },
