@@ -487,9 +487,32 @@ export const getAnalysis = async (req, res) => {
             ]);
 
             // Calculate bounce rate for this page
-            const bouncedSessions = singlePageSessions.filter(session => 
-                session.uniquePages[0] === page.url
-            ).length;
+            const bouncedSessions = singlePageSessions.filter(session => {
+                const sessionPathname = session.uniquePages[0];
+                const pagePathname = page.url;
+                
+                // Extract pathname from page.url if it's a full URL
+                let pagePath = pagePathname;
+                if (pagePathname.startsWith('http')) {
+                    try {
+                        const url = new URL(pagePathname);
+                        pagePath = url.pathname;
+                    } catch (e) {
+                        pagePath = pagePathname;
+                    }
+                }
+                
+                return sessionPathname === pagePath;
+            }).length;
+
+            console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
+                sessionCount: page.sessionCount,
+                singlePageSessions: singlePageSessions.length,
+                bouncedSessions,
+                uniquePages: singlePageSessions.map(s => s.uniquePages[0]),
+                pageUrl: page.url,
+                pagePathname: page.url.startsWith('http') ? new URL(page.url).pathname : page.url
+            });
 
             // Ensure we don't divide by zero and handle edge cases
             const bounceRate = page.sessionCount > 0 
