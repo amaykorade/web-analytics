@@ -1,6 +1,6 @@
 // Endpoint configuration for tracker
 
-const ENV = 'local';
+const ENV = 'production';
 
 const ENDPOINTS = {
   production: {
