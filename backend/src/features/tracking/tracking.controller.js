@@ -58,7 +58,6 @@ const regionMapping = {
 
 export const addData = async (req, res) => {
     try {
-        console.log('Received data:', req.body);
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ message: "No data received in request body" });
         }
@@ -105,8 +104,6 @@ export const addData = async (req, res) => {
 
         const normalizedIp = ip === '::1' || ip === '127.0.0.1' ? '58.84.60.25' : ip;  // Default to external IP for testing
 
-        console.log("Extracted IP:", normalizedIp);
-
         const isPrivateIp = (ip) => /^127\./.test(ip) || /^10\./.test(ip) || /^192\.168\./.test(ip) || ip === "::1";
 
 
@@ -121,6 +118,14 @@ export const addData = async (req, res) => {
         } : { country: "Unknown", region: "Unknown", city: "Unknown" };
 
         // Save to database
+        if (req.body.type === 'page_visit') {
+            console.log('[DEBUG] Incoming page_visit:', {
+                url: req.body.url,
+                sessionId: req.body.sessionId,
+                timeSpent: req.body.timeSpent,
+                timestamp: req.body.timestamp
+            });
+        }
         const trackingEntry = new TrackingModule({
             ...req.body,
             userId: userID,
@@ -130,15 +135,11 @@ export const addData = async (req, res) => {
             geoLocation
         });
 
-        console.log(trackingEntry)
-
         await trackingEntry.save();
 
         // Increment event count
         user.eventsUsed += 1;
-        console.log("Before saving eventsUsed:", user.eventsUsed);
         await user.save();
-        console.log("After saving eventsUsed:", user.eventsUsed);
         res.status(200).json({ message: "Data received and stored successfully" });
     } catch (error) {
         console.error("Error saving tracking data:", error);
@@ -151,10 +152,6 @@ export const addData = async (req, res) => {
 export const getAnalysis = async (req, res) => {
     try {
         const { type, userId, websiteName, startDate, endDate } = req.query;
-
-        console.log("startData: ", startDate);
-        console.log("endDate: ", endDate);
-
 
         if (!userId || !websiteName) {
             return res.status(400).json({ message: "userId and websiteName are required" });
@@ -502,14 +499,6 @@ export const getAnalysis = async (req, res) => {
             
             // Ensure avgTimeSpent is a valid number and convert to seconds
             page.avgTimeSpent = page.avgTimeSpent ? Math.round(page.avgTimeSpent) : 0;
-
-            // Log the calculations for debugging
-            console.log(`Page: ${page.url}`);
-            console.log(`Total Time Spent: ${page.totalTimeSpent}`);
-            console.log(`Session Count: ${page.sessionCount}`);
-            console.log(`Average Time: ${page.avgTimeSpent}`);
-            console.log(`Bounced Sessions: ${bouncedSessions}`);
-            console.log(`Bounce Rate: ${bounceRate}%`);
         }
 
         // Log the final response for debugging
@@ -523,7 +512,6 @@ export const getAnalysis = async (req, res) => {
         const socialMedia = ["facebook.com", "twitter.com", "linkedin.com", "instagram.com", "reddit.com", "pinterest.com", "tiktok.com"];
 
         const normalizeReferrer = (referrer) => {
-            console.log("Raw referrer:", referrer);
             if (!referrer || referrer.trim() === "" || referrer === "Direct") {
                 return "Direct";
             }
@@ -536,13 +524,11 @@ export const getAnalysis = async (req, res) => {
                 
                 const url = new URL(referrer);
                 const hostname = url.hostname.toLowerCase();
-                console.log("Parsed hostname:", hostname);
                 
                 // Check for search engines
                 for (const se of searchEngines) {
                     if (hostname.includes(se)) {
                         const result = se.split('.')[0].charAt(0).toUpperCase() + se.split('.')[0].slice(1);
-                        console.log("Normalized to search engine:", result);
                         return result;
                     }
                 }
@@ -551,14 +537,12 @@ export const getAnalysis = async (req, res) => {
                 for (const sm of socialMedia) {
                     if (hostname.includes(sm)) {
                         const result = sm.split('.')[0].charAt(0).toUpperCase() + sm.split('.')[0].slice(1);
-                        console.log("Normalized to social media:", result);
                         return result;
                     }
                 }
                 
                 // Return the domain name for other sources
                 const result = hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
-                console.log("Normalized to domain:", result);
                 return result;
             } catch (e) {
                 console.error("Error normalizing referrer:", e);
@@ -644,18 +628,6 @@ export const getAnalysis = async (req, res) => {
             { $sort: { time: 1 } },
         ]);
 
-        // Convert the 24-hour time (e.g., "18") to 12-hour format ("6pm")
-        // const convertTo12HourFormat = (hourString) => {
-        //     const hour = parseInt(hourString, 10);
-        //     const period = hour >= 12 ? 'pm' : 'am';
-        //     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-        //     return `${hour12}${period}`;
-        // };
-
-        // const visitorsData12Hour = aggregatedVisitorsData.map(item => ({
-        //     ...item,
-        //     time: convertTo12HourFormat(item.time)
-        // }));
 
         response.heatmapData = aggregatedVisitorsData;
 
