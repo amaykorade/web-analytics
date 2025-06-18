@@ -434,14 +434,14 @@ export const getAnalysis = async (req, res) => {
                     totalTimeSpent: { $ifNull: ["$totalTimeSpent", 0] },
                     avgTimeSpent: { 
                         $cond: {
-                            if: { $eq: [{ $size: { $ifNull: ["$sessions", []] } }, 0] },
+                            if: { $eq: ["$views", 0] },
                             then: 0,
                             else: {
                                 $round: [
                                     { 
                                         $divide: [
                                             "$totalTimeSpent",
-                                            { $size: { $ifNull: ["$sessions", []] } }
+                                            "$views"  // Divide by number of page views, not sessions
                                         ]
                                     },
                                     2
