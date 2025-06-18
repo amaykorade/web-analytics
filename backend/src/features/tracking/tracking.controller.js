@@ -501,9 +501,6 @@ export const getAnalysis = async (req, res) => {
             page.avgTimeSpent = page.avgTimeSpent ? Math.round(page.avgTimeSpent) : 0;
         }
 
-        // Log the final response for debugging
-        console.log('Final Top Pages:', JSON.stringify(pageStats, null, 2));
-
         response.topPages = pageStats;
 
 
