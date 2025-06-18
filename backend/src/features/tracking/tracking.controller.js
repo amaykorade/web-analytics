@@ -434,14 +434,14 @@ export const getAnalysis = async (req, res) => {
                     totalTimeSpent: { $ifNull: ["$totalTimeSpent", 0] },
                     avgTimeSpent: { 
                         $cond: {
-                            if: { $eq: [{ $size: { $ifNull: ["$sessions", []] } }, 0] },
+                            if: { $eq: ["$views", 0] },
                             then: 0,
                             else: {
                                 $round: [
                                     { 
                                         $divide: [
                                             "$totalTimeSpent",
-                                            { $size: { $ifNull: ["$sessions", []] } }
+                                            "$views"
                                         ]
                                     },
                                     2
@@ -499,7 +499,7 @@ export const getAnalysis = async (req, res) => {
             page.bounceRate = `${bounceRate}%`;
             
             // Ensure avgTimeSpent is a valid number and convert to seconds
-            page.avgTimeSpent = page.avgTimeSpent ? Math.round(page.avgTimeSpent) : 0;
+            page.avgTimeSpent = page.avgTimeSpent && page.avgTimeSpent > 0 ? Math.round(page.avgTimeSpent) : 0;
         }
 
         response.topPages = pageStats;
