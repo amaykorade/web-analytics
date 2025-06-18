@@ -33,17 +33,6 @@ const PORT = process.env.PORT || 3000;
 const _filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(_filename);
 
-// Set CORS headers manually for static files
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (!origin || allowedOrigins.includes(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", origin || "*");
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-    }
-    next();
-});
-
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 let allowedOrigins = [
@@ -85,17 +74,19 @@ const updateAllowedOrigins = async () => {
 await updateAllowedOrigins();
 
 app.use(cors({
-    origin: async (origin, callback) => {
-        try {
-            const result = await getAllURL();
-            const allowedOrigins = result.map(url => url.url);
-            callback(null, allowedOrigins.includes(origin));
-        } catch (error) {
-            console.error("Error in CORS check:", error);
-            callback(null, false);
+    origin: function (origin, callback) {
+        console.log("🔍 CORS Check -> Request Origin:", origin);
+        console.log("✅ Allowed Origins List:", allowedOrigins);
+
+        if (!origin || allowedOrigins.includes(origin)) {
+            console.log("✔️ Allowed:", origin);
+            callback(null, true);
+        } else {
+            console.error(`❌ CORS Error: ${origin} is not allowed.`);
+            callback(new Error("Not allowed by CORS"));
         }
     },
-    credentials: true
+    credentials: true,
 }));
 
 app.options("*", cors());
@@ -104,7 +95,6 @@ app.options("*", cors());
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -138,7 +128,7 @@ app.use('/api/payment', PaymentRouter);
 app.use('/api/funnel', FunnelRouter);
 
 // 🚀 **Start Server After Connecting to DB**
-const startServer = async () => {
+(async () => {
     try {
         await connectUsingMongoose();
         console.log("✅ Database connected successfully!");
@@ -154,14 +144,5 @@ const startServer = async () => {
         });
     } catch (error) {
         console.error("❌ Error starting the server:", error);
-        process.exit(1);
     }
-};
-
-startServer();
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: "Something went wrong!" });
-});
+})();
