@@ -267,9 +267,14 @@ import { extractUTMParams, sendData } from './api.js';
         });
     }
 
+    console.log("Consent cookie value:", getCookie("trackingConsent"));
+    console.log("Consent cookie type:", typeof getCookie("trackingConsent"));
+    console.log("Consent cookie === 'true':", getCookie("trackingConsent") === "true");
     if (getCookie("trackingConsent") === "true") {
+        console.log("Consent is true, calling trackUserActivity");
         trackUserActivity();
     } else {
+        console.log("Consent is false, showing popup");
         createConsentPopup(
             () => {
                 setCookie("trackingConsent", "true", 365);
