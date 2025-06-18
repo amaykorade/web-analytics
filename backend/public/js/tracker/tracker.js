@@ -1,3 +1,4 @@
+console.log("Main tracker loaded!");
 import { createConsentPopup } from './consent.js';
 import { setCookie, getCookie, getSessionId } from './storage.js';
 import { getDeviceInfo } from './device.js';
