@@ -45,7 +45,18 @@ export const getFunnelStats = async (req, res) => {
   try {
     const { funnelId, userId, websiteName, startDate, endDate } = req.query;
 
+    console.log('[DEBUG] getFunnelStats called with:', {
+      funnelId,
+      userId,
+      websiteName,
+      startDate,
+      endDate,
+      query: req.query,
+      params: req.params
+    });
+
     if (!funnelId || !userId || !websiteName) {
+      console.log('[DEBUG] Missing required parameters:', { funnelId, userId, websiteName });
       return res.status(400).json({ message: "Missing required parameters" });
     }
 
