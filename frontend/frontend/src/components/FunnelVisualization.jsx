@@ -86,16 +86,16 @@ export default function FunnelVisualization({ stats }) {
                     <ResponsiveContainer width="100%" height="100%" minHeight={420}>
                         <ComposedChart
                             data={chartData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                             <XAxis 
                                 dataKey="name" 
-                                angle={-30}
-                                textAnchor="end"
-                                height={80}
+                                angle={0}
+                                textAnchor="middle"
+                                height={100}
                                 interval={0}
-                                tick={{ fontSize: 13, fill: '#9CA3AF' }}
+                                tick={{ fontSize: 12, fill: '#9CA3AF' }}
                                 stroke="#4B5563"
                             />
                             <YAxis 
