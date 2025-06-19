@@ -59,6 +59,8 @@ export const calculateFunnelStats = (events, steps) => {
         
         return {
             name: step.name || step.value,
+            type: step.type,
+            value: step.value,
             visitors,
             dropoff
         };
