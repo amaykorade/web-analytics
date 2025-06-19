@@ -7,7 +7,7 @@ export const getScriptThunk = createAsyncThunk(
     'script/get-script', async (_, { rejectWithValue }) => {
         try {
             const response = await getScript();
-            console.log('Script API Response:', response);
+            // console.log('Script API Response:', response);
             return response;
         } catch (error) {
             console.error('Script API Error:', error);

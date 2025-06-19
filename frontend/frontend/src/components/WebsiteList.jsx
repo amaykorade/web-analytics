@@ -20,8 +20,8 @@ export default function WebsiteList() {
     const fetchWebsites = async () => {
       try {
         const response = await dispatch(getScriptThunk()).unwrap();
-        console.log('Fetched websites response:', response);
-        console.log('Scripts array:', response?.scripts);
+        // console.log('Fetched websites response:', response);
+        // console.log('Scripts array:', response?.scripts);
       } catch (error) {
         console.error("Error fetching websites:", error);
       } finally {
@@ -33,7 +33,7 @@ export default function WebsiteList() {
   }, [dispatch]);
 
   const handleWebsiteClick = (website) => {
-    console.log('Clicked website:', website);
+    // console.log('Clicked website:', website);
     
     if (website.isVerified) {
       // If verified, go directly to dashboard

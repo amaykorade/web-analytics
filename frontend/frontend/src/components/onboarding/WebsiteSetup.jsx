@@ -39,7 +39,7 @@ export default function WebsiteSetup() {
 
     try {
       const response = await dispatch(verifyScriptThunk(formData)).unwrap();
-      console.log('Verification response:', response);
+      // console.log('Verification response:', response);
       
       if (response?.verified) {
         setIsVerified(true);
@@ -53,7 +53,7 @@ export default function WebsiteSetup() {
           verified: true
         };
         
-        console.log('Website data to store:', websiteData);
+        // console.log('Website data to store:', websiteData);
         
         // Store the current website
         localStorage.setItem("currentWebsite", JSON.stringify(websiteData));
@@ -180,7 +180,7 @@ export default function WebsiteSetup() {
       dispatch(getScriptThunk())
         .unwrap()
         .then((response) => {
-          console.log('Script data response:', response);
+          // console.log('Script data response:', response);
           if (response?.isPresent) {
             const website = response.scripts?.find(w => w.url === url);
             if (website?.verified) {
@@ -190,7 +190,7 @@ export default function WebsiteSetup() {
               setIsVerified(false);
             }
           } else {
-            console.log('Script not present in response');
+            // console.log('Script not present in response');
             setError("Script not found. Please verify the installation again.");
             setIsVerified(false);
           }

@@ -5,9 +5,9 @@ export const createFunnelThunk = createAsyncThunk(
     'funnel/create',
     async (funnelData, { rejectWithValue }) => {
         try {
-            console.log('Creating funnel with data:', funnelData); // Debug log
+            // console.log('Creating funnel with data:', funnelData); // Debug log
             const response = await createFunnel(funnelData);
-            console.log('Funnel creation response:', response); // Debug log
+            // console.log('Funnel creation response:', response); // Debug log
             return response;
         } catch (error) {
             console.error('Funnel creation error:', error); // Debug log

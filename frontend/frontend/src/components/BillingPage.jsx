@@ -55,7 +55,7 @@ export default function BillingPage() {
     dispatch(getCurrentUserthunk())
       .unwrap()
       .then((response) => {
-        console.log("user: ", response);
+        // console.log("user: ", response);
         const user = response?.user;
         setEmail(user?.email);
 
@@ -94,7 +94,7 @@ export default function BillingPage() {
       );
 
       const data = await response.json();
-      console.log("Razorpay Order Response: ", data);
+      // console.log("Razorpay Order Response: ", data);
 
       const { razorpay_order_id, amount, currency } = data;
 

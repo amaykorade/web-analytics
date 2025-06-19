@@ -40,7 +40,7 @@ function App() {
   const scriptData = useSelector(userData);
   // console.log(scriptData);
 
-  console.log("isAuth: ", isAuthenticated);
+  // console.log("isAuth: ", isAuthenticated);
 
   useEffect(() => {
     const checkAuth = () => {
