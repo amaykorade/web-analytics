@@ -1,6 +1,12 @@
 // Utility functions for funnel analytics
 
 export const calculateFunnelStats = (events, steps) => {
+    console.log('[DEBUG] calculateFunnelStats called with:', {
+        eventCount: events.length,
+        stepsCount: steps.length,
+        steps: steps
+    });
+
     const sessions = {};
     const stepUserSets = steps.map(() => new Set());
 
@@ -11,6 +17,8 @@ export const calculateFunnelStats = (events, steps) => {
         }
         sessions[event.sessionId].push(event);
     });
+
+    console.log('[DEBUG] Grouped events into sessions:', Object.keys(sessions).length);
 
     // Process each session
     Object.values(sessions).forEach(sessionEvents => {
@@ -24,11 +32,20 @@ export const calculateFunnelStats = (events, steps) => {
             if (currentStepIndex >= steps.length) return;
 
             const step = steps[currentStepIndex];
-            const eventPath = event.path || new URL(event.url).pathname;
+            const eventPath = event.path || (event.url ? new URL(event.url).pathname : null);
 
-            if (eventPath === step.path) {
+            console.log('[DEBUG] Checking event against step:', {
+                eventPath,
+                stepValue: step.value,
+                stepType: step.type,
+                currentStepIndex,
+                matches: eventPath === step.value
+            });
+
+            if (eventPath === step.value) {
                 stepUserSets[currentStepIndex].add(event.visitorId);
                 currentStepIndex++;
+                console.log('[DEBUG] Step matched, moving to next step:', currentStepIndex);
             }
         });
     });
@@ -41,7 +58,7 @@ export const calculateFunnelStats = (events, steps) => {
             `${(((stepUserSets[index - 1].size - visitors) / stepUserSets[index - 1].size) * 100).toFixed(2)}%`;
         
         return {
-            name: step.name,
+            name: step.name || step.value,
             visitors,
             dropoff
         };
@@ -51,11 +68,15 @@ export const calculateFunnelStats = (events, steps) => {
         `${((stepUserSets[stepUserSets.length - 1].size / totalVisitors) * 100).toFixed(2)}%` : 
         "0%";
 
-    return {
+    const result = {
         totalVisitors,
         conversionRate,
         steps: stepStats
     };
+
+    console.log('[DEBUG] Final stats result:', result);
+
+    return result;
 };
 
 // Helper: match URL with support for params (e.g., /product/:id)
