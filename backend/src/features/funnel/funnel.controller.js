@@ -43,7 +43,8 @@ export const getFunnels = async (req, res) => {
 // Get stats for a funnel
 export const getFunnelStats = async (req, res) => {
   try {
-    const { funnelId, userId, websiteName, startDate, endDate } = req.query;
+    const { funnelId } = req.params;
+    const { userId, websiteName, startDate, endDate } = req.query;
 
     console.log('[DEBUG] getFunnelStats called with:', {
       funnelId,
