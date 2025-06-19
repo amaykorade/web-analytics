@@ -73,12 +73,24 @@ export default function FunnelManager() {
     // Fetch funnel stats when a funnel is selected or date range changes
     useEffect(() => {
         if (selectedFunnel && userId && websiteName && dateRange.startDate && dateRange.endDate) {
+            // Format dates to ISO strings for the backend
+            const startDate = dateRange.startDate.toISOString();
+            const endDate = dateRange.endDate.toISOString();
+            
+            console.log('Fetching funnel stats with:', {
+                funnelId: selectedFunnel._id,
+                userId,
+                websiteName,
+                startDate,
+                endDate
+            });
+            
             dispatch(getFunnelStatsThunk({
                 funnelId: selectedFunnel._id,
                 userId,
                 websiteName,
-                startDate: dateRange.startDate,
-                endDate: dateRange.endDate
+                startDate,
+                endDate
             }));
         }
     }, [dispatch, selectedFunnel, userId, websiteName, dateRange]);
