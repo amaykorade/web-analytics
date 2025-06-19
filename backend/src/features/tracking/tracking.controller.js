@@ -474,59 +474,85 @@ export const getAnalysis = async (req, res) => {
                     }
                 },
                 {
+                    $addFields: {
+                        pathname: {
+                            $let: {
+                                vars: {
+                                    cleanUrl: { $arrayElemAt: [{ $split: ["$url", "?"] }, 0] },
+                                    fullPath: {
+                                        $arrayElemAt: [
+                                            { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                            1
+                                        ]
+                                    },
+                                    afterDomain: {
+                                        $slice: [
+                                            { $split: [{ $arrayElemAt: [{ $split: ["$url", "://"] }, 1] }, "/"] },
+                                            1,
+                                            10
+                                        ]
+                                    }
+                                },
+                                in: {
+                                    $cond: {
+                                        if: { $eq: [{ $size: { $ifNull: ["$$afterDomain", []] } }, 0] },
+                                        then: "/",
+                                        else: {
+                                            $concat: [
+                                                "/",
+                                                { $reduce: {
+                                                    input: { $ifNull: ["$$afterDomain", []] },
+                                                    initialValue: "",
+                                                    in: {
+                                                        $cond: {
+                                                            if: { $eq: ["$$value", ""] },
+                                                            then: "$$this",
+                                                            else: { $concat: ["$$value", "/", "$$this"] }
+                                                        }
+                                                    }
+                                                }}
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     $group: {
                         _id: "$sessionId",
-                        uniqueUrls: { $addToSet: "$url" },
+                        uniquePathnames: { $addToSet: "$pathname" },
                         pageCount: { $sum: 1 }
                     }
                 },
                 {
                     $match: {
-                        $expr: { $eq: [{ $size: { $ifNull: ["$uniqueUrls", []] } }, 1] }
+                        $expr: { $eq: [{ $size: { $ifNull: ["$uniquePathnames", []] } }, 1] }
                     }
                 }
             ]);
 
             // Calculate bounce rate for this page
             const bouncedSessions = singlePageSessions.filter(session => {
-                const sessionUrl = session.uniqueUrls[0];
-                const pageUrl = page.url;
+                const sessionPathname = session.uniquePathnames[0];
+                const pagePathname = page.url; // This is already the pathname from the pageStats aggregation
                 
-                // Normalize URLs for comparison by removing query parameters and fragments
-                const normalizeUrl = (url) => {
-                    try {
-                        if (url.startsWith('http')) {
-                            const urlObj = new URL(url);
-                            return urlObj.pathname;
-                        } else {
-                            // If it's already a pathname, return as is
-                            return url.startsWith('/') ? url : '/' + url;
-                        }
-                    } catch (e) {
-                        return url;
-                    }
-                };
-                
-                const normalizedSessionUrl = normalizeUrl(sessionUrl);
-                const normalizedPageUrl = normalizeUrl(pageUrl);
-                
-                console.log(`[DEBUG] Comparing URLs:`, {
-                    sessionUrl,
-                    pageUrl,
-                    normalizedSessionUrl,
-                    normalizedPageUrl,
-                    match: normalizedSessionUrl === normalizedPageUrl
+                console.log(`[DEBUG] Comparing pathnames:`, {
+                    sessionPathname,
+                    pagePathname,
+                    match: sessionPathname === pagePathname
                 });
                 
-                return normalizedSessionUrl === normalizedPageUrl;
+                return sessionPathname === pagePathname;
             }).length;
 
             console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
                 sessionCount: page.sessionCount,
                 singlePageSessions: singlePageSessions.length,
                 bouncedSessions,
-                uniqueUrls: singlePageSessions.map(s => s.uniqueUrls[0]),
-                pageUrl: page.url
+                uniquePathnames: singlePageSessions.map(s => s.uniquePathnames[0]),
+                pagePathname: page.url
             });
 
             // Ensure we don't divide by zero and handle edge cases
