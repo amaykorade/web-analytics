@@ -183,6 +183,23 @@ export const getAnalysis = async (req, res) => {
             return `${change > 0 ? "+" : ""}${change}% vs last period`;
         };
 
+        // Helper function to format time duration
+        const formatTimeDuration = (seconds) => {
+            if (!seconds || seconds <= 0) return "0s";
+            
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${remainingSeconds}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${remainingSeconds}s`;
+            } else {
+                return `${remainingSeconds}s`;
+            }
+        };
+
         const response = {};
 
         // **1. Fetch Total Visitors**
@@ -568,8 +585,9 @@ export const getAnalysis = async (req, res) => {
             
             page.bounceRate = `${bounceRate}%`;
             
-            // Ensure avgTimeSpent is a valid number and convert to seconds
-            page.avgTimeSpent = page.avgTimeSpent && page.avgTimeSpent > 0 ? Math.round(page.avgTimeSpent) : 0;
+            // Format avgTimeSpent properly (hours, minutes, seconds)
+            const avgTimeInSeconds = page.avgTimeSpent && page.avgTimeSpent > 0 ? page.avgTimeSpent : 0;
+            page.avgTimeSpent = formatTimeDuration(avgTimeInSeconds);
         }
 
         response.topPages = pageStats;
