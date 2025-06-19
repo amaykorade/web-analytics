@@ -118,14 +118,14 @@ export const addData = async (req, res) => {
         } : { country: "Unknown", region: "Unknown", city: "Unknown" };
 
         // Save to database
-        if (req.body.type === 'page_visit') {
-            console.log('[DEBUG] Incoming page_visit:', {
-                url: req.body.url,
-                sessionId: req.body.sessionId,
-                timeSpent: req.body.timeSpent,
-                timestamp: req.body.timestamp
-            });
-        }
+        // if (req.body.type === 'page_visit') {
+        //     console.log('[DEBUG] Incoming page_visit:', {
+        //         url: req.body.url,
+        //         sessionId: req.body.sessionId,
+        //         timeSpent: req.body.timeSpent,
+        //         timestamp: req.body.timestamp
+        //     });
+        // }
         const trackingEntry = new TrackingModule({
             ...req.body,
             userId: userID,
@@ -140,7 +140,7 @@ export const addData = async (req, res) => {
         // Increment event count
         user.eventsUsed += 1;
         await user.save();
-        console.log('[DEBUG] Incoming request body:', req.body);
+        // console.log('[DEBUG] Incoming request body:', req.body);
         res.status(200).json({ message: "Data received and stored successfully", data: req.body });
     } catch (error) {
         console.error("Error saving tracking data:", error);
@@ -479,7 +479,7 @@ export const getAnalysis = async (req, res) => {
             // Ensure sessions is an array
             const sessionIds = Array.isArray(page.sessions) ? page.sessions : [];
             
-            console.log(`[DEBUG] Processing page ${page.url} with ${sessionIds.length} sessions:`, sessionIds);
+            // console.log(`[DEBUG] Processing page ${page.url} with ${sessionIds.length} sessions:`, sessionIds);
             
             // Get all sessions that visited this page and their complete page visit history
             const sessionPageHistory = await TrackingModule.aggregate([
@@ -547,7 +547,7 @@ export const getAnalysis = async (req, res) => {
                 }
             ]);
 
-            console.log(`[DEBUG] Session page history for ${page.url}:`, sessionPageHistory);
+            // console.log(`[DEBUG] Session page history for ${page.url}:`, sessionPageHistory);
 
             // Calculate bounce rate for this page
             const bouncedSessions = sessionPageHistory.filter(session => {
@@ -560,23 +560,23 @@ export const getAnalysis = async (req, res) => {
                 const isSinglePageSession = sessionPathnames.length === 1;
                 const visitedThisPage = sessionPathnames.includes(pagePathname);
                 
-                console.log(`[DEBUG] Session ${session._id} analysis:`, {
-                    sessionPathnames,
-                    pagePathname,
-                    isSinglePageSession,
-                    visitedThisPage,
-                    isBounced: isSinglePageSession && visitedThisPage
-                });
+                // console.log(`[DEBUG] Session ${session._id} analysis:`, {
+                //     sessionPathnames,
+                //     pagePathname,
+                //     isSinglePageSession,
+                //     visitedThisPage,
+                //     isBounced: isSinglePageSession && visitedThisPage
+                // });
                 
                 return isSinglePageSession && visitedThisPage;
             }).length;
 
-            console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
-                sessionCount: page.sessionCount,
-                totalSessionsAnalyzed: sessionPageHistory.length,
-                bouncedSessions,
-                pagePathname: page.url
-            });
+            // console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
+            //     sessionCount: page.sessionCount,
+            //     totalSessionsAnalyzed: sessionPageHistory.length,
+            //     bouncedSessions,
+            //     pagePathname: page.url
+            // });
 
             // Ensure we don't divide by zero and handle edge cases
             const bounceRate = page.sessionCount > 0 

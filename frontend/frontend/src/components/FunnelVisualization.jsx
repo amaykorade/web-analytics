@@ -36,12 +36,12 @@ export default function FunnelVisualization({ stats }) {
         return 0;
     };
 
-    const maxUsers = Math.max(...steps.map(step => step.users));
+    const maxUsers = Math.max(...steps.map(step => step.visitors));
 
     // Prepare data for the chart
     const chartData = steps.map((step, index) => ({
         name: `${getStepType(step) === 'url' ? 'Page' : 'Event'}: ${getStepValue(step)}`,
-        users: step.users,
+        users: step.visitors,
         dropoff: parseDropoff(step.dropoff),
         stepNumber: index + 1
     }));
@@ -150,7 +150,7 @@ export default function FunnelVisualization({ stats }) {
                 {/* Vertical timeline line */}
                 <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-700 z-0" style={{ minHeight: 40, height: '100%' }} />
                 {steps.map((step, index) => {
-                    const width = (step.users / maxUsers) * 100;
+                    const width = (step.visitors / maxUsers) * 100;
                     const isLast = index === steps.length - 1;
                     return (
                         <div key={index} className="relative flex items-start z-10">
@@ -172,7 +172,7 @@ export default function FunnelVisualization({ stats }) {
                                     <div className="flex items-center space-x-4">
                                         <span className="flex items-center text-indigo-400 text-sm font-medium">
                                             <Users className="h-4 w-4 mr-1" />
-                                            {step.users} users
+                                            {step.visitors} users
                                         </span>
                                         {!isLast && step.dropoff && (
                                             <span className="flex items-center text-red-400 text-sm font-medium">
