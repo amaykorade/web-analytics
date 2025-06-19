@@ -462,8 +462,10 @@ export const getAnalysis = async (req, res) => {
             // Ensure sessions is an array
             const sessionIds = Array.isArray(page.sessions) ? page.sessions : [];
             
-            // Get all sessions that only visited this page
-            const singlePageSessions = await TrackingModule.aggregate([
+            console.log(`[DEBUG] Processing page ${page.url} with ${sessionIds.length} sessions:`, sessionIds);
+            
+            // Get all sessions that visited this page and their complete page visit history
+            const sessionPageHistory = await TrackingModule.aggregate([
                 {
                     $match: {
                         userId: userObjectId,
@@ -525,33 +527,37 @@ export const getAnalysis = async (req, res) => {
                         uniquePathnames: { $addToSet: "$pathname" },
                         pageCount: { $sum: 1 }
                     }
-                },
-                {
-                    $match: {
-                        $expr: { $eq: [{ $size: { $ifNull: ["$uniquePathnames", []] } }, 1] }
-                    }
                 }
             ]);
 
+            console.log(`[DEBUG] Session page history for ${page.url}:`, sessionPageHistory);
+
             // Calculate bounce rate for this page
-            const bouncedSessions = singlePageSessions.filter(session => {
-                const sessionPathname = session.uniquePathnames[0];
-                const pagePathname = page.url; // This is already the pathname from the pageStats aggregation
+            const bouncedSessions = sessionPageHistory.filter(session => {
+                const sessionPathnames = session.uniquePathnames;
+                const pagePathname = page.url;
                 
-                console.log(`[DEBUG] Comparing pathnames:`, {
-                    sessionPathname,
+                // A session is considered "bounced" for this page if:
+                // 1. It only visited one page total, AND
+                // 2. That one page is the current page being analyzed
+                const isSinglePageSession = sessionPathnames.length === 1;
+                const visitedThisPage = sessionPathnames.includes(pagePathname);
+                
+                console.log(`[DEBUG] Session ${session._id} analysis:`, {
+                    sessionPathnames,
                     pagePathname,
-                    match: sessionPathname === pagePathname
+                    isSinglePageSession,
+                    visitedThisPage,
+                    isBounced: isSinglePageSession && visitedThisPage
                 });
                 
-                return sessionPathname === pagePathname;
+                return isSinglePageSession && visitedThisPage;
             }).length;
 
             console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
                 sessionCount: page.sessionCount,
-                singlePageSessions: singlePageSessions.length,
+                totalSessionsAnalyzed: sessionPageHistory.length,
                 bouncedSessions,
-                uniquePathnames: singlePageSessions.map(s => s.uniquePathnames[0]),
                 pagePathname: page.url
             });
 
