@@ -22,11 +22,11 @@ export default function FunnelManager() {
         endDate: new Date()
     });
 
-    // Get the selected website's data
-    const selectedWebsite = localStorage.getItem('selectedWebsite') || 'ecommerce';
-    const currentScript = scriptData?.scripts?.find(script => script.websiteName === selectedWebsite);
+    // Get the selected website's data - use the same logic as Dashboard
+    const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
+    const currentScript = currentWebsite || scriptData?.scripts?.[0];
 
-    console.log('Selected Website:', selectedWebsite);
+    console.log('Current Website from localStorage:', currentWebsite);
     console.log('All Scripts:', scriptData?.scripts);
     console.log('Found Script:', currentScript);
 
@@ -37,13 +37,13 @@ export default function FunnelManager() {
     useEffect(() => {
         console.log('Debug Info:', {
             scriptData,
-            selectedWebsite,
+            currentWebsite,
             currentScript,
             userId,
             websiteName,
             allScripts: scriptData?.scripts
         });
-    }, [scriptData, selectedWebsite, currentScript, userId, websiteName]);
+    }, [scriptData, currentWebsite, currentScript, userId, websiteName]);
 
     // Fetch script data when component mounts
     useEffect(() => {
