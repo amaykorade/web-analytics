@@ -71,6 +71,12 @@ export const getFunnelStats = async (req, res) => {
       return res.status(404).json({ message: "Funnel not found" });
     }
 
+    console.log('[DEBUG] Found funnel:', {
+      funnelId: funnel._id,
+      funnelName: funnel.funnelName,
+      steps: funnel.steps
+    });
+
     const match = {
       userId: new mongoose.Types.ObjectId(userId),
       websiteName,
@@ -80,16 +86,31 @@ export const getFunnelStats = async (req, res) => {
       }
     };
 
+    console.log('[DEBUG] Tracking data query:', match);
+
     const trackingData = await TrackingModule.find(match).sort({ timestamp: 1 });
 
+    console.log('[DEBUG] Tracking data found:', {
+      count: trackingData.length,
+      sampleEvents: trackingData.slice(0, 3).map(e => ({
+        sessionId: e.sessionId,
+        visitorId: e.visitorId,
+        url: e.url,
+        path: e.path,
+        type: e.type,
+        timestamp: e.timestamp
+      }))
+    });
+
     if (!trackingData || trackingData.length === 0) {
+      console.log('[DEBUG] No tracking data found, returning empty stats');
       return res.status(200).json({
         message: "No tracking data found for the given criteria",
         stats: {
           totalVisitors: 0,
           conversionRate: "0%",
           steps: funnel.steps.map(step => ({
-            name: step.name,
+            name: step.name || step.value,
             visitors: 0,
             dropoff: "0%"
           }))
@@ -98,6 +119,8 @@ export const getFunnelStats = async (req, res) => {
     }
 
     const stats = calculateFunnelStats(trackingData, funnel.steps);
+    
+    console.log('[DEBUG] Calculated stats:', stats);
 
     res.status(200).json({
       message: "Funnel stats retrieved successfully",
