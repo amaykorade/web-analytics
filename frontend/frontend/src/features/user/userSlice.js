@@ -28,7 +28,7 @@ export const Loginthunk = createAsyncThunk(
 export const verificationStatusThunk = createAsyncThunk(
     'auth/status',
     async (email, { rejectWithValue }) => {
-        console.log("verify", email)
+        // console.log("verify", email)
         try {
             const response = await getStatus(email);
             return response;

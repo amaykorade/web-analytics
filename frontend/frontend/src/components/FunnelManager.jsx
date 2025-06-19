@@ -26,24 +26,24 @@ export default function FunnelManager() {
     const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
     const currentScript = currentWebsite || scriptData?.scripts?.[0];
 
-    console.log('Current Website from localStorage:', currentWebsite);
-    console.log('All Scripts:', scriptData?.scripts);
-    console.log('Found Script:', currentScript);
+    // console.log('Current Website from localStorage:', currentWebsite);
+    // console.log('All Scripts:', scriptData?.scripts);
+    // console.log('Found Script:', currentScript);
 
     const userId = currentScript?.userId;
     const websiteName = currentScript?.websiteName;
 
     // Debug logs
-    useEffect(() => {
-        console.log('Debug Info:', {
-            scriptData,
-            currentWebsite,
-            currentScript,
-            userId,
-            websiteName,
-            allScripts: scriptData?.scripts
-        });
-    }, [scriptData, currentWebsite, currentScript, userId, websiteName]);
+    // useEffect(() => {
+    //     console.log('Debug Info:', {
+    //         scriptData,
+    //         currentWebsite,
+    //         currentScript,
+    //         userId,
+    //         websiteName,
+    //         allScripts: scriptData?.scripts
+    //     });
+    // }, [scriptData, currentWebsite, currentScript, userId, websiteName]);
 
     // Fetch script data when component mounts
     useEffect(() => {
@@ -63,7 +63,7 @@ export default function FunnelManager() {
     // Fetch funnels when userId and websiteName are available
     useEffect(() => {
         if (userId && websiteName) {
-            console.log('Fetching funnels with:', { userId, websiteName });
+            // console.log('Fetching funnels with:', { userId, websiteName });
             dispatch(getFunnelsThunk({ userId, websiteName }));
         } else {
             console.log('Cannot fetch funnels:', { userId, websiteName });
@@ -77,13 +77,13 @@ export default function FunnelManager() {
             const startDate = dateRange.startDate.toISOString();
             const endDate = dateRange.endDate.toISOString();
             
-            console.log('Fetching funnel stats with:', {
-                funnelId: selectedFunnel._id,
-                userId,
-                websiteName,
-                startDate,
-                endDate
-            });
+            // console.log('Fetching funnel stats with:', {
+            //     funnelId: selectedFunnel._id,
+            //     userId,
+            //     websiteName,
+            //     startDate,
+            //     endDate
+            // });
             
             dispatch(getFunnelStatsThunk({
                 funnelId: selectedFunnel._id,
@@ -142,7 +142,7 @@ export default function FunnelManager() {
             websiteName: websiteName
         };
 
-        console.log('Creating funnel with data:', funnelData);
+        // console.log('Creating funnel with data:', funnelData);
 
         try {
             const result = await dispatch(createFunnelThunk(funnelData)).unwrap();
