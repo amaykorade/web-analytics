@@ -42,8 +42,8 @@ export const register = async (req, res) => {
             email,
             password: hashedPassword,
             name,
-            pricingPlan: "free",
-            paymentStatus: "active",
+            pricingPlan: "9k",
+            paymentStatus: "trial",
             subscriptionStartDate: new Date(),
             subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         });
