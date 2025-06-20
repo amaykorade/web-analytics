@@ -161,7 +161,7 @@ export default function WebsiteSetup() {
 
     // If not verified, proceed with script generation
     setStep(2);
-    const formData = { url, name, userId };
+    const formData = { url, websiteName: name, userId };
 
     dispatch(generateScriptThunk(formData))
       .unwrap()
