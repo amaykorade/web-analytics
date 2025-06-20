@@ -184,7 +184,7 @@ export const verifyToken = async (req, res) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await AuthModel.findById(decoded.userId);
+        const user = await AuthModel.findById(decoded.userID);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
