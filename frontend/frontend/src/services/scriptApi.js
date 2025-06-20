@@ -15,3 +15,8 @@ export const verifyScriptInstallation = async (formData) => {
     const response = await apiClient.post("/script/verify-script", formData);
     return response.data;
 }
+
+export const deleteScript = async (scriptId) => {
+    const response = await apiClient.delete(`/script/${scriptId}`);
+    return response.data;
+}
