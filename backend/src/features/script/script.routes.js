@@ -1,6 +1,6 @@
 import express from "express";
 import jwtAuth from "../../middleware/jwt.middleware.js";
-import { generateScript, getAllURL, getUserScripts, verifyScriptInstallation } from "./script.controller.js";
+import { generateScript, getAllURL, getUserScripts, verifyScriptInstallation, deleteScript } from "./script.controller.js";
 
 const ScriptRouter = express.Router();
 
@@ -12,5 +12,6 @@ ScriptRouter.post('/generate-script', jwtAuth, generateScript);
 
 ScriptRouter.post('/verify-script', verifyScriptInstallation);
 
+ScriptRouter.delete('/:scriptId', jwtAuth, deleteScript);
 
 export default ScriptRouter;

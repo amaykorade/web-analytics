@@ -219,3 +219,46 @@ export const verifyScriptInstallation = async (req, res) => {
         });
     }
 };
+
+export const deleteScript = async (req, res) => {
+    try {
+        const { scriptId } = req.params;
+        const userId = req.userID;
+
+        // console.log("Delete script request:", { scriptId, userId });
+
+        if (!scriptId || !userId) {
+            return res.status(400).json({ message: "Script ID and User ID are required" });
+        }
+
+        // First, let's check if the script exists
+        const existingScript = await ScriptModel.findById(scriptId);
+        // console.log("Existing script:", existingScript);
+
+        if (!existingScript) {
+            return res.status(404).json({ message: "Script not found" });
+        }
+
+        if (existingScript.userId !== userId) {
+            return res.status(403).json({ message: "You don't have permission to delete this script" });
+        }
+
+        // Find and delete the script, ensuring it belongs to the user
+        const script = await ScriptModel.findOneAndDelete({ _id: scriptId, userId });
+        
+        if (!script) {
+            return res.status(404).json({ message: "Script not found or you don't have permission to delete it" });
+        }
+
+        // console.log("Script deleted successfully:", script);
+
+        res.status(200).json({ 
+            message: "Script deleted successfully", 
+            scriptId: script._id,
+            websiteName: script.websiteName 
+        });
+    } catch (error) {
+        console.error("Error deleting script:", error);
+        res.status(500).json({ message: "Error deleting script" });
+    }
+};

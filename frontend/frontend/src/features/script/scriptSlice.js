@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { generateScript, getScript, verifyScriptInstallation } from "../../services/scriptApi";
+import { generateScript, getScript, verifyScriptInstallation, deleteScript } from "../../services/scriptApi";
 
 
 
@@ -38,6 +38,17 @@ export const verifyScriptThunk = createAsyncThunk(
     }
 )
 
+export const deleteScriptThunk = createAsyncThunk(
+    'script/delete-script', async (scriptId, { rejectWithValue }) => {
+        try {
+            const response = await deleteScript(scriptId);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Unknown error occurred");
+        }
+    }
+)
+
 
 const scriptSlice = createSlice({
     name: "script",
@@ -57,12 +68,12 @@ const scriptSlice = createSlice({
                 state.error = null;
             })
             .addCase(getScriptThunk.fulfilled, (state, action) => {
-                console.log('Script Redux State Update:', action.payload);
+                // console.log('Script Redux State Update:', action.payload);
                 state.data = action.payload;
                 state.loading = false;
             })
             .addCase(getScriptThunk.rejected, (state, action) => {
-                console.error('Script Redux Error:', action.payload);
+                // console.error('Script Redux Error:', action.payload);
                 state.loading = false;
                 state.error = action.payload;
             })
@@ -88,6 +99,19 @@ const scriptSlice = createSlice({
                 state.loading = false;
             })
             .addCase(verifyScriptThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(deleteScriptThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteScriptThunk.fulfilled, (state, action) => {
+                state.data = null;
+                state.isInstalled = false;
+                state.loading = false;
+            })
+            .addCase(deleteScriptThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
