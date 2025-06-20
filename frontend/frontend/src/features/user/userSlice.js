@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getCurrentUser, getStatus, login, signUp } from "../../services/userApi";
+import { getCurrentUser, getStatus, login, signUp, resendVerificationEmail } from "../../services/userApi";
 
 export const signUpthunk = createAsyncThunk(
     'auth/signup',
@@ -49,6 +49,17 @@ export const getCurrentUserthunk = createAsyncThunk(
     }
 );
 
+export const resendVerificationEmailThunk = createAsyncThunk(
+    'auth/resendVerification',
+    async (email, { rejectWithValue }) => {
+        try {
+            const response = await resendVerificationEmail(email);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Unknown error occurred");
+        }
+    }
+);
 
 const authSlice = createSlice({
     name: "auth",
@@ -114,6 +125,17 @@ const authSlice = createSlice({
                 state.loading = false;
             })
             .addCase(verificationStatusThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(resendVerificationEmailThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(resendVerificationEmailThunk.fulfilled, (state, action) => {
+                state.loading = false;
+            })
+            .addCase(resendVerificationEmailThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

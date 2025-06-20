@@ -11,6 +11,7 @@ import "./styles/antd-dark.css";
 
 import Signup from "./components/auth/signup";
 import Login from "./components/auth/login";
+import EmailVerification from "./components/auth/EmailVerification";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./components/Dashboard";
 import LocationDevices from "./components/Devices";
@@ -83,6 +84,7 @@ function App() {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/location" element={<Location />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

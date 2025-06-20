@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   signUpthunk,
   verificationStatusThunk,
+  resendVerificationEmailThunk,
 } from "../../features/user/userSlice";
-import { AlertCircle, Mail, User, Lock } from "lucide-react";
+import { AlertCircle, Mail, User, Lock, RefreshCw } from "lucide-react";
 
 const Signup = () => {
   const dispatch = useDispatch();
@@ -18,6 +19,8 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -28,6 +31,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setShowResendButton(false);
 
     const formData = { name, email, password };
     try {
@@ -36,10 +40,16 @@ const Signup = () => {
         localStorage.setItem("token", response.token);
         setMessage("Verification email sent. Please check your inbox.");
 
+        // Show resend button after 30 seconds
+        setTimeout(() => {
+          setShowResendButton(true);
+        }, 30000);
+
         let attempts = 0;
         const intervalId = setInterval(async () => {
           if (attempts >= 10) {
             clearInterval(intervalId);
+            setShowResendButton(true);
             return;
           }
           const verifyResponse = await dispatch(
@@ -48,7 +58,9 @@ const Signup = () => {
           if (verifyResponse.isVerified) {
             clearInterval(intervalId);
             setMessage("User verified successfully. Redirecting...");
-            navigate("/login");
+            setTimeout(() => {
+              navigate("/login");
+            }, 2000);
           }
           attempts++;
         }, 5000);
@@ -60,6 +72,18 @@ const Signup = () => {
 
   const handleGoogleSignUp = async () => {
     window.location.href = "https://backend.webmeter.in/api/user/google";
+  };
+
+  const handleResendVerificationEmail = async () => {
+    setResendLoading(true);
+    try {
+      await dispatch(resendVerificationEmailThunk(email)).unwrap();
+      setMessage("Verification email resent. Please check your inbox.");
+    } catch (err) {
+      console.error("Resend verification email error:", err);
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   return (
@@ -185,6 +209,18 @@ const Signup = () => {
               Sign up with Google
             </button>
           </div>
+          {showResendButton && (
+            <div className="mt-6">
+              <button
+                onClick={handleResendVerificationEmail}
+                disabled={resendLoading}
+                className="w-full flex items-center justify-center px-4 py-2 border border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-200 bg-gray-900 hover:bg-gray-800"
+              >
+                <RefreshCw className="h-5 w-5 mr-2" />
+                {resendLoading ? "Resending..." : "Resend verification email"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
