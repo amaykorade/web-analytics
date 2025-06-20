@@ -21,3 +21,8 @@ export const getStatus = async (email) => {
     const response = await apiClient.get(`/user/verify-status?email=${email}`);
     return response.data;
 }
+
+export const resendVerificationEmail = async (email) => {
+    const response = await apiClient.post("/user/resend-verification", { email });
+    return response.data;
+}

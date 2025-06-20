@@ -22,28 +22,28 @@ export default function FunnelManager() {
         endDate: new Date()
     });
 
-    // Get the selected website's data
-    const selectedWebsite = localStorage.getItem('selectedWebsite') || 'ecommerce';
-    const currentScript = scriptData?.scripts?.find(script => script.websiteName === selectedWebsite);
+    // Get the selected website's data - use the same logic as Dashboard
+    const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
+    const currentScript = currentWebsite || scriptData?.scripts?.[0];
 
-    console.log('Selected Website:', selectedWebsite);
-    console.log('All Scripts:', scriptData?.scripts);
-    console.log('Found Script:', currentScript);
+    // console.log('Current Website from localStorage:', currentWebsite);
+    // console.log('All Scripts:', scriptData?.scripts);
+    // console.log('Found Script:', currentScript);
 
     const userId = currentScript?.userId;
     const websiteName = currentScript?.websiteName;
 
     // Debug logs
-    useEffect(() => {
-        console.log('Debug Info:', {
-            scriptData,
-            selectedWebsite,
-            currentScript,
-            userId,
-            websiteName,
-            allScripts: scriptData?.scripts
-        });
-    }, [scriptData, selectedWebsite, currentScript, userId, websiteName]);
+    // useEffect(() => {
+    //     console.log('Debug Info:', {
+    //         scriptData,
+    //         currentWebsite,
+    //         currentScript,
+    //         userId,
+    //         websiteName,
+    //         allScripts: scriptData?.scripts
+    //     });
+    // }, [scriptData, currentWebsite, currentScript, userId, websiteName]);
 
     // Fetch script data when component mounts
     useEffect(() => {
@@ -63,7 +63,7 @@ export default function FunnelManager() {
     // Fetch funnels when userId and websiteName are available
     useEffect(() => {
         if (userId && websiteName) {
-            console.log('Fetching funnels with:', { userId, websiteName });
+            // console.log('Fetching funnels with:', { userId, websiteName });
             dispatch(getFunnelsThunk({ userId, websiteName }));
         } else {
             console.log('Cannot fetch funnels:', { userId, websiteName });
@@ -73,12 +73,24 @@ export default function FunnelManager() {
     // Fetch funnel stats when a funnel is selected or date range changes
     useEffect(() => {
         if (selectedFunnel && userId && websiteName && dateRange.startDate && dateRange.endDate) {
+            // Format dates to ISO strings for the backend
+            const startDate = dateRange.startDate.toISOString();
+            const endDate = dateRange.endDate.toISOString();
+            
+            // console.log('Fetching funnel stats with:', {
+            //     funnelId: selectedFunnel._id,
+            //     userId,
+            //     websiteName,
+            //     startDate,
+            //     endDate
+            // });
+            
             dispatch(getFunnelStatsThunk({
                 funnelId: selectedFunnel._id,
                 userId,
                 websiteName,
-                startDate: dateRange.startDate,
-                endDate: dateRange.endDate
+                startDate,
+                endDate
             }));
         }
     }, [dispatch, selectedFunnel, userId, websiteName, dateRange]);
@@ -130,7 +142,7 @@ export default function FunnelManager() {
             websiteName: websiteName
         };
 
-        console.log('Creating funnel with data:', funnelData);
+        // console.log('Creating funnel with data:', funnelData);
 
         try {
             const result = await dispatch(createFunnelThunk(funnelData)).unwrap();

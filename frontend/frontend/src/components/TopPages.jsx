@@ -56,7 +56,7 @@ export default function TopPages() {
                   {page.views}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 text-right">
-                  {page.avgTimeSpent ? `${page.avgTimeSpent}s` : '0s'}
+                  {page.avgTimeSpent || '0s'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 text-right">
                   {page.bounceRate}

@@ -43,9 +43,21 @@ export const getFunnels = async (req, res) => {
 // Get stats for a funnel
 export const getFunnelStats = async (req, res) => {
   try {
-    const { funnelId, userId, websiteName, startDate, endDate } = req.query;
+    const { funnelId } = req.params;
+    const { userId, websiteName, startDate, endDate } = req.query;
+
+    console.log('[DEBUG] getFunnelStats called with:', {
+      funnelId,
+      userId,
+      websiteName,
+      startDate,
+      endDate,
+      query: req.query,
+      params: req.params
+    });
 
     if (!funnelId || !userId || !websiteName) {
+      console.log('[DEBUG] Missing required parameters:', { funnelId, userId, websiteName });
       return res.status(400).json({ message: "Missing required parameters" });
     }
 
@@ -59,10 +71,12 @@ export const getFunnelStats = async (req, res) => {
       return res.status(404).json({ message: "Funnel not found" });
     }
 
+   
     // Use the later of funnel.createdAt and requested startDate
     const funnelCreatedAt = funnel.createdAt;
     const requestedStartDate = new Date(startDate);
     const effectiveStartDate = funnelCreatedAt > requestedStartDate ? funnelCreatedAt : requestedStartDate;
+
 
     const match = {
       userId: new mongoose.Types.ObjectId(userId),
@@ -73,16 +87,31 @@ export const getFunnelStats = async (req, res) => {
       }
     };
 
+    console.log('[DEBUG] Tracking data query:', match);
+
     const trackingData = await TrackingModule.find(match).sort({ timestamp: 1 });
 
+    console.log('[DEBUG] Tracking data found:', {
+      count: trackingData.length,
+      sampleEvents: trackingData.slice(0, 3).map(e => ({
+        sessionId: e.sessionId,
+        visitorId: e.visitorId,
+        url: e.url,
+        path: e.path,
+        type: e.type,
+        timestamp: e.timestamp
+      }))
+    });
+
     if (!trackingData || trackingData.length === 0) {
+      console.log('[DEBUG] No tracking data found, returning empty stats');
       return res.status(200).json({
         message: "No tracking data found for the given criteria",
         stats: {
           totalVisitors: 0,
           conversionRate: "0%",
           steps: funnel.steps.map(step => ({
-            name: step.name,
+            name: step.name || step.value,
             visitors: 0,
             dropoff: "0%"
           }))
@@ -91,6 +120,8 @@ export const getFunnelStats = async (req, res) => {
     }
 
     const stats = calculateFunnelStats(trackingData, funnel.steps);
+    
+    console.log('[DEBUG] Calculated stats:', stats);
 
     res.status(200).json({
       message: "Funnel stats retrieved successfully",

@@ -39,7 +39,7 @@ export default function WebsiteSetup() {
 
     try {
       const response = await dispatch(verifyScriptThunk(formData)).unwrap();
-      console.log('Verification response:', response);
+      // console.log('Verification response:', response);
       
       if (response?.verified) {
         setIsVerified(true);
@@ -53,7 +53,7 @@ export default function WebsiteSetup() {
           verified: true
         };
         
-        console.log('Website data to store:', websiteData);
+        // console.log('Website data to store:', websiteData);
         
         // Store the current website
         localStorage.setItem("currentWebsite", JSON.stringify(websiteData));
@@ -161,7 +161,7 @@ export default function WebsiteSetup() {
 
     // If not verified, proceed with script generation
     setStep(2);
-    const formData = { url, name, userId };
+    const formData = { url, websiteName: name, userId };
 
     dispatch(generateScriptThunk(formData))
       .unwrap()
@@ -180,7 +180,7 @@ export default function WebsiteSetup() {
       dispatch(getScriptThunk())
         .unwrap()
         .then((response) => {
-          console.log('Script data response:', response);
+          // console.log('Script data response:', response);
           if (response?.isPresent) {
             const website = response.scripts?.find(w => w.url === url);
             if (website?.verified) {
@@ -190,7 +190,7 @@ export default function WebsiteSetup() {
               setIsVerified(false);
             }
           } else {
-            console.log('Script not present in response');
+            // console.log('Script not present in response');
             setError("Script not found. Please verify the installation again.");
             setIsVerified(false);
           }
@@ -215,31 +215,31 @@ export default function WebsiteSetup() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Set Up Website Tracking</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold text-white mb-3">Set Up Website Tracking</h1>
+          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             Add our tracking script to your website to start collecting valuable insights about your visitors.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
           {/* Progress Steps */}
-          <div className="flex items-center justify-center p-6 border-b border-gray-100">
+          <div className="flex items-center justify-center p-6 border-b border-gray-700">
             <div className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 1 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
                 1
               </div>
-              <div className={`h-1 w-16 ${step === 2 ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 2 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+              <div className={`h-1 w-16 ${step === 2 ? 'bg-indigo-600' : 'bg-gray-700'}`}></div>
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 2 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
                 2
               </div>
             </div>
@@ -249,7 +249,7 @@ export default function WebsiteSetup() {
             {step === 1 && (
               <form onSubmit={handleUrlSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Website URL
                   </label>
                   <input
@@ -258,12 +258,12 @@ export default function WebsiteSetup() {
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://example.com"
-                    className="block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                    className="block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Website Name
                   </label>
                   <input
@@ -272,14 +272,14 @@ export default function WebsiteSetup() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="My Website"
-                    className="block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                    className="block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                   />
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 p-4 rounded-lg flex items-start space-x-3">
+                  <div className="bg-red-900/50 p-4 rounded-lg flex items-start space-x-3 border border-red-700">
                     <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
-                    <p className="text-sm font-medium text-red-800">{error}</p>
+                    <p className="text-sm font-medium text-red-300">{error}</p>
                   </div>
                 )}
 
@@ -295,54 +295,54 @@ export default function WebsiteSetup() {
 
             {step === 2 && (
               <div className="space-y-8">
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-gray-700 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">Installation Steps</h3>
+                    <h3 className="text-lg font-medium text-white">Installation Steps</h3>
                     <div className="flex items-center space-x-2">
-                      <Shield className="h-5 w-5 text-emerald-500" />
-                      <span className="text-sm text-emerald-600 font-medium">GDPR Compliant</span>
+                      <Shield className="h-5 w-5 text-emerald-400" />
+                      <span className="text-sm text-emerald-400 font-medium">GDPR Compliant</span>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <span className="text-sm font-medium text-indigo-600">1</span>
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                        <span className="text-sm font-medium text-white">1</span>
                       </div>
-                      <p className="text-sm text-gray-600">Copy the tracking script below</p>
+                      <p className="text-sm text-gray-300">Copy the tracking script below</p>
                     </div>
                     
                     <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <span className="text-sm font-medium text-indigo-600">2</span>
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                        <span className="text-sm font-medium text-white">2</span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Add the script to your website in one of these ways:</p>
+                        <p className="text-sm text-gray-300">Add the script to your website in one of these ways:</p>
                         <div className="mt-2 space-y-2">
                           <div className="flex items-start space-x-2">
-                            <span className="text-indigo-600">•</span>
-                            <p className="text-sm text-gray-600">In the &lt;head&gt; tag of your main HTML file</p>
+                            <span className="text-indigo-400">•</span>
+                            <p className="text-sm text-gray-300">In the &lt;head&gt; tag of your main HTML file</p>
                           </div>
                           <div className="flex items-start space-x-2">
-                            <span className="text-indigo-600">•</span>
-                            <p className="text-sm text-gray-600">Just before the closing &lt;/body&gt; tag</p>
+                            <span className="text-indigo-400">•</span>
+                            <p className="text-sm text-gray-300">Just before the closing &lt;/body&gt; tag</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <span className="text-sm font-medium text-indigo-600">3</span>
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                        <span className="text-sm font-medium text-white">3</span>
                       </div>
-                      <p className="text-sm text-gray-600">Click "Verify Installation" once you've added the script</p>
+                      <p className="text-sm text-gray-300">Click "Verify Installation" once you've added the script</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-300">
                       Tracking Script
                     </label>
                     <button
@@ -351,7 +351,7 @@ export default function WebsiteSetup() {
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-400 hover:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       {copied ? (
                         <>
@@ -367,23 +367,23 @@ export default function WebsiteSetup() {
                     </button>
                   </div>
                   <div className="relative">
-                    <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
+                    <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto border border-gray-700">
                       <code className="text-sm">{script}</code>
                     </pre>
                   </div>
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 p-4 rounded-lg flex items-start space-x-3">
+                  <div className="bg-red-900/50 p-4 rounded-lg flex items-start space-x-3 border border-red-700">
                     <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
-                    <p className="text-sm font-medium text-red-800">{error}</p>
+                    <p className="text-sm font-medium text-red-300">{error}</p>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between pt-4">
                   <button
                     onClick={() => setStep(1)}
-                    className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
+                    className="inline-flex items-center text-sm font-medium text-gray-400 hover:text-gray-300"
                   >
                     ← Back to website details
                   </button>
@@ -412,28 +412,28 @@ export default function WebsiteSetup() {
 
         {/* Features Section */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-100">
-            <div className="bg-indigo-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Zap className="h-6 w-6 text-indigo-600" />
+          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <div className="bg-indigo-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Zap className="h-6 w-6 text-white" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Lightning Fast</h3>
-            <p className="text-gray-600">Minimal impact on your website's loading speed with optimized tracking.</p>
+            <h3 className="text-lg font-medium text-white mb-2">Lightning Fast</h3>
+            <p className="text-gray-300">Minimal impact on your website's loading speed with optimized tracking.</p>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-gray-100">
-            <div className="bg-indigo-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Shield className="h-6 w-6 text-indigo-600" />
+          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <div className="bg-indigo-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Shield className="h-6 w-6 text-white" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Privacy First</h3>
-            <p className="text-gray-600">GDPR-compliant tracking that respects your visitors' privacy.</p>
+            <h3 className="text-lg font-medium text-white mb-2">Privacy First</h3>
+            <p className="text-gray-300">GDPR-compliant tracking that respects your visitors' privacy.</p>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-gray-100">
-            <div className="bg-indigo-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Code className="h-6 w-6 text-indigo-600" />
+          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <div className="bg-indigo-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Code className="h-6 w-6 text-white" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Easy Integration</h3>
-            <p className="text-gray-600">Simple one-line script that works with any website platform.</p>
+            <h3 className="text-lg font-medium text-white mb-2">Easy Integration</h3>
+            <p className="text-gray-300">Simple one-line script that works with any website platform.</p>
           </div>
         </div>
       </div>

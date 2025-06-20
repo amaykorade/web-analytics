@@ -98,7 +98,7 @@ export default function Dashboard() {
       .unwrap()
       .then((response) => {
         const verifiedWebsites = response.scripts.filter(website => website.isVerified);
-        console.log('Verified websites:', verifiedWebsites);
+        // console.log('Verified websites:', verifiedWebsites);
         
         // Get the current website from localStorage or use the first verified website
         const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
@@ -142,7 +142,7 @@ export default function Dashboard() {
   }, [result]);
 
   const handleWebsiteChange = (website) => {
-    console.log('Changing to website:', website);
+    // console.log('Changing to website:', website);
     setSelectedWebsite(website);
     setData((prevData) => ({
       ...prevData,

@@ -28,6 +28,14 @@ export const getFunnels = async (userId, websiteName) => {
 };
 
 export const getFunnelStats = async (funnelId, userId, websiteName, startDate, endDate) => {
+    console.log('[DEBUG] getFunnelStats API call with:', {
+        funnelId,
+        userId,
+        websiteName,
+        startDate,
+        endDate
+    });
+    
     const response = await apiClient.get(`/funnel/${funnelId}/stats`, {
         params: { userId, websiteName, startDate, endDate }
     });

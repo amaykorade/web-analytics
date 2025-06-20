@@ -21,6 +21,7 @@ import PaymentRouter from './src/features/payment/payment.routes.js';
 // import funnelRoutes from './features/funnel/funnel.routes.js';
 import FunnelRouter from './src/features/funnel/funnel.routes.js';
 import { migrateVerificationStatus } from './src/features/script/script.migration.js';
+import ScriptModel from './src/features/script/script.schema.js';
 
 // cron job
 import './src/cron-job/subscription.cron.js';
@@ -32,6 +33,18 @@ const PORT = process.env.PORT || 3000;
 
 const _filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(_filename);
+
+const STATIC_ALLOWED_ORIGINS = [
+  'https://www.webmeter.in',
+  'https://webmeter.in',
+  'https://backend.webmeter.in',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:5500',
+  'http://localhost:5500'
+];
 
 // Allow CORS for static tracker scripts
 app.use('/js', (req, res, next) => {
@@ -45,55 +58,37 @@ app.use('/js', (req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-let allowedOrigins = [
-    'http://localhost:5174',
-    'http://localhost:5173',
-    'http://localhost:3001',
-    'http://localhost:3000',
-    'https://www.webmeter.in',
-    'https://webmeter.in',
-    'https://backend.webmeter.in',
-    'http://127.0.0.1:5500',
-    'http://localhost:5500'
-];
-
-// ⏳ **Update Allowed Origins (Ensures DB Connection)**
-const updateAllowedOrigins = async () => {
-    try {
-        if (mongoose.connection.readyState !== 1) {
-            console.log("⚠️ Waiting for database connection...");
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Wait before retrying
-        }
-
-        const result = await getAllURL();
-        console.log("🔍 Raw result from getAllURL():", result); // Debugging line
-
-        if (Array.isArray(result)) {
-            allowedOrigins = [...new Set([...allowedOrigins, ...result])]; // Avoid duplicates
-            console.log("✅ Updated Allowed Origins:", allowedOrigins);
-        } else {
-            console.error("❌ Error: getAllURL() did not return an array.");
-        }
-    } catch (error) {
-        console.error("❌ Error fetching allowed origins:", error);
-    }
-};
-
-
 // 🌍 **CORS Middleware**
-await updateAllowedOrigins();
-
 app.use(cors({
-    origin: function (origin, callback) {
-        console.log("🔍 CORS Check -> Request Origin:", origin);
-        console.log("✅ Allowed Origins List:", allowedOrigins);
+    origin: async function (origin, callback) {
+        try {
+            if (!origin) return callback(null, true); // allow non-browser requests
 
-        if (!origin || allowedOrigins.includes(origin)) {
-            console.log("✔️ Allowed:", origin);
-            callback(null, true);
-        } else {
-            console.error(`❌ CORS Error: ${origin} is not allowed.`);
-            callback(new Error("Not allowed by CORS"));
+            // Query the DB for user-registered origins
+            const scripts = await ScriptModel.find({}, 'url');
+            const dynamicOrigins = scripts.map(r => {
+                try {
+                    return new URL(r.url).origin;
+                } catch {
+                    return null;
+                }
+            }).filter(Boolean);
+
+            // Combine static and dynamic origins
+            const allowedOrigins = [...STATIC_ALLOWED_ORIGINS, ...dynamicOrigins];
+
+            console.log("🔍 CORS Check -> Request Origin:", origin);
+            console.log("✅ Allowed Origins List:", allowedOrigins);
+
+            if (allowedOrigins.includes(origin)) {
+                console.log("✔️ Allowed:", origin);
+                callback(null, true);
+            } else {
+                console.error(`❌ CORS Error: ${origin} is not allowed.`);
+                callback(new Error("Not allowed by CORS"));
+            }
+        } catch (err) {
+            callback(err);
         }
     },
     credentials: true,
@@ -147,7 +142,7 @@ app.use('/api/funnel', FunnelRouter);
         await migrateVerificationStatus();
         console.log("✅ Verification status migration completed!");
 
-        await updateAllowedOrigins(); // Fetch domains before starting server
+        await getAllURL(); // Fetch domains before starting server
 
         app.listen(PORT, '0.0.0.0', async () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);

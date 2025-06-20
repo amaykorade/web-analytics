@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUser, login, register, verificationStatus, verifyEmail } from './auth.controller.js';
+import { getUser, login, register, verificationStatus, verifyEmail, resendVerificationEmail } from './auth.controller.js';
 import jwtAuth from '../../middleware/jwt.middleware.js';
 import passport from 'passport';
 import '../../config/passport-config.js'
@@ -19,6 +19,7 @@ AuthRouter.get('/verify', verifyEmail);
 
 AuthRouter.get('/verify-status', verificationStatus);
 
+AuthRouter.post('/resend-verification', resendVerificationEmail);
 
 AuthRouter.get('/google', passport.authenticate("google", { scope: ["profile", "email"] }));
 

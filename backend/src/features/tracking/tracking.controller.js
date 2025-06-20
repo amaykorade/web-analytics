@@ -118,14 +118,14 @@ export const addData = async (req, res) => {
         } : { country: "Unknown", region: "Unknown", city: "Unknown" };
 
         // Save to database
-        if (req.body.type === 'page_visit') {
-            console.log('[DEBUG] Incoming page_visit:', {
-                url: req.body.url,
-                sessionId: req.body.sessionId,
-                timeSpent: req.body.timeSpent,
-                timestamp: req.body.timestamp
-            });
-        }
+        // if (req.body.type === 'page_visit') {
+        //     console.log('[DEBUG] Incoming page_visit:', {
+        //         url: req.body.url,
+        //         sessionId: req.body.sessionId,
+        //         timeSpent: req.body.timeSpent,
+        //         timestamp: req.body.timestamp
+        //     });
+        // }
         const trackingEntry = new TrackingModule({
             ...req.body,
             userId: userID,
@@ -140,7 +140,7 @@ export const addData = async (req, res) => {
         // Increment event count
         user.eventsUsed += 1;
         await user.save();
-        console.log('[DEBUG] Incoming request body:', req.body);
+        // console.log('[DEBUG] Incoming request body:', req.body);
         res.status(200).json({ message: "Data received and stored successfully", data: req.body });
     } catch (error) {
         console.error("Error saving tracking data:", error);
@@ -181,6 +181,23 @@ export const getAnalysis = async (req, res) => {
             if (previous === 0) return "N/A vs last period";
             const change = (((current - previous) / previous) * 100).toFixed(2);
             return `${change > 0 ? "+" : ""}${change}% vs last period`;
+        };
+
+        // Helper function to format time duration
+        const formatTimeDuration = (seconds) => {
+            if (!seconds || seconds <= 0) return "0s";
+            
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${remainingSeconds}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${remainingSeconds}s`;
+            } else {
+                return `${remainingSeconds}s`;
+            }
         };
 
         const response = {};
@@ -462,8 +479,10 @@ export const getAnalysis = async (req, res) => {
             // Ensure sessions is an array
             const sessionIds = Array.isArray(page.sessions) ? page.sessions : [];
             
-            // Get all sessions that only visited this page
-            const singlePageSessions = await TrackingModule.aggregate([
+            // console.log(`[DEBUG] Processing page ${page.url} with ${sessionIds.length} sessions:`, sessionIds);
+            
+            // Get all sessions that visited this page and their complete page visit history
+            const sessionPageHistory = await TrackingModule.aggregate([
                 {
                     $match: {
                         userId: userObjectId,
@@ -522,46 +541,42 @@ export const getAnalysis = async (req, res) => {
                 {
                     $group: {
                         _id: "$sessionId",
-                        uniquePages: { $addToSet: "$pathname" },
+                        uniquePathnames: { $addToSet: "$pathname" },
                         pageCount: { $sum: 1 }
-                    }
-                },
-                {
-                    $match: {
-                        $expr: { $eq: [{ $size: { $ifNull: ["$uniquePages", []] } }, 1] }
                     }
                 }
             ]);
 
+            // console.log(`[DEBUG] Session page history for ${page.url}:`, sessionPageHistory);
+
             // Calculate bounce rate for this page
-            const bouncedSessions = singlePageSessions.filter(session => {
-                const sessionPathname = session.uniquePages[0];
+            const bouncedSessions = sessionPageHistory.filter(session => {
+                const sessionPathnames = session.uniquePathnames;
                 const pagePathname = page.url;
                 
-                console.log(`[DEBUG] Comparing paths:`, {
-                    sessionPathname,
-                    pagePathname,
-                    match: sessionPathname === pagePathname
-                });
+                // A session is considered "bounced" for this page if:
+                // 1. It only visited one page total, AND
+                // 2. That one page is the current page being analyzed
+                const isSinglePageSession = sessionPathnames.length === 1;
+                const visitedThisPage = sessionPathnames.includes(pagePathname);
                 
-                return sessionPathname === pagePathname;
+                // console.log(`[DEBUG] Session ${session._id} analysis:`, {
+                //     sessionPathnames,
+                //     pagePathname,
+                //     isSinglePageSession,
+                //     visitedThisPage,
+                //     isBounced: isSinglePageSession && visitedThisPage
+                // });
+                
+                return isSinglePageSession && visitedThisPage;
             }).length;
 
-            console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
-                sessionCount: page.sessionCount,
-                singlePageSessions: singlePageSessions.length,
-                bouncedSessions,
-                uniquePages: singlePageSessions.map(s => s.uniquePages[0]),
-                pageUrl: page.url,
-                pagePathname: page.url.startsWith('http') ? new URL(page.url).pathname : page.url
-            });
-
-            console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
-                sessionCount: page.sessionCount,
-                singlePageSessions: singlePageSessions.length,
-                bouncedSessions,
-                uniquePages: singlePageSessions.map(s => s.uniquePages[0])
-            });
+            // console.log(`[DEBUG] Bounce rate for ${page.url}:`, {
+            //     sessionCount: page.sessionCount,
+            //     totalSessionsAnalyzed: sessionPageHistory.length,
+            //     bouncedSessions,
+            //     pagePathname: page.url
+            // });
 
             // Ensure we don't divide by zero and handle edge cases
             const bounceRate = page.sessionCount > 0 
@@ -570,8 +585,9 @@ export const getAnalysis = async (req, res) => {
             
             page.bounceRate = `${bounceRate}%`;
             
-            // Ensure avgTimeSpent is a valid number and convert to seconds
-            page.avgTimeSpent = page.avgTimeSpent && page.avgTimeSpent > 0 ? Math.round(page.avgTimeSpent) : 0;
+            // Format avgTimeSpent properly (hours, minutes, seconds)
+            const avgTimeInSeconds = page.avgTimeSpent && page.avgTimeSpent > 0 ? page.avgTimeSpent : 0;
+            page.avgTimeSpent = formatTimeDuration(avgTimeInSeconds);
         }
 
         response.topPages = pageStats;
