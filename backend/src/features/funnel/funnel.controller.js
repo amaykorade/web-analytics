@@ -71,17 +71,18 @@ export const getFunnelStats = async (req, res) => {
       return res.status(404).json({ message: "Funnel not found" });
     }
 
-    console.log('[DEBUG] Found funnel:', {
-      funnelId: funnel._id,
-      funnelName: funnel.funnelName,
-      steps: funnel.steps
-    });
+   
+    // Use the later of funnel.createdAt and requested startDate
+    const funnelCreatedAt = funnel.createdAt;
+    const requestedStartDate = new Date(startDate);
+    const effectiveStartDate = funnelCreatedAt > requestedStartDate ? funnelCreatedAt : requestedStartDate;
+
 
     const match = {
       userId: new mongoose.Types.ObjectId(userId),
       websiteName,
       timestamp: {
-        $gte: new Date(startDate),
+        $gte: effectiveStartDate,
         $lte: new Date(endDate)
       }
     };
