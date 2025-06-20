@@ -12,7 +12,7 @@ export const verifyToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.userID = decoded.userId;
+        req.userID = decoded.userID;
         next();
     } catch (err) {
         console.error("Error verifying token:", err);
