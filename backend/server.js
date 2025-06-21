@@ -49,7 +49,7 @@ const STATIC_ALLOWED_ORIGINS = [
 // Allow CORS for static tracker scripts
 app.use('/js', (req, res, next) => {
     const origin = req.headers.origin;
-    if (origin && allowedOrigins.includes(origin)) {
+    if (origin && STATIC_ALLOWED_ORIGINS.includes(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
