@@ -1,5 +1,25 @@
 // Utility functions for funnel analytics
 
+// Helper function to normalize URL paths
+const normalizePath = (path) => {
+    if (!path) return '';
+    
+    // Remove leading/trailing whitespace
+    let normalized = path.trim();
+    
+    // Ensure it starts with /
+    if (!normalized.startsWith('/')) {
+        normalized = '/' + normalized;
+    }
+    
+    // Remove trailing slash unless it's just /
+    if (normalized.length > 1 && normalized.endsWith('/')) {
+        normalized = normalized.slice(0, -1);
+    }
+    
+    return normalized;
+};
+
 export const calculateFunnelStats = (events, steps) => {
     console.log('[DEBUG] calculateFunnelStats called with:', {
         eventCount: events.length,
@@ -32,17 +52,37 @@ export const calculateFunnelStats = (events, steps) => {
             if (currentStepIndex >= steps.length) return;
 
             const step = steps[currentStepIndex];
-            const eventPath = event.path || (event.url ? new URL(event.url).pathname : null);
+            
+            // Get the event path, with fallback logic
+            let eventPath = event.path;
+            if (!eventPath && event.url) {
+                try {
+                    // Handle both absolute and relative URLs
+                    if (event.url.startsWith('http')) {
+                        eventPath = new URL(event.url).pathname;
+                    } else {
+                        // For relative URLs, use as is
+                        eventPath = event.url.startsWith('/') ? event.url : `/${event.url}`;
+                    }
+                } catch (error) {
+                    console.log('Error parsing URL:', event.url, error);
+                    eventPath = event.url;
+                }
+            }
+
+            // Normalize both paths for comparison
+            const normalizedEventPath = normalizePath(eventPath);
+            const normalizedStepValue = normalizePath(step.value);
 
             console.log('[DEBUG] Checking event against step:', {
-                eventPath,
-                stepValue: step.value,
+                eventPath: normalizedEventPath,
+                stepValue: normalizedStepValue,
                 stepType: step.type,
                 currentStepIndex,
-                matches: eventPath === step.value
+                matches: normalizedEventPath === normalizedStepValue
             });
 
-            if (eventPath === step.value) {
+            if (normalizedEventPath === normalizedStepValue) {
                 stepUserSets[currentStepIndex].add(event.visitorId);
                 currentStepIndex++;
                 console.log('[DEBUG] Step matched, moving to next step:', currentStepIndex);
@@ -58,7 +98,7 @@ export const calculateFunnelStats = (events, steps) => {
             `${(((stepUserSets[index - 1].size - visitors) / stepUserSets[index - 1].size) * 100).toFixed(2)}%`;
         
         return {
-            name: step.name || step.value,
+            name: step.value,
             type: step.type,
             value: step.value,
             visitors,

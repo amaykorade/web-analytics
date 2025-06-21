@@ -13,6 +13,7 @@ const TrackingSchema = new mongoose.Schema({
 
     // Page visit details
     url: String,
+    path: String,
     referrer: String,
     utmSource: String,
     utmMedium: String,

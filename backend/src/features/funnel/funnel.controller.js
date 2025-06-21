@@ -111,7 +111,7 @@ export const getFunnelStats = async (req, res) => {
           totalVisitors: 0,
           conversionRate: "0%",
           steps: funnel.steps.map(step => ({
-            name: step.name || step.value,
+            name: step.value,
             visitors: 0,
             dropoff: "0%"
           }))
