@@ -47,13 +47,33 @@ const STATIC_ALLOWED_ORIGINS = [
 ];
 
 // Allow CORS for static tracker scripts
-app.use('/js', (req, res, next) => {
+app.use('/js', async (req, res, next) => {
     const origin = req.headers.origin;
-    if (origin && STATIC_ALLOWED_ORIGINS.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    if (!origin) {
+        return next();
     }
-    next();
+    
+    try {
+        const scripts = await ScriptModel.find({}, 'url');
+        const dynamicOrigins = scripts.map(r => {
+            try {
+                return new URL(r.url).origin;
+            } catch {
+                return null;
+            }
+        }).filter(Boolean);
+
+        const allowedOrigins = [...STATIC_ALLOWED_ORIGINS, ...dynamicOrigins];
+        
+        if (allowedOrigins.includes(origin)) {
+            res.setHeader('Access-Control-Allow-Origin', origin);
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+        next();
+    } catch (err) {
+        console.error("Error in /js CORS middleware:", err);
+        next(err);
+    }
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
