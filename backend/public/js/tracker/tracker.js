@@ -1,6 +1,6 @@
 console.log("Main tracker loaded!");
 import { createConsentPopup } from './consent.js';
-import { setCookie, getCookie, getSessionId } from './storage.js';
+import { setCookie, getCookie, getSessionId, getVisitorId } from './storage.js';
 import { getDeviceInfo } from './device.js';
 import { getGeoLocation } from './geo.js';
 import { extractUTMParams, sendData } from './api.js';
@@ -20,6 +20,7 @@ import { extractUTMParams, sendData } from './api.js';
     async function trackUserActivity() {
         // console.log("trackUserActivity called");
         const sessionId = getSessionId();
+        const visitorId = getVisitorId();
         const utmParams = extractUTMParams();
         const geoData = await getGeoLocation();
         // console.log("geoData loaded", geoData);
@@ -52,7 +53,8 @@ import { extractUTMParams, sendData } from './api.js';
                 },
                 timestamp: new Date().toISOString(),
                 entryPage: isEntryPage,
-                visitorId: sessionId,
+                visitorId: visitorId,
+                sessionId: sessionId,
                 timeSpent: 0 // Always include timeSpent for initial event
             };
             console.log("trackPageVisit called", pageVisitData);
@@ -129,9 +131,9 @@ import { extractUTMParams, sendData } from './api.js';
             const clickData = {
                 type: "click",
                 sessionId,
-                    visitorId: sessionId,
+                visitorId: visitorId,
                 url: window.location.href,
-                    path: window.location.pathname,
+                path: window.location.pathname,
                 elementClicked: {
                     tag: event.target.tagName,
                     id: event.target.id || null,
@@ -159,7 +161,7 @@ import { extractUTMParams, sendData } from './api.js';
                 const scrollData = {
                     type: "scroll",
                     sessionId,
-                    visitorId: sessionId,
+                    visitorId: visitorId,
                     url: window.location.href,
                     path: window.location.pathname,
                     scrollPosition: window.scrollY,
@@ -182,7 +184,7 @@ import { extractUTMParams, sendData } from './api.js';
             const data = {
                 type: "page_visit",
                 sessionId,
-                visitorId: sessionId,
+                visitorId: visitorId,
                 url: window.location.href,
                 path: window.location.pathname,
                 timeSpent: timeSpent,
@@ -201,7 +203,7 @@ import { extractUTMParams, sendData } from './api.js';
             const pageEndData = {
                 type: "page_visit",
                 sessionId,
-                visitorId: sessionId,
+                visitorId: visitorId,
                 url: window.location.href,
                 path: window.location.pathname,
                 timeSpent: timeSpent,
@@ -215,7 +217,7 @@ import { extractUTMParams, sendData } from './api.js';
             const sessionEndData = {
                 type: "session_end",
                 sessionId,
-                visitorId: sessionId,
+                visitorId: visitorId,
                 url: window.location.href,
                 path: window.location.pathname,
                 timeSpent: sessionTimeSpent,
@@ -232,7 +234,7 @@ import { extractUTMParams, sendData } from './api.js';
             const pageEndData = {
                 type: "page_visit",
                 sessionId,
-                visitorId: sessionId,
+                visitorId: visitorId,
                 url: window.location.href,
                 path: window.location.pathname,
                 timeSpent: timeSpent,
@@ -252,7 +254,7 @@ import { extractUTMParams, sendData } from './api.js';
                 const pageEndData = {
                     type: "page_visit",
                     sessionId,
-                    visitorId: sessionId,
+                    visitorId: visitorId,
                     url: window.location.href,
                     path: window.location.pathname,
                     timeSpent: timeSpent,
