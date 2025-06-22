@@ -89,14 +89,20 @@ export default function BillingPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email, currentPlan, isYearly }),
+          body: JSON.stringify({
+            email,
+            currentPlan,
+            isYearly,
+            amount: currentPlan.price,
+            currency: "USD",
+          }),
         }
       );
 
       const data = await response.json();
       // console.log("Razorpay Order Response: ", data);
 
-      const { razorpay_order_id, amount, currency } = data;
+      const { orderId: razorpay_order_id, amount, currency } = data;
 
       if (!razorpay_order_id) {
         alert("Order ID not found!");
