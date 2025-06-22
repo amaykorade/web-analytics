@@ -22,6 +22,11 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+const getExchangeRate = async (from, to) => {
+  // In a real app, you'd fetch this from an API
+  return 83;
+};
+
 // ✅ Create Razorpay Order with fixed conversion rate (1 USD = 83 INR)
 export const createOrder = async (req, res) => {
     try {
@@ -63,19 +68,18 @@ export const verifyPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        const generated_signature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        const generated_signature = createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest('hex');
 
         if (generated_signature === razorpay_signature) {
-            res.status(200).json({ message: "Payment verified successfully" });
+            res.status(200).json({ success: true, message: "Payment verified successfully" });
         } else {
-            res.status(400).json({ message: "Invalid payment signature" });
+            res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
     } catch (error) {
         console.error("Error verifying payment:", error);
-        res.status(500).json({ message: "Error verifying payment" });
+        res.status(500).json({ success: false, message: "Error verifying payment" });
     }
 };
 
