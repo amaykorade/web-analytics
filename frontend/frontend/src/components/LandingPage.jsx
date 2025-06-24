@@ -103,13 +103,10 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Every Click You Miss Is
-              <span className="block text-indigo-400 mt-2">
-                Revenue You Lose
-              </span>
+              Turn Clicks into Customers
             </h1>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Stop guessing. Start tracking what actually drives growth. Transform your website data into actionable insights that boost your bottom line.
+              WebMeter helps SaaS founders track user journeys, build funnels, and grow revenue — without drowning in dashboards.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
@@ -125,6 +122,11 @@ export default function LandingPage() {
               >
                 See How It Works
               </a>
+            </div>
+            <div className="flex flex-wrap justify-center gap-6 mt-4 text-sm text-gray-400">
+              <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-400" />No credit card required</span>
+              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-400" />14-day free trial</span>
+              <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-yellow-400" />5-minute setup</span>
             </div>
           </div>
         </div>
@@ -231,7 +233,7 @@ export default function LandingPage() {
               </div>
               <div className="relative">
                 <img 
-                  src="/real-dahboard.png" 
+                  src="/dashboard-image-2.png" 
                   alt="Analytics Dashboard" 
                   className="w-full h-auto rounded-b-xl"
                 />
@@ -447,31 +449,64 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* CTA Section */}
           <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Ready to Grow Your Revenue?
-            </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Start tracking what matters and make data-driven decisions today.
+            <h2 className="text-4xl font-bold mb-4 text-white">Ready to Leave Complexity Behind?</h2>
+            <p className="text-xl mb-8 text-gray-300 max-w-3xl mx-auto">
+              Join hundreds of SaaS founders who switched to WebMeter for simpler, more actionable analytics.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
-                to="/websites"
-                className="inline-flex items-center px-8 py-4 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                to="/signup"
+                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-2"
               >
-                Start Growing Revenue
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <span>Try WebMeter Free</span>
+                <ArrowRight className="w-5 h-5" />
               </Link>
               <a
                 href="#demo"
-                className="inline-flex items-center px-8 py-4 rounded-lg bg-gray-800 text-white font-semibold hover:bg-gray-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="border-2 border-white/50 hover:bg-white hover:text-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-2"
               >
-                See How It Works
+                <span>View Demo</span>
               </a>
+            </div>
+            <div className="flex flex-wrap justify-center gap-6 mt-4 text-sm text-gray-400">
+              <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-400" />No credit card required</span>
+              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-400" />14-day free trial</span>
+              <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-yellow-400" />5-minute setup</span>
             </div>
           </div>
 
           {/* Divider */}
           <div className="w-full h-px bg-gray-800 mb-16"></div>
+
+          {/* Footer Links */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-16 text-center sm:text-left">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Product</h3>
+              <ul className="mt-4 space-y-4">
+                <li><a href="#demo" className="text-base text-gray-300 hover:text-white">Demo</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Compare</h3>
+              <ul className="mt-4 space-y-4">
+                <li><Link to="/compare/webmeter-vs-ga4" className="text-base text-gray-300 hover:text-white">vs. Google Analytics 4</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+              <ul className="mt-4 space-y-4">
+                <li><Link to="/privacy" className="text-base text-gray-300 hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/legal/terms-and-conditions" className="text-base text-gray-300 hover:text-white">Terms of Service</Link></li>
+                 <li><Link to="/legal/refund-cancellation" className="text-base text-gray-300 hover:text-white">Refund Policy</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Company</h3>
+              <ul className="mt-4 space-y-4">
+                 <li><Link to="/legal/contact-us" className="text-base text-gray-300 hover:text-white">Contact Us</Link></li>
+              </ul>
+            </div>
+          </div>
 
           {/* Brand and Social */}
           <div className="flex flex-col md:flex-row items-center justify-between">
