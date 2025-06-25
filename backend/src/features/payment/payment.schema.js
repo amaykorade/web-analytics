@@ -6,7 +6,7 @@ const paymentSchema = new mongoose.Schema({
     paymentId: { type: String },
     signature: { type: String },
     amount: { type: Number, required: true },
-    currency: { type: String, default: "INR" },
+    currency: { type: String, default: "USD" },
     pricingPlan: String,
     status: { type: String, enum: ["created", "paid", "failed"], default: "created" },
     createdAt: { type: Date, default: Date.now }

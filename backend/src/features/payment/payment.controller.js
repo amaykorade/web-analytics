@@ -30,23 +30,23 @@ const getExchangeRate = async (from, to) => {
 // ✅ Create Razorpay Order with fixed conversion rate (1 USD = 83 INR)
 export const createOrder = async (req, res) => {
     try {
-        const { amount, currency } = req.body;
+        const { currentPlan } = req.body;
+        const userId = req.userID;
 
-        if (!amount || !currency) {
-            return res.status(400).json({ message: "Amount and currency are required" });
+        if (!currentPlan || !currentPlan.price) {
+            return res.status(400).json({ message: "Plan details are required" });
         }
 
-        // Convert USD to INR if needed
-        let amountInINR = amount;
-        if (currency === 'USD') {
-            const exchangeRate = await getExchangeRate('USD', 'INR');
-            amountInINR = Math.round(amount * exchangeRate);
-        }
+        const amount = currentPlan.price; // Amount in USD
 
         const options = {
-            amount: amountInINR * 100, // Razorpay expects amount in paise
-            currency: 'INR',
-            receipt: `receipt_${Date.now()}`,
+            amount: amount * 100, // Amount in the smallest currency unit (e.g., cents for USD)
+            currency: 'USD',
+            receipt: `receipt_order_${new Date().getTime()}`,
+            notes: {
+                plan: currentPlan.plan,
+                user: userId,
+            },
         };
 
         const order = await razorpay.orders.create(options);
@@ -66,14 +66,46 @@ export const createOrder = async (req, res) => {
 // ✅ Verify Razorpay Payment
 export const verifyPayment = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, email, currentPlan, isYearly } = req.body;
 
         const generated_signature = createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest('hex');
 
         if (generated_signature === razorpay_signature) {
-            res.status(200).json({ success: true, message: "Payment verified successfully" });
+            // Payment is successful, now update the database
+            const user = await AuthModel.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ success: false, message: "User not found" });
+            }
+
+            // Save payment details
+            const newPayment = new PaymentModel({
+                userId: user._id,
+                orderId: razorpay_order_id,
+                paymentId: razorpay_payment_id,
+                signature: razorpay_signature,
+                amount: currentPlan.price,
+                pricingPlan: currentPlan.plan,
+                status: 'paid',
+            });
+            await newPayment.save();
+
+            // Update user's subscription
+            user.pricingPlan = currentPlan.plan;
+            user.isYearly = isYearly;
+            user.paymentStatus = 'active';
+
+            const now = new Date();
+            if (isYearly) {
+                user.subscriptionEndDate = new Date(now.setFullYear(now.getFullYear() + 1));
+            } else {
+                user.subscriptionEndDate = new Date(now.setMonth(now.getMonth() + 1));
+            }
+
+            await user.save();
+
+            res.status(200).json({ success: true, message: "Payment verified and subscription updated successfully" });
         } else {
             res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
