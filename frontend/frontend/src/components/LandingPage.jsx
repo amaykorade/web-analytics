@@ -176,6 +176,23 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Demo Video Section */}
+      <section id="demo" className="py-24 bg-gray-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-6">Watch how Webmeter can help you grow</h2>
+          <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '1rem', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}>
+            <iframe
+              src="https://www.youtube.com/embed/5nOhk185OJU"
+              title="Webmeter Demo"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <div className="py-24 bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
