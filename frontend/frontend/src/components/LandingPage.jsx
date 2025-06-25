@@ -490,6 +490,7 @@ export default function LandingPage() {
               <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Compare</h3>
               <ul className="mt-4 space-y-4">
                 <li><Link to="/compare/webmeter-vs-ga4" className="text-base text-gray-300 hover:text-white">vs. Google Analytics 4</Link></li>
+                <li><Link to="/compare/webmeter-vs-plausible" className="text-base text-gray-300 hover:text-white">vs. Plausible</Link></li>
               </ul>
             </div>
             <div>
