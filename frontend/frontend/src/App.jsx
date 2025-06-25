@@ -33,6 +33,8 @@ import PaymentSuccess from "./components/payment/PaymentSuccess";
 import PaymentFailure from "./components/payment/PyamentFailure";
 import FunnelManager from './components/FunnelManager';
 import WebMeterVsGA4 from "./components/compare/WebMeterVsGA4";
+import WebMeterPlausibleComparison from "./components/compare/WebmeterVsPlausible";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -60,6 +62,7 @@ function App() {
   return (
     <>
       <Router>
+        <ScrollToTop />
         <Routes>
           <Route
             path="/dashboard"
@@ -103,6 +106,7 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentFailure />} />
           <Route path="/compare/webmeter-vs-ga4" element={<WebMeterVsGA4 />} />
+          <Route path="/compare/webmeter-vs-plausible" element={<WebMeterPlausibleComparison />} />
 
           <Route
             path="/setup"
