@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
@@ -13,8 +13,6 @@ const DateRangePicker = () => {
   const dispatch = useDispatch();
   const [selectedRange, setSelectedRange] = useState("Today");
   const [customRange, setCustomRange] = useState([dayjs(), dayjs()]);
-  const [pollingInterval, setPollingInterval] = useState(null);
-  const pollingIntervalRef = useRef(null);
 
   // Get the current website from localStorage
   const currentWebsite = JSON.parse(localStorage.getItem("currentWebsite"));
@@ -24,36 +22,14 @@ const DateRangePicker = () => {
   useEffect(() => {
     if (userID && websiteName) {
       fetchAnalytics(selectedRange);
-      startPolling();
     }
-
-    return () => {
-      stopPolling();
-    };
   }, [userID, websiteName]);
 
   useEffect(() => {
     if (userID && websiteName) {
       fetchAnalytics(selectedRange);
-      stopPolling();
-      startPolling();
     }
   }, [selectedRange, userID, websiteName]);
-
-  const startPolling = () => {
-    pollingIntervalRef.current = setInterval(() => {
-      if (userID && websiteName) {
-        fetchAnalytics(selectedRange);
-      }
-    }, 10000);
-  };
-
-  const stopPolling = () => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  };
 
   const fetchAnalytics = (range) => {
     let startDate, endDate;
