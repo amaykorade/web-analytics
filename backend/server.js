@@ -7,6 +7,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 import { connectUsingMongoose } from './src/config/mongooseConfig.js';
 import TrackingRouter from './src/features/tracking/tracking.routes.js';
@@ -22,6 +24,9 @@ import PaymentRouter from './src/features/payment/payment.routes.js';
 import FunnelRouter from './src/features/funnel/funnel.routes.js';
 import { migrateVerificationStatus } from './src/features/script/script.migration.js';
 import ScriptModel from './src/features/script/script.schema.js';
+import { TrackingModule } from './src/features/tracking/tracking.schema.js';
+import { AuthModel } from './src/features/auth/auth.schema.js';
+import pricingPlans from './pricingPlans.js';
 
 // cron job
 import './src/cron-job/subscription.cron.js';
@@ -152,6 +157,18 @@ app.use('/api/script', ScriptRouter);
 app.use('/api/payment', PaymentRouter);
 app.use('/api/funnel', FunnelRouter);
 
+// Create HTTP server and Socket.IO server
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: STATIC_ALLOWED_ORIGINS, // Use the same allowed origins as main CORS
+    methods: ['GET', 'POST']
+  }
+});
+
+// Export io for use in controllers
+export { io };
+
 // 🚀 **Start Server After Connecting to DB**
 (async () => {
     try {
@@ -164,7 +181,65 @@ app.use('/api/funnel', FunnelRouter);
 
         await getAllURL(); // Fetch domains before starting server
 
-        app.listen(PORT, '0.0.0.0', async () => {
+        const activeUsersPerWebsite = {};
+
+        io.on('connection', (socket) => {
+          let websiteName = null;
+          let visitorId = null;
+          let isDashboard = false;
+
+          // Listen for tracker events
+          socket.on('trackerEvent', (data) => {
+            console.log('Received trackerEvent:', data);
+            websiteName = data.websiteName;
+            visitorId = data.visitorId;
+            isDashboard = false;
+            // Join the website room
+            if (websiteName) {
+              socket.join(websiteName);
+              if (!activeUsersPerWebsite[websiteName]) {
+                activeUsersPerWebsite[websiteName] = new Set();
+              }
+              activeUsersPerWebsite[websiteName].add(visitorId);
+              console.log('Active users for', websiteName, Array.from(activeUsersPerWebsite[websiteName]));
+              // Emit updated count to dashboard room only
+              const count = activeUsersPerWebsite[websiteName].size;
+              console.log('Emitting activeUserCount', websiteName, count);
+              io.to(`dashboard-${websiteName}`).emit('activeUserCount', {
+                websiteName,
+                count,
+              });
+            }
+          });
+
+          // Listen for dashboard clients joining
+          socket.on('joinDashboard', (data) => {
+            websiteName = data.websiteName;
+            isDashboard = true;
+            if (websiteName) {
+              socket.join(`dashboard-${websiteName}`);
+              // Send current count immediately
+              const count = activeUsersPerWebsite[websiteName]?.size || 0;
+              console.log('Dashboard joined room for', websiteName, 'current count:', count);
+              socket.emit('activeUserCount', { websiteName, count });
+            }
+          });
+
+          socket.on('disconnect', () => {
+            if (!isDashboard && websiteName && visitorId && activeUsersPerWebsite[websiteName]) {
+              activeUsersPerWebsite[websiteName].delete(visitorId);
+              console.log('User disconnected:', visitorId, 'from', websiteName);
+              const count = activeUsersPerWebsite[websiteName].size;
+              console.log('Emitting activeUserCount after disconnect', websiteName, count);
+              io.to(`dashboard-${websiteName}`).emit('activeUserCount', {
+                websiteName,
+                count,
+              });
+            }
+          });
+        });
+
+        server.listen(PORT, '0.0.0.0', async () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
         });
     } catch (error) {

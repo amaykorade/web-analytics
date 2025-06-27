@@ -33,7 +33,6 @@ export default function Navbar() {
     dispatch(getCurrentUserthunk())
       .unwrap()
       .then((response) => {
-        // console.log("user: ", response);
         setName(response?.user?.name);
         setEmail(response?.user?.email);
       });

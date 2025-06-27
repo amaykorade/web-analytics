@@ -8,6 +8,7 @@ import pricingPlans from '../../../pricingPlans.js';
 import { strict as assert } from 'assert';
 import { createRequire } from 'module';
 import { AuthModel } from '../auth/auth.schema.js';
+import { io } from '../../../server.js';
 
 const require = createRequire(import.meta.url);
 
@@ -140,6 +141,17 @@ export const addData = async (req, res) => {
         // Increment event count
         user.eventsUsed += 1;
         await user.save();
+
+        // Emit real-time event to dashboard clients
+        io.emit('newTrackingData', {
+            type: req.body.type,
+            websiteName: req.body.websiteName,
+            sessionId: req.body.sessionId,
+            visitorId: req.body.visitorId,
+            timestamp: req.body.timestamp,
+            // Add more fields as needed for dashboard updates
+        });
+
         // console.log('[DEBUG] Incoming request body:', req.body);
         res.status(200).json({ message: "Data received and stored successfully", data: req.body });
     } catch (error) {

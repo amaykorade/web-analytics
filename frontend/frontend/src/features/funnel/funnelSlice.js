@@ -5,12 +5,9 @@ export const createFunnelThunk = createAsyncThunk(
     'funnel/create',
     async (funnelData, { rejectWithValue }) => {
         try {
-            // console.log('Creating funnel with data:', funnelData); // Debug log
             const response = await createFunnel(funnelData);
-            // console.log('Funnel creation response:', response); // Debug log
             return response;
         } catch (error) {
-            console.error('Funnel creation error:', error); // Debug log
             return rejectWithValue(
                 error.response?.data?.message || 
                 error.message || 
@@ -63,7 +60,6 @@ export const deleteFunnelThunk = createAsyncThunk(
             const response = await deleteFunnel(funnelId, userId);
             return response.funnelId; // Return the deleted funnel ID
         } catch (error) {
-            console.error('Delete funnel error:', error);
             return rejectWithValue(
                 error.response?.data?.message || 
                 error.message || 

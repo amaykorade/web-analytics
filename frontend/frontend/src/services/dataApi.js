@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import { io } from 'socket.io-client';
 
 export const getAnalytics = async (userID, websiteName, formattedStartDate, formattedEndDate) => {
     const response = await apiClient.get(`/data/analytics/total-data?userId=${userID}&websiteName=${websiteName}&startDate=${formattedStartDate}&endDate=${formattedEndDate}`);
@@ -30,3 +31,6 @@ export const getActiveUsers = async (userID, websiteName) => {
     const response = await apiClient.get(`/data/analytics/active-users?userId=${userID}&websiteName=${websiteName}`);
     return response.data;
 }
+
+export const socket = io('https://backend.webmeter.in');
+// export const socket = io('http://localhost:3000'); // Change to your backend URL in production

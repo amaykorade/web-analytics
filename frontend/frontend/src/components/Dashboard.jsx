@@ -31,6 +31,7 @@ import VisitorsRevenueChart from "./VisitorsChart";
 import { getCurrentUserthunk } from "../features/user/userSlice";
 import { Link } from "react-router-dom";
 import { Select } from "antd";
+import { socket } from '../services/dataApi';
 
 const { Option } = Select;
 
@@ -179,6 +180,43 @@ export default function Dashboard() {
       }));
     }
   }, [dateRange, selectedWebsite, dispatch]);
+
+  useEffect(() => {
+    // Listen for real-time analytics updates (no longer increment totalVisitors here)
+    const handleRealtimeUpdate = (event) => {
+      // Only update if the event is for the selected website
+      // No need to update totalVisitors here; rely on backend analytics
+      // Optionally, you can trigger a re-fetch of analytics if you want more accurate data
+      // dispatch(getAnalyticsThunk({ userID: data.userID, websiteName: data.websiteName, startDate: dateRange.startDate, endDate: dateRange.endDate }));
+    };
+    socket.on('newTrackingData', handleRealtimeUpdate);
+    return () => {
+      socket.off('newTrackingData', handleRealtimeUpdate);
+    };
+  }, [data.websiteName, data.userID, dateRange.startDate, dateRange.endDate, dispatch]);
+
+  useEffect(() => {
+    if (data.websiteName) {
+      console.log('Joining dashboard room for', data.websiteName);
+      socket.emit('joinDashboard', { websiteName: data.websiteName });
+    }
+  }, [data.websiteName]);
+
+  useEffect(() => {
+    const handleActiveUserCount = (event) => {
+      console.log('Received activeUserCount', event);
+      if (event.websiteName === data.websiteName) {
+        setData((prevData) => ({
+          ...prevData,
+          activeUsers: event.count,
+        }));
+      }
+    };
+    socket.on('activeUserCount', handleActiveUserCount);
+    return () => {
+      socket.off('activeUserCount', handleActiveUserCount);
+    };
+  }, [data.websiteName]);
 
   if (loading || subscriptionStatus === "loading") {
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-200">Loading...</div>;

@@ -4,8 +4,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
-console.log("TRACKER_BASE_URL:", process.env.TRACKER_BASE_URL);
 const TRACKER_BASE_URL = process.env.TRACKER_BASE_URL || "https://backend.webmeter.in";
+// const TRACKER_BASE_URL = "http://localhost:3000";
+
 
 export const getAllURL = async (req, res) => {
     try {
@@ -31,7 +32,6 @@ export const getAllURL = async (req, res) => {
 export const getUserScripts = async (req, res) => {
     try {
         const userId = req.userID;
-        console.log("getUserScript - User ID:", userId);
 
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
@@ -39,7 +39,6 @@ export const getUserScripts = async (req, res) => {
 
         // Fetch all scripts associated with the user
         const scripts = await ScriptModel.find({ userId });
-        console.log("Fetched scripts for user:", JSON.stringify(scripts, null, 2));
 
         // Return scripts with verification status
         return res.status(200).json({
@@ -139,7 +138,6 @@ export const verifyScript = async (req, res) => {
 
 export const verifyScriptInstallation = async (req, res) => {
     try {
-        console.log("Verification request body:", req.body);
         const { url, name, userId } = req.body;
 
         const websiteName = name;
@@ -152,14 +150,10 @@ export const verifyScriptInstallation = async (req, res) => {
 
         // Ensure the URL starts with http:// or https://
         const formattedURL = url.startsWith("http") ? url : `https://${url}`;
-        console.log(`Checking script on ${formattedURL} for ${websiteName}`);
 
         // Fetch the website's HTML
         const response = await axios.get(formattedURL, { timeout: 5000 });
         const htmlContent = response.data;
-
-        // Log the first part of HTML content for debugging
-        console.log("HTML Content Preview:", htmlContent.substring(0, 500));
 
         const scriptRegex = new RegExp(
             `<script[^>]*data-website-id=["']${userId}["'][^>]*data-domain=["']${url}["'][^>]*src=["']${TRACKER_BASE_URL}/js/tracker.js["'][^>]*>`,
@@ -170,15 +164,6 @@ export const verifyScriptInstallation = async (req, res) => {
 
         const isScriptInstalled = scriptRegex.test(htmlContent);
         const isNamePresent = nameRegex.test(htmlContent);
-
-        console.log("Verification Results:", {
-            isScriptInstalled,
-            isNamePresent,
-            userId,
-            url,
-            websiteName,
-            TRACKER_BASE_URL
-        });
 
         if (isScriptInstalled && isNamePresent) {
             // Update the script verification status in the database
@@ -201,13 +186,6 @@ export const verifyScriptInstallation = async (req, res) => {
             message: "Script or website name not found. Please check your installation.",
             verified: false,
             isVerified: false,
-            debug: {
-                isScriptInstalled,
-                isNamePresent,
-                userId,
-                url,
-                websiteName
-            }
         });
     } catch (error) {
         console.error("Error verifying script:", error);
@@ -215,7 +193,6 @@ export const verifyScriptInstallation = async (req, res) => {
             message: "Failed to verify script installation. Ensure the URL is correct and accessible.",
             verified: false,
             isVerified: false,
-            error: error.message
         });
     }
 };
@@ -225,15 +202,12 @@ export const deleteScript = async (req, res) => {
         const { scriptId } = req.params;
         const userId = req.userID;
 
-        // console.log("Delete script request:", { scriptId, userId });
-
         if (!scriptId || !userId) {
             return res.status(400).json({ message: "Script ID and User ID are required" });
         }
 
         // First, let's check if the script exists
         const existingScript = await ScriptModel.findById(scriptId);
-        // console.log("Existing script:", existingScript);
 
         if (!existingScript) {
             return res.status(404).json({ message: "Script not found" });
@@ -249,8 +223,6 @@ export const deleteScript = async (req, res) => {
         if (!script) {
             return res.status(404).json({ message: "Script not found or you don't have permission to delete it" });
         }
-
-        // console.log("Script deleted successfully:", script);
 
         res.status(200).json({ 
             message: "Script deleted successfully", 
