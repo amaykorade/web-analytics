@@ -159,9 +159,39 @@ app.use('/api/funnel', FunnelRouter);
 
 // Create HTTP server and Socket.IO server
 const server = http.createServer(app);
+
+let cachedAllowedOrigins = null;
+let lastCacheTime = 0;
+const CACHE_DURATION = 10000; // 10 seconds
+
+async function getAllowedOrigins() {
+  const now = Date.now();
+  if (cachedAllowedOrigins && now - lastCacheTime < CACHE_DURATION) {
+    return cachedAllowedOrigins;
+  }
+  const scripts = await ScriptModel.find({}, 'url');
+  const dynamicOrigins = scripts.map(r => {
+    try {
+      return new URL(r.url).origin;
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+  cachedAllowedOrigins = [...STATIC_ALLOWED_ORIGINS, ...dynamicOrigins];
+  lastCacheTime = now;
+  return cachedAllowedOrigins;
+}
+
 const io = new SocketIOServer(server, {
   cors: {
-    origin: STATIC_ALLOWED_ORIGINS, // Use the same allowed origins as main CORS
+    origin: async (origin, callback) => {
+      const allowedOrigins = await getAllowedOrigins();
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST']
   }
 });
