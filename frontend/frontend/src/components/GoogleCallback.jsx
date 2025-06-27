@@ -22,18 +22,14 @@ export default function GoogleCallback() {
           const scriptData = await dispatch(getScriptThunk()).unwrap();
 
           if (scriptData?.isPresent) {
-            console.log("Navigating to /websites...");
             setRedirectPath("/websites");
           } else {
-            console.log("Navigating to /setup...");
             setRedirectPath("/setup");
           }
         } catch (error) {
-          console.error("Error fetching script data:", error);
           setRedirectPath("/login");
         }
       } else {
-        console.error("Google login failed. No token received.");
         setRedirectPath("/login");
       }
     };

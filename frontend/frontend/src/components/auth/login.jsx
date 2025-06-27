@@ -28,17 +28,13 @@ export default function Login() {
 
       if (response.token) {
         localStorage.setItem("token", response.token);
-        // console.log("Token stored:", response.token);
 
         // Fetch script presence status
         const scriptData = await dispatch(getScriptThunk()).unwrap();
-        // console.log("scriptData:", scriptData);
 
         if (scriptData?.isPresent) {
-          console.log("Navigating to /websites...");
           navigate("/websites");
         } else {
-          console.log("Navigating to /setup...");
           navigate("/setup");
         }
       } else {

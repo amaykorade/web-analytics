@@ -1,9 +1,9 @@
-console.log("Main tracker loaded!");
 import { createConsentPopup } from './consent.js';
 import { setCookie, getCookie, getSessionId, getVisitorId } from './storage.js';
 import { getDeviceInfo } from './device.js';
 import { getGeoLocation } from './geo.js';
 import { extractUTMParams, sendData } from './api.js';
+import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
 
 (function () {
     if (window.__TRACKER_LOADED__) return;
@@ -17,16 +17,26 @@ import { extractUTMParams, sendData } from './api.js';
     const websiteId = scriptTag.getAttribute("data-website-id");
     const websiteName = scriptTag.getAttribute("website-name");
 
+    // Initialize socket.io client
+    const socket = io('https://backend.webmeter.in');
+    // const socket = io('http://localhost:3000'); // Change to your backend URL in production
+
     async function trackUserActivity() {
-        // console.log("trackUserActivity called");
         const sessionId = getSessionId();
         const visitorId = getVisitorId();
         const utmParams = extractUTMParams();
         const geoData = await getGeoLocation();
-        // console.log("geoData loaded", geoData);
         const deviceInfo = getDeviceInfo();
         const entryPage = !sessionStorage.getItem("entryPage");
         sessionStorage.setItem("entryPage", "true");
+
+        // Replace sendData with socket.emit for real-time events
+        const sendRealtimeData = (data) => {
+            data.websiteName = websiteName; // Ensure websiteName is always included
+            socket.emit('trackerEvent', data);
+            // Optionally, still call sendData for HTTP fallback/database
+            sendData(data, websiteId, websiteName);
+        };
 
         // Function to track page visit
         const trackPageVisit = (isEntryPage = false) => {
@@ -57,12 +67,10 @@ import { extractUTMParams, sendData } from './api.js';
                 sessionId: sessionId,
                 timeSpent: 0 // Always include timeSpent for initial event
             };
-            console.log("trackPageVisit called", pageVisitData);
-            sendData(pageVisitData, websiteId, websiteName);
+            sendRealtimeData(pageVisitData);
         };
 
         // Track initial page visit
-        // console.log("Calling trackPageVisit with entryPage =", entryPage);
         trackPageVisit(entryPage);
 
         // Track SPA route changes using a more robust approach
@@ -144,7 +152,7 @@ import { extractUTMParams, sendData } from './api.js';
                 },
                 timestamp: new Date().toISOString(),
             };
-            sendData(clickData, websiteId, websiteName);
+            sendRealtimeData(clickData);
 
                 // If it's a same-origin link, track it as a page visit
                 if (link.hostname === window.location.hostname) {
@@ -169,7 +177,7 @@ import { extractUTMParams, sendData } from './api.js';
                     documentHeight: document.documentElement.scrollHeight,
                     timestamp: new Date().toISOString(),
                 };
-                sendData(scrollData, websiteId, websiteName);
+                sendRealtimeData(scrollData);
                 lastScrollTime = now;
             }
         });
@@ -190,7 +198,7 @@ import { extractUTMParams, sendData } from './api.js';
                 timeSpent: timeSpent,
                 timestamp: new Date().toISOString(),
             };
-            sendData(data, websiteId, websiteName);
+            sendRealtimeData(data);
         };
 
         // Start tracking time spent
@@ -210,7 +218,7 @@ import { extractUTMParams, sendData } from './api.js';
                 exitPage: true,
                 timestamp: new Date().toISOString(),
             };
-            sendData(pageEndData, websiteId, websiteName);
+            sendRealtimeData(pageEndData);
 
             // Also send session end data
             const sessionTimeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
@@ -224,7 +232,7 @@ import { extractUTMParams, sendData } from './api.js';
                 exitPage: true,
                 timestamp: new Date().toISOString(),
             };
-            sendData(sessionEndData, websiteId, websiteName);
+            sendRealtimeData(sessionEndData);
         });
 
         // Track time spent on page when user navigates to a new page
@@ -241,7 +249,7 @@ import { extractUTMParams, sendData } from './api.js';
                 exitPage: true,
                 timestamp: new Date().toISOString(),
             };
-            sendData(pageEndData, websiteId, websiteName);
+            sendRealtimeData(pageEndData);
             pageStartTime = Date.now();
             timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
         });
@@ -261,7 +269,7 @@ import { extractUTMParams, sendData } from './api.js';
                     exitPage: false,
                     timestamp: new Date().toISOString(),
                 };
-                sendData(pageEndData, websiteId, websiteName);
+                sendRealtimeData(pageEndData);
             } else if (document.visibilityState === "visible") {
                 pageStartTime = Date.now();
                 timeUpdateInterval = setInterval(sendTimeSpentData, 30000);
@@ -269,15 +277,9 @@ import { extractUTMParams, sendData } from './api.js';
         });
     }
 
-    // console.log("About to check consent...");
-    // console.log("Consent cookie value:", getCookie("trackingConsent"));
-    // console.log("Consent cookie type:", typeof getCookie("trackingConsent"));
-    // console.log("Consent cookie === 'true':", getCookie("trackingConsent") === "true");
     if (getCookie("trackingConsent") === "true") {
-        console.log("Consent is true, calling trackUserActivity");
         trackUserActivity();
     } else {
-        console.log("Consent is false, showing popup");
         createConsentPopup(
             () => {
                 setCookie("trackingConsent", "true", 365);

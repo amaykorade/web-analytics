@@ -21,12 +21,6 @@ const normalizePath = (path) => {
 };
 
 export const calculateFunnelStats = (events, steps) => {
-    console.log('[DEBUG] calculateFunnelStats called with:', {
-        eventCount: events.length,
-        stepsCount: steps.length,
-        steps: steps
-    });
-
     const sessions = {};
     const stepUserSets = steps.map(() => new Set());
 
@@ -37,8 +31,6 @@ export const calculateFunnelStats = (events, steps) => {
         }
         sessions[event.sessionId].push(event);
     });
-
-    console.log('[DEBUG] Grouped events into sessions:', Object.keys(sessions).length);
 
     // Process each session
     Object.values(sessions).forEach(sessionEvents => {
@@ -58,18 +50,9 @@ export const calculateFunnelStats = (events, steps) => {
             const normalizedEventPath = normalizePath(eventPath);
             const normalizedStepValue = normalizePath(step.value);
 
-            console.log('[DEBUG] Checking event against step:', {
-                eventPath: normalizedEventPath,
-                stepValue: normalizedStepValue,
-                stepType: step.type,
-                currentStepIndex,
-                matches: normalizedEventPath === normalizedStepValue
-            });
-
             if (normalizedEventPath === normalizedStepValue) {
                 stepUserSets[currentStepIndex].add(event.visitorId);
                 currentStepIndex++;
-                console.log('[DEBUG] Step matched, moving to next step:', currentStepIndex);
             }
         });
     });
@@ -99,8 +82,6 @@ export const calculateFunnelStats = (events, steps) => {
         conversionRate,
         steps: stepStats
     };
-
-    console.log('[DEBUG] Final stats result:', result);
 
     return result;
 };
