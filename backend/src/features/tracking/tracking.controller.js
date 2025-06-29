@@ -91,7 +91,14 @@ export const addData = async (req, res) => {
         // Check event limit (only block saving, not returning response)
         const eventLimitExceeded = plan.events !== Infinity && user.eventsUsed >= plan.events;
         if (eventLimitExceeded) {
-            return res.status(200).json({ message: "Event limit reached. Data not saved, but plan still active." });
+            console.log(`Event limit exceeded for user ${user.email}. Plan: ${user.pricingPlan}, Used: ${user.eventsUsed}, Limit: ${plan.events}`);
+            return res.status(403).json({ 
+                message: "Event limit reached. Please upgrade your plan to continue tracking.", 
+                limitExceeded: true,
+                currentPlan: user.pricingPlan,
+                eventsUsed: user.eventsUsed,
+                eventLimit: plan.events
+            });
         }
 
 

@@ -324,5 +324,37 @@ export const resendVerificationEmail = async (req, res) => {
     }
 };
 
+// Get user usage status
+export const getUserUsage = async (req, res) => {
+    try {
+        const user = await AuthModel.findById(req.userID);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const plan = pricingPlans.find(p => p.plan === user.pricingPlan);
+        const usagePercentage = plan && plan.events !== Infinity 
+            ? Math.round((user.eventsUsed / plan.events) * 100) 
+            : 0;
+
+        res.status(200).json({
+            success: true,
+            usage: {
+                eventsUsed: user.eventsUsed,
+                eventLimit: plan ? plan.events : 0,
+                usagePercentage,
+                isUnlimited: plan ? plan.events === Infinity : false,
+                currentPlan: user.pricingPlan,
+                paymentStatus: user.paymentStatus,
+                subscriptionEndDate: user.subscriptionEndDate,
+                lastUsageReset: user.lastUsageReset
+            }
+        });
+    } catch (error) {
+        console.error("Error getting user usage:", error);
+        res.status(500).json({ message: "Error getting usage information." });
+    }
+};
+
 
 

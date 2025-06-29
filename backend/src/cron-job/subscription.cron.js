@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { AuthModel } from '../features/auth/auth.schema.js';
+import pricingPlans from '../../pricingPlans.js';
 
 const pricingPlanLimits = {
     "9k": 9000,
@@ -11,7 +12,7 @@ const pricingPlanLimits = {
     "2M": 2000000,
     "5M": 5000000,
     "10M": 10000000,
-    "unlimited": Infinity
+    "10M+": Infinity
 };
 
 const getLimitForPlan = (plan) => pricingPlanLimits[plan] || 0;
@@ -29,21 +30,29 @@ export const checkSubscriptions = async () => {
             if (plan.events !== Infinity && user.eventsUsed >= plan.events) {
                 user.paymentStatus = "expired";
                 await user.save();
+                console.log(`User ${user.email} exceeded event limit. Plan: ${user.pricingPlan}, Used: ${user.eventsUsed}, Limit: ${plan.events}`);
             }
 
             // Check if subscription has expired
             if (currentDate > user.subscriptionEndDate) {
                 user.paymentStatus = "expired";
                 await user.save();
+                console.log(`User ${user.email} subscription expired on ${user.subscriptionEndDate}`);
             }
 
-            // Reset usage if subscription is active and days have passed
+            // Reset usage if subscription is active and it's a new month
             if (user.paymentStatus === "active") {
-                const daysPassed = Math.floor((currentDate - user.lastUsageReset) / (1000 * 60 * 60 * 24));
-                if (daysPassed >= 30) {
+                const lastReset = user.lastUsageReset || user.subscriptionStartDate;
+                const daysPassed = Math.floor((currentDate - lastReset) / (1000 * 60 * 60 * 24));
+                
+                // Reset monthly (30 days) for monthly plans, yearly for yearly plans
+                const resetInterval = user.isYearly ? 365 : 30;
+                
+                if (daysPassed >= resetInterval) {
                     user.eventsUsed = 0;
                     user.lastUsageReset = currentDate;
                     await user.save();
+                    console.log(`Reset events for user ${user.email}. New reset date: ${currentDate}`);
                 }
             }
         }

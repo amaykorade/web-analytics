@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUser, login, register, verificationStatus, verifyEmail, resendVerificationEmail } from './auth.controller.js';
+import { getUser, login, register, verificationStatus, verifyEmail, resendVerificationEmail, getUserUsage } from './auth.controller.js';
 import jwtAuth from '../../middleware/jwt.middleware.js';
 import passport from 'passport';
 import '../../config/passport-config.js'
@@ -8,6 +8,7 @@ const AuthRouter = express.Router();
 
 AuthRouter.get('/currentuser', jwtAuth, getUser);
 
+AuthRouter.get('/usage', jwtAuth, getUserUsage);
 
 // AuthRouter.get('/token', getToken);
 
