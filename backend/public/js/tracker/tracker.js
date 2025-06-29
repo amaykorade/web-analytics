@@ -30,6 +30,10 @@ import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
         const entryPage = !sessionStorage.getItem("entryPage");
         sessionStorage.setItem("entryPage", "true");
 
+        // Track navigation path
+        let navigationPath = [window.location.pathname];
+        sessionStorage.setItem("navigationPath", JSON.stringify(navigationPath));
+
         // Replace sendData with socket.emit for real-time events
         const sendRealtimeData = (data) => {
             data.websiteName = websiteName; // Ensure websiteName is always included
@@ -38,36 +42,50 @@ import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
             sendData(data, websiteId, websiteName);
         };
 
-        // Function to track page visit
+        // Enhanced navigation tracking
+        const updateNavigationPath = (newPath) => {
+            navigationPath.push(newPath);
+            // Keep only last 10 pages to avoid memory issues
+            if (navigationPath.length > 10) {
+                navigationPath = navigationPath.slice(-10);
+            }
+            sessionStorage.setItem("navigationPath", JSON.stringify(navigationPath));
+            
+            // Emit navigation event for real-time tracking
+            socket.emit('navigation', {
+                websiteName: websiteName,
+                visitorId: visitorId,
+                pages: navigationPath,
+                timestamp: new Date().toISOString()
+            });
+        };
+
         const trackPageVisit = (isEntryPage = false) => {
-            const pageVisitData = {
+            const currentPath = window.location.pathname;
+            
+            // Update navigation path if it's a new page
+            if (navigationPath[navigationPath.length - 1] !== currentPath) {
+                updateNavigationPath(currentPath);
+            }
+
+            const data = {
                 type: "page_visit",
+                sessionId,
+                visitorId: visitorId,
                 url: window.location.href,
-                path: window.location.pathname,
+                path: currentPath,
                 referrer: document.referrer,
-                utmSource: utmParams.utmSource,
-                utmMedium: utmParams.utmMedium,
-                utmCampaign: utmParams.utmCampaign,
+                entryPage: isEntryPage,
+                utmParams,
+                geoLocation: geoData,
                 userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                browser: deviceInfo.browser,
-                deviceType: deviceInfo.deviceType,
-                ip: geoData?.ip || null,
-                geoLocation: {
-                    country: geoData?.country_name || null,
-                    region: geoData?.region || null,
-                    city: geoData?.city || null,
-                    latitude: geoData?.latitude || null,
-                    longitude: geoData?.longitude || null,
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
                 },
                 timestamp: new Date().toISOString(),
-                entryPage: isEntryPage,
-                visitorId: visitorId,
-                sessionId: sessionId,
-                timeSpent: 0 // Always include timeSpent for initial event
             };
-            sendRealtimeData(pageVisitData);
+            sendRealtimeData(data);
         };
 
         // Track initial page visit
@@ -92,6 +110,11 @@ import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
         // Track route changes using multiple methods
         const trackRouteChange = () => {
             if (hasUrlChanged()) {
+                const newPath = window.location.pathname;
+                // Update navigation path for route changes
+                if (navigationPath[navigationPath.length - 1] !== newPath) {
+                    updateNavigationPath(newPath);
+                }
                 trackPageVisit(false);
             }
         };

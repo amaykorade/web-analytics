@@ -402,25 +402,24 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Bottom Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-              <h2 className="text-lg font-semibold text-white mb-4">
-                Top Pages
-              </h2>
-              <TopPages />
-            </div>
+          {/* Enhanced Top Pages (Full Width) */}
+          <div className="grid grid-cols-1 gap-8 mb-8">
+            <TopPages />
+          </div>
+
+          {/* Other Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Referral Sources
               </h2>
               <ReferralSources />
             </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-8">
             <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
               <Devices />
             </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
               <Location />
             </div>
