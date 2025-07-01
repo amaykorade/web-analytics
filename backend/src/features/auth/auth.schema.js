@@ -16,7 +16,8 @@ const authSchema = new mongoose.Schema({
     paymentStatus: { type: String, enum: ["trial", "active", "expired"], default: "trial" },
     subscriptionId: { type: String },
     eventsUsed: { type: Number, default: 0 },
-    pricingPlan: { type: String, enum: ["9k", "10k", "100k", "200k", "500k", "1M", "2M", "5M", "10M", "unlimited"], default: "9k" },
+    lastUsageReset: { type: Date, default: Date.now },
+    pricingPlan: { type: String, enum: ["9k", "10k", "100k", "200k", "500k", "1M", "2M", "5M", "10M", "10M+"], default: "9k" },
 });
 
 
