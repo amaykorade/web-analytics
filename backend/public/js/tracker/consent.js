@@ -5,60 +5,52 @@ export function createConsentPopup(onAccept, onDecline) {
     consentDiv.innerHTML = `
         <div id="cookie-consent" style="
 position: fixed;
-bottom: 20px;
+bottom: 24px;
 left: 50%;
 transform: translateX(-50%);
-max-width: 500px;
-background: #fff;
-padding: 20px;
-box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
-border-radius: 8px;
+max-width: 600px;
+background: rgba(255,255,255,0.75);
+backdrop-filter: blur(8px); 
+padding: 18px 24px;
+box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+border-radius: 10px;
 text-align: center;
-font-family: Arial, sans-serif;
-font-size: 14px;
-line-height: 1.6;
-z-index: 1000;
-">
-<h3 style="margin-top: 0; color: #333;">We Value Your Privacy</h3>
-<p style="color: #555; margin-bottom: 12px;">
-    We use cookies and similar tracking technologies to enhance your experience, analyze site usage, 
-    and improve our services. By clicking <strong>"Accept"</strong>, you consent to us collecting the following data:
-</p>
-<ul style="text-align: left; padding-left: 20px; color: #555; margin-bottom: 12px;">
-    <li>Pages you visit and time spent on each</li>
-    <li>Your interactions (e.g., clicks, scrolls) to enhance usability</li>
-    <li>Session details to personalize content and optimize performance</li>
-    <li>Device and browser information for improving compatibility</li>
-</ul>
-<p style="color: #555; margin-bottom: 12px;">
-    <strong>We do NOT collect</strong> personal or sensitive information like passwords, financial data, 
-    or private messages. Your data is <strong>secure</strong> and will <strong>never be shared with third parties without consent.</strong>
-    You can change your preferences anytime in our <a href="https://www.webmeter.in/privacy" style="color: #007bff; text-decoration: none;">Privacy Policy</a>.
-</p>
-<div style="margin-top: 15px;">
+font-family: 'Segoe UI', Arial, sans-serif;
+font-size: 15px;
+line-height: 1.7;
+z-index: 1000;">
+  <div style="font-weight: 600; color: #222; font-size: 17px; margin-bottom: 6px;">Analytics & Cookies</div>
+  <div style="color: #444; margin-bottom: 14px;">
+    We use cookies for analytics to improve your experience. <br>
+    <span style="color:#1a7cff; font-weight:500;">No personal data is collected.</span>
+    See our <a href="https://www.webmeter.in/privacy" style="color: #1a7cff; text-decoration:underline;">Privacy Policy</a>.
+  </div>
+  <div style="margin-top: 10px;">
     <button id="consent-accept" style="
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        margin-right: 10px;
-    ">✅ Accept & Continue</button>
-    
+      background: #1a7cff;
+      color: #fff;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+      margin-right: 8px;
+      font-weight: 500;
+      transition: background 0.2s;
+    ">Accept</button>
     <button id="consent-decline" style="
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-    ">❌ Decline</button>
+      background: #e0e0e0;
+      color: #333;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      transition: background 0.2s;
+    ">Decline</button>
+  </div>
 </div>
-</div>
-
     `;
     document.body.appendChild(consentDiv);
 
