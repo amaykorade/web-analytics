@@ -29,15 +29,15 @@ const DateRangePicker = () => {
     if (userID && websiteName) {
       fetchAnalytics(selectedRange);
     }
-  }, [selectedRange, userID, websiteName]);
+  }, [selectedRange, userID, websiteName, customRange]);
 
   const fetchAnalytics = (range) => {
     let startDate, endDate;
 
     switch (range) {
       case "Today":
-        startDate = dayjs().subtract(24, "hours");
-        endDate = dayjs().endOf("day");
+        startDate = dayjs().startOf("day");
+        endDate = dayjs();
         break;
       case "Last 24 Hours":
         startDate = dayjs().subtract(24, "hours");
