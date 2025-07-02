@@ -90,7 +90,7 @@ export const register = async (req, res) => {
             pricingPlan: "9k",
             paymentStatus: "trial",
             subscriptionStartDate: new Date(),
-            subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            subscriptionEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
         });
 
         await user.save();

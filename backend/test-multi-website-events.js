@@ -35,7 +35,7 @@ const createTestUser = async () => {
             paymentStatus: 'active',
             eventsUsed: 0,
             subscriptionStartDate: new Date(),
-            subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            subscriptionEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
             lastUsageReset: new Date()
         });
         
