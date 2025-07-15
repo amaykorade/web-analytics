@@ -34,6 +34,14 @@ import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
         let navigationPath = [window.location.pathname];
         sessionStorage.setItem("navigationPath", JSON.stringify(navigationPath));
 
+        // --- SPA Referrer Fix ---
+        // Use sessionStorage to persist referrer across SPA navigations
+        let lastReferrer = sessionStorage.getItem("spa_referrer");
+        if (!lastReferrer) {
+            lastReferrer = document.referrer || "";
+            sessionStorage.setItem("spa_referrer", lastReferrer);
+        }
+
         // Replace sendData with socket.emit for real-time events
         const sendRealtimeData = (data) => {
             data.websiteName = websiteName; // Ensure websiteName is always included
@@ -60,21 +68,22 @@ import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
             });
         };
 
+        // --- Modified trackPageVisit to use SPA referrer fix ---
         const trackPageVisit = (isEntryPage = false) => {
             const currentPath = window.location.pathname;
-            
             // Update navigation path if it's a new page
             if (navigationPath[navigationPath.length - 1] !== currentPath) {
                 updateNavigationPath(currentPath);
             }
 
+            // Use lastReferrer for SPA navigation, then update it
             const data = {
                 type: "page_visit",
                 sessionId,
                 visitorId: visitorId,
                 url: window.location.href,
                 path: currentPath,
-                referrer: document.referrer,
+                referrer: lastReferrer,
                 entryPage: isEntryPage,
                 utmParams,
                 geoLocation: geoData,
@@ -86,6 +95,9 @@ import io from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
                 timestamp: new Date().toISOString(),
             };
             sendRealtimeData(data);
+            // After sending, update lastReferrer to current URL for next navigation
+            lastReferrer = window.location.href;
+            sessionStorage.setItem("spa_referrer", lastReferrer);
         };
 
         // Track initial page visit
