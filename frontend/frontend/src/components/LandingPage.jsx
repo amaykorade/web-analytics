@@ -125,7 +125,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-wrap justify-center gap-6 mt-4 text-sm text-gray-400">
               <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-400" />No credit card required</span>
-              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-400" />14-day free trial</span>
+              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-400" />7-day free trial</span>
               <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-yellow-400" />5-minute setup</span>
             </div>
           </div>
@@ -368,6 +368,15 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-gray-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-6">Simple, Transparent Pricing</h2>
+          <p className="text-xl text-gray-300 mb-10">Choose a plan that fits your SaaS growth stage. No hidden fees.</p>
+          <PricingSection />
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <div className="py-24 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -487,7 +496,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-wrap justify-center gap-6 mt-4 text-sm text-gray-400">
               <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-400" />No credit card required</span>
-              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-400" />14-day free trial</span>
+              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-blue-400" />7-day free trial</span>
               <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-yellow-400" />5-minute setup</span>
             </div>
           </div>
@@ -557,6 +566,128 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function PricingSection() {
+  const [isYearly, setIsYearly] = useState(true);
+  const [sliderIndex, setSliderIndex] = useState(1);
+  const monthlyPlans = [
+    { plan: "10k", price: 9, events: 10_000 },
+    { plan: "100k", price: 19, events: 100_000 },
+    { plan: "200k", price: 29, events: 200_000 },
+    { plan: "500k", price: 49, events: 500_000 },
+    { plan: "1M", price: 69, events: 1_000_000 },
+    { plan: "2M", price: 89, events: 2_000_000 },
+    { plan: "5M", price: 129, events: 5_000_000 },
+    { plan: "10M", price: 169, events: 10_000_000 },
+    { plan: "10M+", price: 199, events: Infinity },
+  ];
+  const yearlyPlans = [
+    { plan: "10k", price: 90, events: 10_000, cutPrice: 108 },
+    { plan: "100k", price: 190, events: 100_000, cutPrice: 228 },
+    { plan: "200k", price: 290, events: 200_000, cutPrice: 348 },
+    { plan: "500k", price: 490, events: 500_000, cutPrice: 588 },
+    { plan: "1M", price: 690, events: 1_000_000, cutPrice: 828 },
+    { plan: "2M", price: 890, events: 2_000_000, cutPrice: 1068 },
+    { plan: "5M", price: 1290, events: 5_000_000, cutPrice: 1548 },
+    { plan: "10M", price: 1690, events: 10_000_000, cutPrice: 2028 },
+    { plan: "10M+", price: 1990, events: Infinity, cutPrice: 2388 },
+  ];
+  const plans = isYearly ? yearlyPlans : monthlyPlans;
+  const currentPlan = plans[sliderIndex];
+
+  return (
+    <div className="relative max-w-2xl mx-auto">
+      <div className="absolute -inset-1 bg-gradient-to-br from-indigo-700/30 via-indigo-400/10 to-indigo-900/30 rounded-3xl blur-lg z-0" />
+      <div className="relative z-10 bg-gray-900 rounded-3xl shadow-2xl border border-gray-800 p-8 md:p-12 flex flex-col items-center">
+        {/* Toggle */}
+        <div className="flex justify-center mb-8 bg-gray-800 rounded-full p-1 w-fit mx-auto border border-gray-700">
+          <button
+            className={`px-6 py-2 rounded-full font-semibold transition duration-200 text-sm md:text-base ${!isYearly ? "bg-indigo-600 text-white shadow" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setIsYearly(false)}
+          >
+            Monthly
+          </button>
+          <button
+            className={`px-6 py-2 rounded-full font-semibold transition duration-200 text-sm md:text-base ${isYearly ? "bg-indigo-600 text-white shadow" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setIsYearly(true)}
+          >
+            Yearly
+            <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded">2 months free</span>
+          </button>
+        </div>
+        {/* Slider */}
+        <div className="w-full mb-8 flex flex-col items-center">
+          <div className="flex items-center w-full">
+            <span className="text-xs md:text-sm font-medium text-gray-500 w-12 text-left">{plans[0].plan}</span>
+            <div className="relative flex-1 mx-2">
+              <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-800 rounded-full -translate-y-1/2 z-0" />
+              <div
+                className="absolute top-1/2 left-0 h-2 bg-indigo-600 rounded-full -translate-y-1/2 z-10 transition-all"
+                style={{ width: `${(sliderIndex / (plans.length - 1)) * 100}%` }}
+              />
+              <div
+                className="absolute top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${(sliderIndex / (plans.length - 1)) * 100}%` }}
+              >
+                <div className="w-6 h-6 bg-white ring-2 ring-indigo-500 rounded-full shadow-lg border-2 border-indigo-400" />
+              </div>
+              <input
+                type="range"
+                min="0"
+                max={plans.length - 1}
+                value={sliderIndex}
+                onChange={e => setSliderIndex(Number(e.target.value))}
+                className="relative w-full h-2 bg-transparent appearance-none z-20 cursor-pointer opacity-0"
+              />
+            </div>
+            <span className="text-xs md:text-sm font-medium text-gray-500 w-12 text-right">{plans[plans.length - 1].plan}</span>
+          </div>
+          <div className="mt-2 text-xs text-gray-500">Choose your monthly event volume</div>
+        </div>
+        {/* Pricing Card */}
+        <div className="w-full flex flex-col items-center mb-8">
+          <div className="flex items-center justify-center mb-2">
+            {isYearly && (
+              <span className="text-lg line-through text-gray-500 mr-2">${currentPlan.cutPrice}</span>
+            )}
+            <span className="text-5xl md:text-6xl font-extrabold text-white">${currentPlan.price}</span>
+            <span className="text-gray-400 ml-2 text-lg">/{isYearly ? "year" : "month"}</span>
+          </div>
+          <div className="text-sm text-gray-400 mb-2">Billed {isYearly ? "yearly" : "monthly"}. Cancel anytime.</div>
+        </div>
+        {/* Features Grid */}
+        <div className="flex flex-col gap-4 w-full mb-8 items-start">
+          <div className="flex items-center gap-3 text-gray-300">
+            <CheckCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+            <span>{currentPlan.plan} monthly <span className="text-indigo-400 border-b border-indigo-400 ml-1">events</span></span>
+          </div>
+          <div className="flex items-center gap-3 text-gray-300">
+            <CheckCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+            <span>Unlimited websites</span>
+          </div>
+          <div className="flex items-center gap-3 text-gray-300">
+            <CheckCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+            <span>Web analytics, revenue data & KPIs</span>
+          </div>
+          {/* <div className="flex items-center gap-3 text-gray-300">
+            <CheckCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+            <span>Stripe & Lemon Squeezy integrations</span>
+          </div> */}
+          <div className="flex items-center gap-3 text-gray-300">
+            <CheckCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+            <span>Import your data</span>
+          </div>
+        </div>
+        <Link
+          to="/signup"
+          className="w-full md:w-2/3 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold rounded-xl text-lg text-center transition duration-200 shadow-lg mt-2"
+        >
+          Get Started
+        </Link>
+      </div>
     </div>
   );
 }
