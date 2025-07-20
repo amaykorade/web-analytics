@@ -93,6 +93,24 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
+      {/* Header */}
+      <header className="w-full bg-transparent absolute top-0 left-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-2">
+              <img src="/logo4.png" alt="Logo" className="h-8 w-8" />
+              <span className="text-xl font-bold text-white">Analytics</span>
+            </div>
+            <nav className="hidden md:flex items-center gap-8">
+              <a href="#pricing" className="text-gray-300 hover:text-white font-medium transition-colors">Pricing</a>
+              <a href="#contact" className="text-gray-300 hover:text-white font-medium transition-colors">Contact</a>
+            </nav>
+            <div className="md:hidden">
+              {/* Optionally add a mobile menu here */}
+            </div>
+          </div>
+        </div>
+      </header>
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950">
         {/* Background decoration */}
@@ -470,6 +488,18 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Contact Section */}
+      <div id="contact" className="py-16 bg-gray-900 border-t border-gray-800">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Contact Us</h2>
+          <p className="text-gray-300 mb-2">For any queries, reach out to us at:</p>
+          <div className="flex flex-col items-center gap-2">
+            <a href="mailto:contact@webmeter.in" className="text-indigo-400 hover:underline text-lg">contact@webmeter.in</a>
+            <a href="mailto:amaykorade5@gmail.com" className="text-indigo-400 hover:underline text-lg">amaykorade5@gmail.com</a>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -678,7 +708,7 @@ function PricingSection() {
           </div> */}
           <div className="flex items-center gap-3 text-gray-300">
             <CheckCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
-            <span>Import your data</span>
+            <span>Get live insights and data</span>
           </div>
         </div>
         <Link
