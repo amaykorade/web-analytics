@@ -99,7 +99,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-2">
               <img src="/logo4.png" alt="Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold text-white">Analytics</span>
+              <span className="text-xl font-bold text-white">WebMeter</span>
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <a href="#pricing" className="text-gray-300 hover:text-white font-medium transition-colors">Pricing</a>
@@ -570,7 +570,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center md:items-start mb-8 md:mb-0">
               <div className="flex items-center space-x-2 mb-4">
                 <img src="/logo4.png" alt="Logo" className="h-8 w-8" />
-                <span className="text-xl font-bold text-white">Analytics</span>
+                <span className="text-xl font-bold text-white">WebMeter</span>
               </div>
               <p className="text-sm text-gray-400 text-center md:text-left max-w-md">
                 Transform your website data into actionable insights that drive revenue growth.
